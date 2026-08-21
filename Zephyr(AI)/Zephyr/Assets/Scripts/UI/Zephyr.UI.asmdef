@@ -1,0 +1,16 @@
+{
+    "name": "Zephyr.UI",
+    "rootNamespace": "Zephyr.UI",
+    "references": [
+        "Zephyr.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

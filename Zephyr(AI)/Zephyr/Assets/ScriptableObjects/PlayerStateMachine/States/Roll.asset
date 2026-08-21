@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a00cce60e024aee48abfcc862946921e, type: 3}
+  m_Name: Roll
+  m_EditorClassIdentifier: Zephyr.Core.StateMachine::Zephyr.Core.StateMachine.ScriptableObjects.StateSO
+  _actions:
+  - {fileID: 11400000, guid: 32e3d3ebb675376468de961ed4511bc0, type: 2}
+  - {fileID: 11400000, guid: 6c880ec1b81ce684bafa46eb5fa3fcca, type: 2}
+  - {fileID: 11400000, guid: 0e56605b029c2114db2a27f24a57160e, type: 2}
+  - {fileID: 11400000, guid: 695a83ae535ee0b4cab2f1b64200463e, type: 2}
+  - {fileID: 11400000, guid: d18c945d95186784b997847a33bcb1c5, type: 2}
+  stateTag: 7

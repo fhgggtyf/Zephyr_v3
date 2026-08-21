@@ -1,0 +1,39 @@
+﻿metric,variable,label,status,baseline_value,test_value,delta,delta_percent,ttk_before,ttk_after,ttk_benefit_percent
+burst,flat_damage,Flat damage,matched,100.0,111.12,11.120000000000005,11.120000000000005,10.0,9.0,11.111111111111116
+burst,percent_damage,Max-HP damage,matched,0.0,0.011115,0.011115,nan,10.0,9.0,11.111111111111116
+burst,skill_multiplier,Skill multiplier,matched,1.0,1.111125,0.11112499999999992,11.112499999999992,10.0,9.0,11.111111111111116
+burst,attacks_per_second,Attack frequency,matched,1.0,1.100025,0.10002500000000003,10.002500000000003,10.0,9.090702484034454,10.002500000000003
+burst,crit_chance,Crit chance,matched,0.0,0.22225,0.22225,nan,10.0,9.0,11.111111111111116
+burst,crit_multiplier,Crit multiplier,no positive TTK gain in scan range,1.5,,,,10.0,,
+burst,backstab_uptime,Backstab uptime,matched,0.0,0.22225,0.22225,nan,10.0,9.0,11.111111111111116
+burst,backstab_multiplier,Backstab multiplier,no positive TTK gain in scan range,1.5,,,,10.0,,
+burst,target_defense,Target defense,no positive TTK gain in scan range,0.0,,,,10.0,,
+burst,flat_penetration,Flat penetration,no positive TTK gain in scan range,0.0,,,,10.0,,
+burst,percent_penetration,Percent penetration,no positive TTK gain in scan range,0.0,,,,10.0,,
+burst,shield_amount,Shield amount,no positive TTK gain in scan range,0.0,,,,10.0,,
+burst,shield_coeff,Shield coefficient,no positive TTK gain in scan range,1.0,,,,10.0,,
+burst,resource_cost,Resource cost,no positive TTK gain in scan range,10.0,,,,10.0,,
+burst,target_max_hp,Target max HP,matched,1000.0,899.9625,-100.03750000000002,-10.003750000000004,10.0,9.0,11.111111111111116
+burst,ground_density,Ground density (reference),no positive TTK gain in scan range,1.0,,,,10.0,,
+burst,air_density,Air density (reference),no positive TTK gain in scan range,0.35,,,,10.0,,
+burst,aoe_range,AOE range,no positive TTK gain in scan range,1.0,,,,10.0,,
+burst,reward_per_kill,Reward per kill,no positive TTK gain in scan range,1.0,,,,10.0,,
+sustainable,flat_damage,Flat damage,matched,100.0,111.12,11.120000000000005,11.120000000000005,20.0,18.0,11.111111111111116
+sustainable,percent_damage,Max-HP damage,matched,0.0,0.011115,0.011115,nan,20.0,18.0,11.111111111111116
+sustainable,skill_multiplier,Skill multiplier,matched,1.0,1.111125,0.11112499999999992,11.112499999999992,20.0,18.0,11.111111111111116
+sustainable,attacks_per_second,Attack frequency,no positive TTK gain in scan range,1.0,,,,20.0,,
+sustainable,crit_chance,Crit chance,matched,0.0,0.22225,0.22225,nan,20.0,18.0,11.111111111111116
+sustainable,crit_multiplier,Crit multiplier,no positive TTK gain in scan range,1.5,,,,20.0,,
+sustainable,backstab_uptime,Backstab uptime,matched,0.0,0.22225,0.22225,nan,20.0,18.0,11.111111111111116
+sustainable,backstab_multiplier,Backstab multiplier,no positive TTK gain in scan range,1.5,,,,20.0,,
+sustainable,target_defense,Target defense,no positive TTK gain in scan range,0.0,,,,20.0,,
+sustainable,flat_penetration,Flat penetration,no positive TTK gain in scan range,0.0,,,,20.0,,
+sustainable,percent_penetration,Percent penetration,no positive TTK gain in scan range,0.0,,,,20.0,,
+sustainable,shield_amount,Shield amount,no positive TTK gain in scan range,0.0,,,,20.0,,
+sustainable,shield_coeff,Shield coefficient,no positive TTK gain in scan range,1.0,,,,20.0,,
+sustainable,resource_cost,Resource cost,matched,10.0,8.182,-1.8179999999999996,-18.179999999999996,20.0,18.182000000000002,9.99890001099988
+sustainable,target_max_hp,Target max HP,matched,1000.0,899.9625,-100.03750000000002,-10.003750000000004,20.0,18.0,11.111111111111116
+sustainable,ground_density,Ground density (reference),no positive TTK gain in scan range,1.0,,,,20.0,,
+sustainable,air_density,Air density (reference),no positive TTK gain in scan range,0.35,,,,20.0,,
+sustainable,aoe_range,AOE range,no positive TTK gain in scan range,1.0,,,,20.0,,
+sustainable,reward_per_kill,Reward per kill,no positive TTK gain in scan range,1.0,,,,20.0,,

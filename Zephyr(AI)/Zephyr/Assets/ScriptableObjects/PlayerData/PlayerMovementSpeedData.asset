@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca4bb01df86261443b4e5655538bc05a, type: 3}
+  m_Name: PlayerMovementSpeedData
+  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Data.PlayerMovementSpeedDataSO
+  idleSpeed: 0
+  walkSpeed: 3
+  sprintSpeed: 8
+  rollSpeed: 10
+  dashSpeed: 30

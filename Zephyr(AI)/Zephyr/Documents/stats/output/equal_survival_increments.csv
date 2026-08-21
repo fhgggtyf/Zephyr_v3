@@ -1,0 +1,4 @@
+﻿variable,label,baseline_value,test_value,delta,continuous_survival_before,continuous_survival_after,continuous_survival_gain_percent,burst_ttk_before,burst_ttk_after,burst_survival_gain_percent,sustainable_ttk_before,sustainable_ttk_after,sustainable_survival_gain_percent
+target_max_hp,Target max HP,1000.0,1100.0,100.0,10.0,11.0,10.0,10.0,12.0,19.999999999999996,20.0,22.0,10.000000000000009
+target_defense,Relevant defense (armor or MR),0.0,10.0,10.0,10.0,11.0,10.0,10.0,12.0,19.999999999999996,20.0,22.0,10.000000000000009
+shield_amount,Shield amount at ShieldCoeff=1,0.0,100.0,100.0,10.0,11.0,10.0,10.0,12.0,19.999999999999996,20.0,22.0,10.000000000000009

@@ -1,0 +1,19 @@
+{
+    "name": "Zephyr.Core",
+    "rootNamespace": "Zephyr.Core",
+    "references": [
+        "Zephyr.Core.StateMachine",
+        "Zephyr.Inputs",
+        "Unity.InputSystem",
+        "Unity.Localization"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

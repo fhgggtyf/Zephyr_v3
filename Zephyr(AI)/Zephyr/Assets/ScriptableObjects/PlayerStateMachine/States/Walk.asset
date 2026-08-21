@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a00cce60e024aee48abfcc862946921e, type: 3}
+  m_Name: Walk
+  m_EditorClassIdentifier: Zephyr.Core.StateMachine::Zephyr.Core.StateMachine.ScriptableObjects.StateSO
+  _actions:
+  - {fileID: 11400000, guid: b51148b5902612440aec3b0499991ef7, type: 2}
+  - {fileID: 11400000, guid: d75bca9f3fe7ea049b4d5289327f3ce0, type: 2}
+  - {fileID: 11400000, guid: d3085f525c07f0d42806e63479efdcf5, type: 2}
+  - {fileID: 11400000, guid: de3575b1bf22a2545be52e3384351a21, type: 2}
+  - {fileID: 11400000, guid: d18c945d95186784b997847a33bcb1c5, type: 2}
+  stateTag: 1

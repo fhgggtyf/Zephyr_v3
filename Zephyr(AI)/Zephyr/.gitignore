@@ -1,0 +1,35 @@
+# ===== Unity generated (rebuildable) =====
+Library/
+Temp/
+Obj/
+Logs/
+Build/
+Builds/
+UserSettings/
+MemoryCaptures/
+
+# ===== IDE / Editor =====
+.vs/
+.idea/
+.vscode/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.mdb
+*.opendb
+*.VC.db
+
+# ===== Plastic SCM (migrating to Git) =====
+.plastic/
+ignore.conf
+
+# ===== OS junk =====
+Thumbs.db
+Desktop.ini
+.DS_Store

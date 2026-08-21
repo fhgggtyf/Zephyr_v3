@@ -1,0 +1,166 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c8d8e9f001122334455667788990011, type: 3}
+  m_Name: Boss
+  m_EditorClassIdentifier: Assembly-CSharp::Zephyr.Gameplay.Enemies.BossSO
+  _bossId: spear_boss
+  _baseEnemy: {fileID: 11400000, guid: b0550000000000000000000000000001, type: 2}
+  _stageTwoHealthThreshold: 0.5
+  _stageOneAttackInterval: 2.5
+  _stageTwoAttackInterval: 1.5
+  _stageTwoSurroundDuration: 0.35
+  _stageTwoSurroundDamage: 1
+  _stageTwoSurroundSize: {x: 3, y: 1.4}
+  _stageTwoSurroundOffset: 1.5
+  _targetPotential: 4
+  _potentialAttack: 2
+  _attacks:
+  - _id: Dash
+    _kind: 0
+    _animationState: Attack
+    _selectionRange: 18
+    _sameLevelTolerance: 1.25
+    _telegraphDuration: 0.4
+    _totalDuration: 0.8
+    _damage: 35
+    _movementSpeed: 22
+    _jumpHorizontalSpeed: 0
+    _jumpVelocity: 0
+    _throwTime: 0
+    _dashToSpearTime: 0
+    _hitboxes:
+    - _id: DashDamage
+      _startTime: 0.4
+      _endTime: 0.7
+      _localOffset: {x: 0.8, y: 0.8}
+      _size: {x: 1.5, y: 1.6}
+      _damageMultiplier: 1
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+      _damageOncePerTarget: 1
+      _useSpearAnchor: 0
+      _showGizmo: 1
+  - _id: SpearThrowAndDash
+    _kind: 2
+    _animationState: Attack
+    _selectionRange: 18
+    _sameLevelTolerance: 1.25
+    _telegraphDuration: 0.4
+    _totalDuration: 1.6
+    _damage: 25
+    _movementSpeed: 24
+    _jumpHorizontalSpeed: 3
+    _jumpVelocity: 18
+    _throwTime: 0.75
+    _dashToSpearTime: 1
+    _hitboxes:
+    - _id: SpearDamage
+      _startTime: 0.75
+      _endTime: 0.98
+      _localOffset: {x: 0, y: 0}
+      _size: {x: 1, y: 2}
+      _damageMultiplier: 1
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+      _damageOncePerTarget: 1
+      _useSpearAnchor: 1
+      _showGizmo: 1
+    - _id: SpearDashDamage
+      _startTime: 1
+      _endTime: 1.5
+      _localOffset: {x: 0.8, y: 0.8}
+      _size: {x: 1.5, y: 1.5}
+      _damageMultiplier: 1
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+      _damageOncePerTarget: 1
+      _useSpearAnchor: 0
+      _showGizmo: 1
+  - _id: CloseSlashCombo
+    _kind: 3
+    _animationState: Attack
+    _selectionRange: 3
+    _sameLevelTolerance: 2
+    _telegraphDuration: 0.35
+    _totalDuration: 1.1
+    _damage: 20
+    _movementSpeed: 0
+    _jumpHorizontalSpeed: 0
+    _jumpVelocity: 0
+    _throwTime: 0
+    _dashToSpearTime: 0
+    _hitboxes:
+    - _id: VerticalSlash
+      _startTime: 0.35
+      _endTime: 0.55
+      _localOffset: {x: 0.7, y: 1}
+      _size: {x: 0.9, y: 2.3}
+      _damageMultiplier: 1
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+      _damageOncePerTarget: 1
+      _useSpearAnchor: 0
+      _showGizmo: 1
+    - _id: HorizontalSlash
+      _startTime: 0.55
+      _endTime: 0.85
+      _localOffset: {x: 1, y: 0.7}
+      _size: {x: 2.2, y: 0.9}
+      _damageMultiplier: 1
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+      _damageOncePerTarget: 1
+      _useSpearAnchor: 0
+      _showGizmo: 1
+  - _id: CloseGroundStab
+    _kind: 4
+    _animationState: Attack
+    _selectionRange: 3
+    _sameLevelTolerance: 2
+    _telegraphDuration: 0.35
+    _totalDuration: 0.9
+    _damage: 24
+    _movementSpeed: 0
+    _jumpHorizontalSpeed: 0
+    _jumpVelocity: 0
+    _throwTime: 0
+    _dashToSpearTime: 0
+    _hitboxes:
+    - _id: GroundStabLeft
+      _startTime: 0.35
+      _endTime: 0.6
+      _localOffset: {x: -1, y: 0.6}
+      _size: {x: 2, y: 0.8}
+      _damageMultiplier: 1
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+      _damageOncePerTarget: 1
+      _useSpearAnchor: 0
+      _showGizmo: 1
+    - _id: GroundStabRight
+      _startTime: 0.35
+      _endTime: 0.6
+      _localOffset: {x: 1, y: 0.6}
+      _size: {x: 2, y: 0.8}
+      _damageMultiplier: 1
+      _targetLayers:
+        serializedVersion: 2
+        m_Bits: 4294967295
+      _damageOncePerTarget: 1
+      _useSpearAnchor: 0
+      _showGizmo: 1

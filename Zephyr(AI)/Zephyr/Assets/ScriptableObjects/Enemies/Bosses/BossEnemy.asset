@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1100000000000000000000000000010, type: 3}
+  m_Name: BossEnemy
+  m_EditorClassIdentifier: Zephyr.Gameplay.Enemies::Zephyr.Gameplay.Enemies.EnemySO
+  _enemyId: boss_enemy
+  _tags:
+  - Boss
+  - Melee
+  - Ground
+  _behaviourTable: {fileID: 0}
+  _drops: {fileID: 0}
+  _maxHp: 500
+  _attack: 35
+  _magicAttack: 0
+  _armor: 8
+  _magicResist: 5
+  _stamina: 0
+  _energy: 0
+  _attackSpeed: 1
+  _luck: 0
+  _tenacity: 0
+  _moveSpeed: 3
+  _patrolSpeed: 2
+  _patrolDistance: 2
+  _acceleration: 60
+  _aggroRange: 14
+  _detectionRange: 18
+  _alertDuration: 0
+  _attackRange: 2.2
+  _attackCooldown: 2.5
+  _attackWindup: 0.45
+  _attackDuration: 1.2
+  _attackActiveDuration: 0.2
+  _hurtDuration: 0.2
+  _loseAggroMultiplier: 1.5
+  _contactDamage: 0
+  _damageType: 0
+  _damageCategory: 0
+  _attacks: []
+  _componentData: []
+  _targetPotential: 4
+  _potentialAttack: 2
