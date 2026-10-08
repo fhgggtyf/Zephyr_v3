@@ -48,6 +48,11 @@ namespace Zephyr.Gameplay.Player.Input
         public bool HasSprintInput { get; private set; }
 
         /// <summary>
+        /// True until the current Shift hold has started Sprint.
+        /// </summary>
+        public bool IsSprintPressFresh { get; private set; }
+
+        /// <summary>
         /// True when the roll button is held. Used by state conditions to
         /// gate transitions into the Roll state.
         /// </summary>
@@ -98,6 +103,15 @@ namespace Zephyr.Gameplay.Player.Input
             return true;
         }
 
+        /// <summary>
+        /// Marks the current Shift hold as already used to enter Sprint.
+        /// Releasing Shift resets this through OnSprint.
+        /// </summary>
+        public void ConsumeSprintStartInput()
+        {
+            IsSprintPressFresh = false;
+        }
+
         public bool ConsumePrimaryAttackInput()
         {
             if (!HasPrimaryAttackInput) return false;
@@ -119,8 +133,9 @@ namespace Zephyr.Gameplay.Player.Input
             _actions = new ZephyrInputActions();
         }
 
-        private void OnEnable()
+private void OnEnable()
         {
+            _actions ??= new ZephyrInputActions();
             _actions.GamePlay.AddCallbacks(this);
             DialogueManager.GameplayInputSuspended += DisableGameplayInput;
             DialogueManager.GameplayInputRestored += EnableGameplayInput;
@@ -131,10 +146,11 @@ namespace Zephyr.Gameplay.Player.Input
                 EnableGameplayInput();
         }
 
-        private void OnDisable()
+private void OnDisable()
         {
             DialogueManager.GameplayInputSuspended -= DisableGameplayInput;
             DialogueManager.GameplayInputRestored -= EnableGameplayInput;
+            if (_actions == null) return;
             _actions.GamePlay.Disable();
             _actions.GamePlay.RemoveCallbacks(this);
             ClearInputState();
@@ -155,6 +171,7 @@ namespace Zephyr.Gameplay.Player.Input
         {
             MoveInput = Vector2.zero;
             HasSprintInput = false;
+            IsSprintPressFresh = false;
             HasRollInput = false;
             HasCrouchInput = false;
             HasJumpInput = false;
@@ -176,12 +193,28 @@ namespace Zephyr.Gameplay.Player.Input
             MoveInput = context.ReadValue<Vector2>();
         }
 
+        public void OnInteract(InputAction.CallbackContext context){}
+
         /// <summary>
         /// Called by the Input System when the Sprint action is started, performed, or canceled.
         /// Updates the sprint held state.
         /// </summary>
         public void OnSprint(InputAction.CallbackContext context)
         {
+            if (context.started)
+            {
+                HasSprintInput = true;
+                IsSprintPressFresh = true;
+                return;
+            }
+
+            if (context.canceled)
+            {
+                HasSprintInput = false;
+                IsSprintPressFresh = false;
+                return;
+            }
+
             HasSprintInput = context.ReadValueAsButton();
         }
 

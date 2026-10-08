@@ -20,12 +20,25 @@ namespace Zephyr.Core.Weapons
     [Serializable]
     public class ComboStep
     {
+        [Header("Weapon Motion")]
         [SerializeField] private AnimationClip m_animationClip;
+
+        [Header("Player Presentation")]
+        [Tooltip("Animator state name played on the player's SpriteAnimator for this combo step.")]
+        [SerializeField] private string m_playerAnimationName;
+        [Tooltip("Placeholder clip in the player controller replaced by the weapon-specific body clip.")]
+        [SerializeField] private AnimationClip m_playerAnimationPlaceholder;
+        [Tooltip("Weapon-specific player body animation clip for this combo step.")]
+        [SerializeField] private AnimationClip m_playerAnimationClip;
+
         [Min(0f)] [SerializeField] private float m_damageMultiplier = 1f;
         [Min(0.01f)] [SerializeField] private float m_durationInSeconds = 0.5f;
         [Min(0f)] [SerializeField] private float m_comboResetDelayInSeconds = 0.8f;
 
         public AnimationClip AnimationClip => m_animationClip;
+        public string PlayerAnimationName => m_playerAnimationName;
+        public AnimationClip PlayerAnimationPlaceholder => m_playerAnimationPlaceholder;
+        public AnimationClip PlayerAnimationClip => m_playerAnimationClip;
         public float DamageMultiplier => m_damageMultiplier;
         public float DurationInSeconds => m_durationInSeconds;
         public float ComboResetDelayInSeconds => m_comboResetDelayInSeconds;
@@ -69,6 +82,11 @@ namespace Zephyr.Core.Weapons
         public int ComboIndex { get; }
         public float StartedAt { get; }
         public float EndsAt { get; }
+        /// <summary>
+        /// Shared playback window used by both the player-body and weapon
+        /// animation so their independently authored clips finish together.
+        /// </summary>
+        public float Duration => Mathf.Max(0.01f, EndsAt - StartedAt);
 
         public AttackContext(WeaponSO weapon, WeaponSlot slot, int comboIndex, float startedAt, float endsAt)
         {

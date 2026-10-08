@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Zephyr.Core.Camera
 {
@@ -38,6 +39,30 @@ namespace Zephyr.Core.Camera
         private float _shakeAmplitude;
         private Vector3 _logicalPosition;
         private bool _hasLogicalPosition;
+
+        /// <summary>
+        /// Resolves the gameplay camera deterministically. GameManager owns the
+        /// shared camera when it is loaded; otherwise the requested gameplay
+        /// scene camera is used as a standalone fallback.
+        /// </summary>
+        public static CameraController FindForGameplay(Scene preferredScene)
+        {
+            CameraController fallback = null;
+            CameraController preferred = null;
+            CameraController gameManager = null;
+
+            foreach (CameraController candidate in Object.FindObjectsByType<CameraController>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (candidate == null || !candidate.gameObject.activeInHierarchy) continue;
+                fallback ??= candidate;
+                if (candidate.gameObject.scene == preferredScene) preferred ??= candidate;
+                if (candidate.gameObject.scene.path.EndsWith("/GameManager.unity", System.StringComparison.OrdinalIgnoreCase))
+                    gameManager ??= candidate;
+            }
+
+            return gameManager ?? preferred ?? fallback;
+        }
 
         /// <summary>Queues a short, damage-scaled camera shake.</summary>
         public void ShakeForDamage(float damage)
@@ -104,6 +129,53 @@ namespace Zephyr.Core.Camera
             if (_camera == null) _camera = GetComponentInChildren<UnityEngine.Camera>();
             _logicalPosition = transform.position;
             _hasLogicalPosition = true;
+        }
+
+        private void OnEnable()
+        {
+            SceneManager.sceneLoaded += HandleSceneLoaded;
+        }
+
+        private void OnDisable()
+        {
+            SceneManager.sceneLoaded -= HandleSceneLoaded;
+        }
+
+        private void Start()
+        {
+            // Gameplay scenes may still contain a standalone camera for editor
+            // authoring. Once GameManager is loaded, only its camera may render.
+            RefreshCameraAuthorityAndTarget();
+        }
+
+        private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            // A direct-open scene can start its local camera before ColdStartup
+            // loads GameManager. Re-evaluate authority after every additive load
+            // so the shared GameManager camera takes over deterministically.
+            RefreshCameraAuthorityAndTarget();
+        }
+
+        private void RefreshCameraAuthorityAndTarget()
+        {
+            CameraController primary = FindForGameplay(gameObject.scene);
+            if (primary != this)
+            {
+                if (_camera != null) _camera.enabled = false;
+                return;
+            }
+
+            if (_camera != null) _camera.enabled = true;
+            TryBindSceneOwnedPlayer();
+        }
+
+        private void TryBindSceneOwnedPlayer()
+        {
+            if (_follow != null) return;
+
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+                SetFollow(player.transform);
         }
 
         private void LateUpdate()

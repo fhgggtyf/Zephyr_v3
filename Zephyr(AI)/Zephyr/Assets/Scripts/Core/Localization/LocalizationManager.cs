@@ -80,8 +80,17 @@ namespace Zephyr.Core.Localization
                 return;
             }
 
-            if (LocalizationSettings.SelectedLocale != unityLocale)
+            // Reading LocalizationSettings.SelectedLocale during Awake may call
+            // WaitForCompletion on an active Addressables operation. Set the locale
+            // directly instead of synchronously reading the async-backed getter.
+            try
+            {
                 LocalizationSettings.SelectedLocale = unityLocale;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"Localization: could not set Unity locale '{unityLocale.Identifier.Code}': {exception.Message}", this);
+            }
         }
 
         private void HandleUnityLocaleChanged(Locale unityLocale)

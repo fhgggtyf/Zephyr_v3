@@ -43,7 +43,12 @@ namespace Zephyr.Gameplay.Player.StateMachine
 
             if (_movementCore.IsGrounded) return false;
             if (!_movementCore.HasDoubleJumpRemaining) return false;
-            if (_resources == null || !_resources.CanJump) return false;
+            if (_resources == null || !_resources.CanJump)
+            {
+                // Reject an unaffordable edge-triggered press immediately.
+                _inputReader.ConsumeJumpInput();
+                return false;
+            }
 
             return _inputReader.ConsumeJumpInput();
         }

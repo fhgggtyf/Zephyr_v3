@@ -341,8 +341,9 @@ namespace Zephyr.Core.Save
         {
             public string ProfileId;
             public bool HasCompletedTutorial;
-            public List<string> FulfilledObjectives = new List<string>();
-            public List<string> TriggeredStoryBeats = new List<string>();
+            public List<string> StoryFacts = new List<string>();
+            public List<StringIntEntry> StoryFactIntegers = new List<StringIntEntry>();
+            public List<string> CompletedMilestones = new List<string>();
             public List<string> UnlockedMechanics = new List<string>();
             public List<string> PurchasedUpgrades = new List<string>();
             public long MetaCurrency;
@@ -359,8 +360,9 @@ namespace Zephyr.Core.Save
                 {
                     ProfileId = data.ProfileId,
                     HasCompletedTutorial = data.HasCompletedTutorial,
-                    FulfilledObjectives = new List<string>(data.FulfilledObjectives ?? new HashSet<string>()),
-                    TriggeredStoryBeats = new List<string>(data.TriggeredStoryBeats ?? new HashSet<string>()),
+                    StoryFacts = new List<string>(data.StoryFacts ?? new HashSet<string>()),
+                    StoryFactIntegers = ToEntries(data.StoryFactIntegers),
+                    CompletedMilestones = new List<string>(data.CompletedMilestones ?? new HashSet<string>()),
                     UnlockedMechanics = new List<string>(data.UnlockedMechanics ?? new HashSet<string>()),
                     PurchasedUpgrades = new List<string>(data.PurchasedUpgrades ?? new HashSet<string>()),
                     MetaCurrency = data.MetaCurrency,
@@ -379,8 +381,9 @@ namespace Zephyr.Core.Save
                 {
                     ProfileId = ProfileId,
                     HasCompletedTutorial = HasCompletedTutorial,
-                    FulfilledObjectives = new HashSet<string>(FulfilledObjectives ?? new List<string>()),
-                    TriggeredStoryBeats = new HashSet<string>(TriggeredStoryBeats ?? new List<string>()),
+                    StoryFacts = new HashSet<string>(StoryFacts ?? new List<string>()),
+                    StoryFactIntegers = ToStringIntDictionary(StoryFactIntegers),
+                    CompletedMilestones = new HashSet<string>(CompletedMilestones ?? new List<string>()),
                     UnlockedMechanics = new HashSet<string>(UnlockedMechanics ?? new List<string>()),
                     PurchasedUpgrades = new HashSet<string>(PurchasedUpgrades ?? new List<string>()),
                     MetaCurrency = MetaCurrency,
@@ -405,7 +408,6 @@ namespace Zephyr.Core.Save
             public List<IntFloatEntry> Potentials = new List<IntFloatEntry>();
             public List<IntFloatEntry> BaseStats = new List<IntFloatEntry>();
             public List<IntFloatEntry> AcquiredModifiers = new List<IntFloatEntry>();
-            public List<string> PendingObjectives = new List<string>();
             public int EquippedWeaponId;
             public List<int> AcquiredWeaponIds = new List<int>();
             public bool IsSettled;
@@ -424,7 +426,6 @@ namespace Zephyr.Core.Save
                     Potentials = ToEntries(data.Potentials),
                     BaseStats = ToEntries(data.BaseStats),
                     AcquiredModifiers = ToEntries(data.AcquiredModifiers),
-                    PendingObjectives = new List<string>(data.PendingObjectives ?? new HashSet<string>()),
                     EquippedWeaponId = data.EquippedWeaponId,
                     AcquiredWeaponIds = new List<int>(data.AcquiredWeaponIds ?? new HashSet<int>()),
                     IsSettled = data.IsSettled,
@@ -445,7 +446,6 @@ namespace Zephyr.Core.Save
                     Potentials = ToIntFloatDictionary(Potentials),
                     BaseStats = ToIntFloatDictionary(BaseStats),
                     AcquiredModifiers = ToIntFloatDictionary(AcquiredModifiers),
-                    PendingObjectives = new HashSet<string>(PendingObjectives ?? new List<string>()),
                     EquippedWeaponId = EquippedWeaponId,
                     AcquiredWeaponIds = new HashSet<int>(AcquiredWeaponIds ?? new List<int>()),
                     IsSettled = IsSettled,
@@ -462,6 +462,37 @@ namespace Zephyr.Core.Save
             public float Value;
 
             public StringFloatEntry(string key, float value)
+            {
+                Key = key;
+                Value = value;
+            }
+        }
+
+        private static List<StringIntEntry> ToEntries(Dictionary<string, int> values)
+        {
+            var entries = new List<StringIntEntry>(values?.Count ?? 0);
+            if (values == null) return entries;
+            foreach (KeyValuePair<string, int> pair in values)
+                entries.Add(new StringIntEntry(pair.Key, pair.Value));
+            return entries;
+        }
+
+        private static Dictionary<string, int> ToStringIntDictionary(List<StringIntEntry> entries)
+        {
+            var values = new Dictionary<string, int>(entries?.Count ?? 0);
+            if (entries == null) return values;
+            foreach (StringIntEntry entry in entries)
+                values[entry.Key] = entry.Value;
+            return values;
+        }
+
+        [Serializable]
+        private struct StringIntEntry
+        {
+            public string Key;
+            public int Value;
+
+            public StringIntEntry(string key, int value)
             {
                 Key = key;
                 Value = value;

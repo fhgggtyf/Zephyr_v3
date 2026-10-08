@@ -14,7 +14,6 @@ namespace Zephyr.Core.Meta
             if (run.AcquiredWeaponIds != null)
                 meta.UnlockedWeapons.UnionWith(run.AcquiredWeaponIds);
 
-            StoryProgressionSystem.CommitRunObjectives(run, meta);
             run.IsSettled = true;
             return true;
         }

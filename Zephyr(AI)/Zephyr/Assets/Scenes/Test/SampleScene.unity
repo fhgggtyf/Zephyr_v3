@@ -129,7 +129,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
   m_Sprite: {fileID: 530466593}
   m_Color: {r: 0.7083473, g: 0.44647598, b: 0.53246367, a: 1}
@@ -153,6 +153,35 @@ MonoBehaviour:
   m_InstancedGameObject: {fileID: 0}
   m_Flags: 3
   m_ColliderType: 1
+--- !u!1 &151435552 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 999818087393829589, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
+  m_PrefabInstance: {fileID: 582948806}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &151435557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 151435552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f42ddc9522e84ae3a98848b5afe526b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Weapons.AirAttackWeaponComponent
+--- !u!114 &151435558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 151435552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd1cdc6545c4a904395917e7ddbb8bc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Weapons.MeleeHitBoxWeaponComponent
 --- !u!114 &363358137
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,7 +192,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
   m_Sprite: {fileID: 530466593}
   m_Color: {r: 0.8177101, g: 0.46256876, b: 0.48650756, a: 1}
@@ -224,7 +253,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   m_RenderShadows: 1
   m_RequiresDepthTextureOption: 2
@@ -597,6 +626,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 700000000000000003, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
+      propertyPath: m_weaponSet.m_primary
+      value: 
+      objectReference: {fileID: 11400000, guid: 44e093bf053cc9c49aa9fb070f55aa2f, type: 2}
+    - target: {fileID: 1990665124019308406, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1465102828}
+    - target: {fileID: 2644614636716210566, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 5824402216780410361, guid: c6b6c52f026974a45b99f4299510813f, type: 3}
+    - target: {fileID: 2644614636716210566, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2644614636716210566, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 891150933}
     - target: {fileID: 2892429184346525890, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
       propertyPath: m_LocalPosition.x
       value: -4.84
@@ -637,6 +686,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5478649279060567371, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: e320e3b914f407f46b9e2b1050e5d9df, type: 2}
     - target: {fileID: 5745911219366126701, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
       propertyPath: m_Name
       value: Player
@@ -644,7 +697,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 999818087393829589, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 151435558}
+    - targetCorrespondingSourceObject: {fileID: 999818087393829589, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 151435557}
   m_SourcePrefab: {fileID: 100100000, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
 --- !u!1 &619394800
 GameObject:
@@ -673,7 +732,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 073797afb82c5a1438f328866b10b3f0, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   m_ComponentVersion: 4
   m_LightType: 4
@@ -1306,6 +1365,56 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!21 &891150933
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Sprite-Lit-Default (Instance)
+  m_Shader: {fileID: 4800000, guid: e260cfa7296ee7642b167f1eb5be5023, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - ETC1_EXTERNAL_ALPHA
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _EnableExternalAlpha: 0
+    - _ZWrite: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &1285784688
 GameObject:
   m_ObjectHideFlags: 0
@@ -1337,54 +1446,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 53415108f8b86f741b21417d4ff7f034, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Zephyr.Testing.TestDummy
   _hitFlashColor: {r: 1, g: 0.5, b: 0.5, a: 0.5}
   _hitFlashDuration: 0.1
---- !u!114 &1285784692
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1285784688}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f8d06882d76ed24391bf4ca2c19152c, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Stats.StatsCore
---- !u!114 &1285784693
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1285784688}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b7d10846793fc754284315aeea21c057, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Core.PlayerStatsInitializer
-  _baseAttack: 0
-  _baseDefense: 5
-  _baseMaxHp: 1000
-  _baseStamina: 0
-  _baseEnergy: 0
-  _baseAttackSpeed: 1
---- !u!114 &1285784694
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1285784688}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf79451bed6641f4d8912763fe0e9184, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Health.HealthComponent
-  _statsCore: {fileID: 1285784692}
-  _logDamage: 1
 --- !u!61 &1285784690
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1446,6 +1511,102 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1285784692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285784688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f8d06882d76ed24391bf4ca2c19152c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Stats.StatsCore
+--- !u!114 &1285784693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285784688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7d10846793fc754284315aeea21c057, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Core.PlayerStatsInitializer
+  _baseAttack: 0
+  _baseDefense: 5
+  _baseMaxHp: 1000
+  _baseStamina: 0
+  _baseEnergy: 0
+  _baseAttackSpeed: 1
+  _baseTenacity: 0
+  _defaultPotential: 10
+--- !u!114 &1285784694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1285784688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf79451bed6641f4d8912763fe0e9184, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Health.HealthComponent
+  _statsCore: {fileID: 1285784692}
+  _logDamage: 1
+--- !u!21 &1465102828
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Sprite-Lit-Default (Instance)
+  m_Shader: {fileID: 4800000, guid: e260cfa7296ee7642b167f1eb5be5023, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - ETC1_EXTERNAL_ALPHA
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _EnableExternalAlpha: 0
+    - _ZWrite: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

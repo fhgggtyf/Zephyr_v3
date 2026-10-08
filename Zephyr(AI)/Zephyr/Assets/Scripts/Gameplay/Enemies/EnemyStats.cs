@@ -67,6 +67,7 @@ namespace Zephyr.Gameplay.Enemies
         private void Awake()
         {
             _stats = GetComponent<StatsCore>();
+            _stats.SetOwnerRole(StatsOwnerRole.Enemy);
             ApplyToStatsCore();
         }
 

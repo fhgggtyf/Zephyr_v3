@@ -870,8 +870,8 @@ Two regenerating resource bars share one actor-owned runtime component:
 
 **State-machine integration:**
 
-- `SprintSpeedAction` drains Stamina every `OnUpdate`. `IdleToSprintCondition` and `WalkToSprintCondition` require `CanSprint`; `SprintToWalkCondition` also fires when Stamina reaches zero.
-- `GroundedToJumpCondition` and `AirborneToDoubleJumpCondition` require enough Stamina before consuming buffered jump input. `JumpForceAction` then consumes the Jump cost once before applying force.
+- `SprintSpeedAction` drains Stamina every `OnUpdate`. `SprintToWalkCondition` fires when Stamina reaches zero. `IdleToSprintCondition` and `WalkToSprintCondition` allow a fresh Shift press with any positive Stamina, but a continuously held Shift press can restart only at or above the 5-Stamina restart threshold.
+- `GroundedToJumpCondition` and `AirborneToDoubleJumpCondition` reject and consume a jump press immediately when Stamina is insufficient; affordable input is then consumed before entering the state. `JumpForceAction` consumes the Jump cost once before applying force.
 - Both jump types currently share `_jumpStaminaCost`. If they need different balance later, split this into separate serialized costs without modifying the StateMachine foundation.
 - Weapon attacks continue to use `WeaponSO.AttackResourceCost`, so each weapon can independently select Stamina, Energy, or no resource.
 
@@ -1537,7 +1537,7 @@ percentRaw  = resolvedPercentDamage                  // 0..1, typed via PercentT
 ### 9.7 Weapon → StateMachine, Resources & Ranged
 
 - The Primary and Secondary attack states/transitions and their actions are part of the player's `TransitionTableSO`. Each action reads the requested slot's `WeaponSO.Combo` to drive step timings — there is no prerequisite ActiveWeapon switch and the StateMachine foundation is unchanged.
-- Each attack step consumes `AttackStaminaCost` and/or `AttackEnergyCost` (Ch.5.5). If the resource is insufficient, the attack is cancelled (transition to Idle) — enforced by a `StateCondition` checking the resource bar.
+- Each attack step consumes `AttackStaminaCost` and/or `AttackEnergyCost` (Ch.5.5). If the resource is insufficient, the attack press is rejected immediately rather than buffered until regeneration — enforced by the attack `StateCondition` checking and consuming the pending input.
 - Ranged weapons spawn a projectile via the pool (Ch.8/10) instead of applying damage directly. The weapon's `ProjectileSpawnSpec` is translated to a `ProjectileLaunchData` (Ch.2.7) at spawn time:
 
 ```csharp
@@ -3077,6 +3077,10 @@ public static class MetaUpgradeSystem
 ```
 
 Upgrades are **persistent** — once purchased they apply to every subsequent run. Purchases write `MetaData` immediately (MetaHub is out-of-run, so the Ch.12.1 no-mid-run-write rule does not apply).
+
+**Vertical Slice Potential tuning and interaction contract:** The initial run-entry values are `N=20` total Potential budget and `M=5` player-allocatable points. The Potential budget upgrade adds `+2` per purchase, while the allocatable upgrade adds `+1` per purchase. `N` is capped at `100`, `M` is capped at `20`, and the runtime enforces `M <= N`. Both authored test upgrades currently cost `0` currency. MetaHub exposes these through a replaceable interactable upgrade-station prefab rather than a hard-coded scene trigger.
+
+When the player interacts with the separate run-start interactable, the UI immediately rolls the complete `N-M` random foundation using the runtime random source, not the Run seed. The roll does not attempt to balance the ten stats; each stat that receives random points starts at `1`. The remaining `M` points are manually allocated by the player through the panel. A run can start by button click or Enter only after all `M` points are spent and every final Potential is at least `1`; therefore the final allocation contains no zero values. The confirmed allocation is held in a transient `RunEntryPotentialService` until `LoadingRun` creates the fresh `RunData`, then written to `RunData.Potentials` before the normal `SceneLoader` transition into the first room.
 
 ### 22.6 Mechanic Unlocks (gated gameplay capabilities)
 

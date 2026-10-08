@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Zephyr.Core;
 using Zephyr.Core.DamageSystem;
 using Zephyr.Core.Interfaces;
 using Zephyr.Core.Stats;
@@ -13,7 +14,7 @@ namespace Zephyr.Core.Health
     /// DamageCalculator. Publishes events for UI and audio to subscribe.
     /// </summary>
     [DisallowMultipleComponent]
-    public class HealthComponent : MonoBehaviour, IDamageable, IHealable, IShieldable, IStatSource
+    public class HealthComponent : MonoBehaviour, IDamageable, IHealable, IShieldable, IStatSource, IMetaStatSource
     {
         [Header("Dependencies")]
         [SerializeField] private StatsCore _statsCore;
@@ -25,6 +26,8 @@ namespace Zephyr.Core.Health
 
         public float CurrentHp { get; private set; }
         public float MaxHp => _statsCore != null ? _statsCore.GetStatValue(StatType.MaxHp) : 100f;
+        public bool IsHealthUnbounded => _statsCore != null &&
+                                          _statsCore.GetMetaStat(MetaStatType.UnboundedHealth) > 0.5f;
         public float CurrentShield { get; private set; }
         public float MaxShield { get; private set; }
 
@@ -70,13 +73,13 @@ namespace Zephyr.Core.Health
                 if (absorbed < result.DealtToShield)
                 {
                     float overflow = result.DealtToShield - absorbed;
-                    CurrentHp = Mathf.Max(0f, CurrentHp - overflow);
+                    CurrentHp = Mathf.Max(IsHealthUnbounded ? 1f : 0f, CurrentHp - overflow);
                 }
             }
 
             if (result.DealtToHp > 0f)
             {
-                CurrentHp = Mathf.Max(0f, CurrentHp - result.DealtToHp);
+                CurrentHp = Mathf.Max(IsHealthUnbounded ? 1f : 0f, CurrentHp - result.DealtToHp);
             }
 
 #if UNITY_EDITOR
@@ -131,6 +134,11 @@ namespace Zephyr.Core.Health
         public float GetPotential(StatType statType)
         {
             return _statsCore != null ? _statsCore.GetPotential(statType) : 0f;
+        }
+
+        public float GetMetaStat(MetaStatType statType)
+        {
+            return _statsCore != null ? _statsCore.GetMetaStat(statType) : 0f;
         }
 
         public void ResetHealth()

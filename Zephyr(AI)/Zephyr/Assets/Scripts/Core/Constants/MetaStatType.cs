@@ -60,6 +60,9 @@ namespace Zephyr.Core
         PotentialBudget,
 
         /// <summary>Player-allocatable share multiplier for in-run stat gains.</summary>
-        ShareMultiplier
+        ShareMultiplier,
+
+        /// <summary>When positive, health damage is still applied and reported, but HP cannot reach zero.</summary>
+        UnboundedHealth
     }
 }

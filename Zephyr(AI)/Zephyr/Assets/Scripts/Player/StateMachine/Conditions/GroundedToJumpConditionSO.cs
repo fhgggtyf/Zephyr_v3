@@ -28,12 +28,14 @@ namespace Zephyr.Gameplay.Player.StateMachine
         private PlayerInputReader _inputReader;
         private MovementCore _movementCore;
         private PlayerResourceController _resources;
+        private PlayerColliderController _colliderController;
 
         public override void Awake(CoreSM stateMachine)
         {
             _inputReader = stateMachine.GetCachedComponent<PlayerInputReader>();
             _movementCore = stateMachine.GetCachedComponent<MovementCore>();
             stateMachine.TryGetCachedComponent(out _resources);
+            stateMachine.TryGetCachedComponent(out _colliderController);
         }
 
         protected override bool Statement()
@@ -45,7 +47,13 @@ namespace Zephyr.Gameplay.Player.StateMachine
             }
 
             if (!_movementCore.IsGrounded) return false;
-            if (_resources == null || !_resources.CanJump) return false;
+            if (_colliderController != null && !_colliderController.CanUseStandingProfile()) return false;
+            if (_resources == null || !_resources.CanJump)
+            {
+                // Reject an unaffordable edge-triggered press immediately.
+                _inputReader.ConsumeJumpInput();
+                return false;
+            }
 
             return _inputReader.ConsumeJumpInput();
         }

@@ -69,6 +69,36 @@ namespace Zephyr.Core.Flow
             ApplySceneTransition(previous, targetState);
         }
 
+        /// <summary>
+        /// Initializes the logical flow state when a gameplay scene is opened
+        /// directly from the editor. Unlike RequestTransition, this does not
+        /// request another scene load because the target scene is already open.
+        /// The normal Initializer -> Persistent -> MainMenu flow must continue
+        /// to use RequestTransition.
+        /// </summary>
+        public bool InitializeForDirectOpen(GameState targetState)
+        {
+            if (CurrentState != GameState.Boot)
+            {
+                Debug.LogWarning($"GameFlow: direct-open initialization ignored because the current state is {CurrentState}.", this);
+                return false;
+            }
+
+            if (targetState == GameState.Boot || targetState == GameState.Paused ||
+                !IsDirectOpenState(targetState))
+            {
+                Debug.LogError($"GameFlow: '{targetState}' is not a valid direct-open state.", this);
+                return false;
+            }
+
+            GameState previous = CurrentState;
+            CurrentState = targetState;
+            GameplayTimePause.SetGameFlowPaused(false);
+            OnStateChanged?.Invoke(previous, targetState);
+            _onGameStateChanged?.Raise(targetState);
+            return true;
+        }
+
         public void RequestSceneLoad(SceneSO targetScene, SceneSO sceneToReplace = null,
             LoadSceneMode mode = LoadSceneMode.Additive)
         {
@@ -86,6 +116,45 @@ namespace Zephyr.Core.Flow
             if (scene != null) _onRequestSceneUnload?.Raise(scene);
         }
 
+        /// <summary>
+        /// Requests a transition between authored progression scenes while keeping
+        /// the SceneLoader as the only scene-loading authority. This is intentionally
+        /// separate from RequestTransition because multiple tutorial/run scenes share
+        /// one logical GameState.
+        /// </summary>
+        public void RequestProgressionSceneTransition(SceneSO targetScene, SceneSO sceneToReplace,
+            GameState logicalState)
+        {
+            if (targetScene == null || !targetScene.IsValid)
+            {
+                Debug.LogError("GameFlow: progression target SceneSO is missing or invalid.", this);
+                return;
+            }
+
+            if (logicalState != CurrentState)
+            {
+                if (!IsValidTransition(CurrentState, logicalState))
+                {
+                    Debug.LogWarning($"GameFlow: Invalid progression transition from {CurrentState} to {logicalState}", this);
+                    return;
+                }
+
+                if ((CurrentState == GameState.InRun || CurrentState == GameState.Paused) &&
+                    logicalState == GameState.MetaHub)
+                {
+                    RunEndSettlement.SettleCurrentRun();
+                }
+
+                GameState previous = CurrentState;
+                CurrentState = logicalState;
+                GameplayTimePause.SetGameFlowPaused(logicalState == GameState.Paused);
+                OnStateChanged?.Invoke(previous, logicalState);
+                _onGameStateChanged?.Raise(logicalState);
+            }
+
+            RequestSceneLoad(targetScene, sceneToReplace);
+        }
+
         private bool IsValidTransition(GameState from, GameState to)
         {
             if (to == GameState.MainMenu)
@@ -101,7 +170,9 @@ namespace Zephyr.Core.Flow
                 case GameState.Tutorial:
                     return to == GameState.MetaHub;
                 case GameState.MetaHub:
-                    return to == GameState.LoadingRun;
+                    // Authored placeholder progression may enter the first level directly;
+                    // the normal LoadingRun path remains valid for generated runs.
+                    return to == GameState.LoadingRun || to == GameState.InRun;
                 case GameState.LoadingRun:
                     return to == GameState.InRun || to == GameState.MetaHub;
                 case GameState.InRun:
@@ -111,6 +182,13 @@ namespace Zephyr.Core.Flow
                 default:
                     return false;
             }
+        }
+
+        private static bool IsDirectOpenState(GameState state)
+        {
+            return state == GameState.MainMenu || state == GameState.Tutorial ||
+                   state == GameState.MetaHub || state == GameState.LoadingRun ||
+                   state == GameState.InRun;
         }
 
         private void ApplySceneTransition(GameState previous, GameState target)

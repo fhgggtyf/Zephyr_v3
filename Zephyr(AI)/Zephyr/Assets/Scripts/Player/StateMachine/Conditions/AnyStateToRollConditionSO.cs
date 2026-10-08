@@ -28,17 +28,20 @@ namespace Zephyr.Gameplay.Player.StateMachine
     {
         private PlayerInputReader _inputReader;
         private MovementCore _movementCore;
+        private PlayerColliderController _colliderController;
 
         public override void Awake(CoreSM stateMachine)
         {
             _inputReader = stateMachine.GetCachedComponent<PlayerInputReader>();
             _movementCore = stateMachine.GetCachedComponent<MovementCore>();
+            stateMachine.TryGetCachedComponent(out _colliderController);
         }
 
         protected override bool Statement()
         {
             if (_inputReader == null || _movementCore == null) return false;
             if (_movementCore.IsRollOnCooldown) return false;
+            if (_colliderController != null && !_colliderController.CanUseStandingProfile()) return false;
 
             return _inputReader.ConsumeRollInput();
         }

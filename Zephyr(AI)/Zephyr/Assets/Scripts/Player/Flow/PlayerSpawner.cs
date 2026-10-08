@@ -136,7 +136,7 @@ namespace Zephyr.Gameplay.Player.Flow
             SceneManager.MoveGameObjectToScene(CurrentPlayer, gameplayScene);
             _playerScene = gameplayScene;
 
-            CameraController camera = FindAnyObjectByType<CameraController>();
+            CameraController camera = CameraController.FindForGameplay(gameplayScene);
             camera?.SetFollow(CurrentPlayer.transform);
             PlayerSpawned?.Invoke(CurrentPlayer);
         }

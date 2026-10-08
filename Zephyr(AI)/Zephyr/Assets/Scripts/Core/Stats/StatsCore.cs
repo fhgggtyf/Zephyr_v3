@@ -66,8 +66,17 @@ namespace Zephyr.Core.Stats
     /// The total Potential budget is stored in MetaStatType.PotentialBudget (permanent).
     /// Per-stat Potential values are set via InitializeRunPotentials() at run start.
     /// </summary>
-    public class StatsCore : MonoBehaviour, IStatSource
+    public class StatsCore : MonoBehaviour, IStatSource, IMetaStatSource
     {
+        [Header("Runtime identity")]
+        [SerializeField] private StatsOwnerRole _ownerRole = StatsOwnerRole.Unknown;
+
+        public StatsOwnerRole OwnerRole => _ownerRole;
+
+        public void SetOwnerRole(StatsOwnerRole role)
+        {
+            _ownerRole = role;
+        }
         // StatRecord holds Base (permanent) + Potential (run-level).
         private readonly Dictionary<StatType, StatRecord> _stats = new Dictionary<StatType, StatRecord>();
 
@@ -121,10 +130,12 @@ namespace Zephyr.Core.Stats
         public float GetStatValue(StatType statType)
         {
             if (!_stats.ContainsKey(statType)) return 0f;
-            return _stats[statType].Base
+            float value = _stats[statType].Base
                  + _runGains.GetValueOrDefault(statType, 0f)
                  + _modifiers.GetValueOrDefault(statType, 0f)
                  + _tempModifiers.GetValueOrDefault(statType, 0f);
+            SceneStatsModifierController.ApplyExternalModifiers(this, ref value, StatModifierTargetKind.CoreStat, statType, default, null);
+            return value;
         }
 
         /// <summary>
@@ -363,7 +374,9 @@ namespace Zephyr.Core.Stats
 
         public float GetMetaStat(MetaStatType statType)
         {
-            return _metaStats.GetValueOrDefault(statType, 0f);
+            float value = _metaStats.GetValueOrDefault(statType, 0f);
+            SceneStatsModifierController.ApplyExternalModifiers(this, ref value, StatModifierTargetKind.MetaStat, default, statType, null);
+            return value;
         }
 
         public void SetMetaStat(MetaStatType statType, float value)
@@ -395,7 +408,9 @@ namespace Zephyr.Core.Stats
         {
             float metaBase = _categoryMetaBases.GetValueOrDefault(category, 0f);
             float inRunAddend = _categoryInRunAddends.GetValueOrDefault(category, 0f);
-            return metaBase + inRunAddend;
+            float value = metaBase + inRunAddend;
+            SceneStatsModifierController.ApplyExternalModifiers(this, ref value, StatModifierTargetKind.CategoryMultiplier, default, default, category);
+            return value;
         }
 
         /// <summary>

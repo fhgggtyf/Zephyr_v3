@@ -53,6 +53,14 @@ namespace Zephyr.Gameplay.Player.StateMachine
                 return false;
             }
 
+            // Reject resource-gated presses immediately; do not replay them after regeneration.
+            if (!m_weaponController.HasAttackResource(m_weaponSlot))
+            {
+                ConsumeAttackInput();
+                return false;
+            }
+
+            // Preserve ordinary attack buffering while an affordable attack is temporarily blocked.
             if (!m_weaponController.CanAttack(m_weaponSlot)) return false;
 
             ConsumeAttackInput();

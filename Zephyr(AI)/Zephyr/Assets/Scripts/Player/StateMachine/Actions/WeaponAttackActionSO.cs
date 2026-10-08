@@ -5,6 +5,7 @@ using Zephyr.Core.Weapons;
 using Zephyr.Gameplay.Player.Core;
 using Zephyr.Gameplay.Player.Data;
 using Zephyr.Gameplay.Player.Input;
+using Zephyr.Gameplay.Player.Visual;
 using CoreSM = Zephyr.Core.StateMachine.StateMachine;
 
 namespace Zephyr.Gameplay.Player.StateMachine
@@ -30,6 +31,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
         private MovementCore m_movementCore;
         private PlayerInputReader m_inputReader;
         private WeaponController m_weaponController;
+        private SpriteAnimator m_spriteAnimator;
 
         public WeaponAttackAction(PlayerMovementSpeedDataSO speedData)
         {
@@ -41,6 +43,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
             stateMachine.TryGetCachedComponent(out m_movementCore);
             stateMachine.TryGetCachedComponent(out m_inputReader);
             stateMachine.TryGetCachedComponent(out m_weaponController);
+            stateMachine.TryGetCachedComponent(out m_spriteAnimator);
         }
 
         public override void OnStateEnter()
@@ -50,6 +53,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
             bool attackStarted = m_weaponController != null && m_weaponController.BeginRequestedAttack();
             if (!attackStarted) return;
 
+            PlayPlayerAttackAnimation();
             ApplyInitialAttackFacing();
             UpdateAttackMovement();
         }
@@ -70,6 +74,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
             }
 
             m_weaponController?.CancelAttack();
+            m_spriteAnimator?.RestoreBaseController();
         }
 
         /// <summary>
@@ -98,6 +103,29 @@ namespace Zephyr.Gameplay.Player.StateMachine
             {
                 m_movementCore.SetFacing(forcedFacing);
             }
+        }
+
+        private void PlayPlayerAttackAnimation()
+        {
+            if (m_spriteAnimator == null || m_weaponController == null) return;
+
+            ComboStep step = m_weaponController.CurrentAttackStep;
+            if (step == null || string.IsNullOrWhiteSpace(step.PlayerAnimationName)
+                || step.PlayerAnimationPlaceholder == null
+                || step.PlayerAnimationClip == null) return;
+
+            float duration = m_weaponController.CurrentAttackContext is AttackContext context
+                ? context.Duration
+                : Mathf.Max(0.01f, step.DurationInSeconds);
+
+            m_spriteAnimator.PlayAnimationOverride(
+                step.PlayerAnimationName,
+                step.PlayerAnimationPlaceholder,
+                step.PlayerAnimationClip,
+                step.PlayerAnimationClip.length > 0f
+                    ? step.PlayerAnimationClip.length / duration
+                    : 1f,
+                true);
         }
 
         private void UpdateAttackFacing()

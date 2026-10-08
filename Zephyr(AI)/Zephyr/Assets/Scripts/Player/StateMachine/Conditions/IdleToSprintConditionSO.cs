@@ -36,10 +36,12 @@ namespace Zephyr.Gameplay.Player.StateMachine
 
         protected override bool Statement()
         {
-            if (_inputReader == null || _resources == null || !_resources.CanSprint) return false;
+            if (_inputReader == null || _resources == null) return false;
+            if (!_inputReader.HasSprintInput || !_inputReader.HasHorizontalInput) return false;
+            if (!_resources.CanStartSprint(_inputReader.IsSprintPressFresh)) return false;
 
-            return _inputReader.HasSprintInput
-                && _inputReader.HasHorizontalInput;
+            _inputReader.ConsumeSprintStartInput();
+            return true;
         }
     }
 }

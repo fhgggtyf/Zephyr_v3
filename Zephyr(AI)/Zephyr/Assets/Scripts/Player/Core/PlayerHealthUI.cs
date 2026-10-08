@@ -40,7 +40,8 @@ namespace Zephyr.Gameplay.Player.Core
         {
             if (_hpBar != null && _health != null)
             {
-                _hpBar.UpdateBar(_health.CurrentHp, _health.MaxHp);
+                if (_health.IsHealthUnbounded) _hpBar.SetUnbounded();
+                else _hpBar.UpdateBar(_health.CurrentHp, _health.MaxHp);
             }
 
             if (_staminaBar != null && _resources != null)

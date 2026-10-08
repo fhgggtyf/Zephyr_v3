@@ -15,8 +15,9 @@ namespace Zephyr.Core.Meta
         {
             if (unlock == null || meta == null || string.IsNullOrWhiteSpace(unlock.Id)) return false;
             if (meta.UnlockedMechanics.Contains(unlock.Id) || meta.MetaCurrency < unlock.Cost) return false;
-            return string.IsNullOrWhiteSpace(unlock.RequiredObjectiveId)
-                || meta.FulfilledObjectives.Contains(unlock.RequiredObjectiveId);
+            return string.IsNullOrWhiteSpace(unlock.RequiredFactId)
+                || (StoryProgressionService.Instance != null
+                    && StoryProgressionService.Instance.GetBool(unlock.RequiredFactId));
         }
 
         public static bool Purchase(MechanicUnlockSO unlock, MetaData meta, bool saveImmediately = true)

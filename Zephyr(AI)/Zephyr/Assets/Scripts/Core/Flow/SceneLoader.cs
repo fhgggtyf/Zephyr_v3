@@ -75,6 +75,21 @@ namespace Zephyr.Core.Flow
             StartProcessor();
         }
 
+        /// <summary>
+        /// Enqueues a scene load through this SceneLoader instance.
+        /// This is used by direct-open bootstrap code after Persistent is loaded,
+        /// while authored gameplay flow continues to use the event channel.
+        /// </summary>
+        public bool RequestSceneLoad(SceneSO targetScene, SceneSO sceneToReplace = null,
+            LoadSceneMode mode = LoadSceneMode.Additive)
+        {
+            if (!ValidateScene(targetScene, "target")) return false;
+
+            HandleSceneLoadRequest(new SceneLoadRequest(targetScene, sceneToReplace, mode));
+            return true;
+        }
+
+
         private void HandleSceneUnloadRequest(SceneSO scene)
         {
             if (!ValidateScene(scene, "unload") || !IsExpectedLoaded(scene)) return;
@@ -124,6 +139,13 @@ namespace Zephyr.Core.Flow
             }
 
             yield return operation;
+
+            Scene loadedScene = SceneManager.GetSceneByName(scene.SceneName);
+            if (loadedScene.IsValid() && loadedScene.isLoaded)
+            {
+                if (!SceneManager.SetActiveScene(loadedScene))
+                    Debug.LogWarning($"SceneLoader: failed to set '{scene.SceneName}' as the active scene.", scene);
+            }
 
             if (scene.Id == SceneId.GameManager)
                 yield return new WaitUntil(() => GameManagerBootstrap.IsReady);

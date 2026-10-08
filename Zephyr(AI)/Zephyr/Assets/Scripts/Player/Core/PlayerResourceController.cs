@@ -20,6 +20,7 @@ namespace Zephyr.Gameplay.Player.Core
 
         [Header("Movement Costs")]
         [SerializeField, Min(0f)] private float _sprintStaminaPerSecond = 10f;
+        [SerializeField, Min(0f)] private float _sprintRestartStaminaThreshold = 5f;
         [SerializeField, Min(0f)] private float _jumpStaminaCost = 15f;
 
         [Header("Debug")]
@@ -37,6 +38,17 @@ namespace Zephyr.Gameplay.Player.Core
         public float MaxEnergy => _statsCore != null ? _statsCore.GetStatValue(StatType.Energy) : 50f;
         public bool CanSprint => _sprintStaminaPerSecond <= 0f || _currentStamina > 0f;
         public bool CanJump => CanAfford(AttackResourceType.Stamina, _jumpStaminaCost);
+
+        /// <summary>
+        /// A fresh Shift press may start with any positive stamina. A held press
+        /// that already entered Sprint must recover to the restart threshold.
+        /// </summary>
+        public bool CanStartSprint(bool isFreshInput)
+        {
+            if (_sprintStaminaPerSecond <= 0f) return true;
+            if (_currentStamina <= 0f) return false;
+            return isFreshInput || _currentStamina >= _sprintRestartStaminaThreshold;
+        }
 
         private void Awake()
         {
@@ -163,6 +175,7 @@ namespace Zephyr.Gameplay.Player.Core
             _energyRegenPerSecond = Mathf.Max(0f, _energyRegenPerSecond);
             _regenDelayAfterUse = Mathf.Max(0f, _regenDelayAfterUse);
             _sprintStaminaPerSecond = Mathf.Max(0f, _sprintStaminaPerSecond);
+            _sprintRestartStaminaThreshold = Mathf.Max(0f, _sprintRestartStaminaThreshold);
             _jumpStaminaCost = Mathf.Max(0f, _jumpStaminaCost);
         }
     }

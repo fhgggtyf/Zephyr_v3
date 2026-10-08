@@ -46,5 +46,19 @@
   "stat.Energy": "能量",
   "stat.AttackSpeed": "攻击速度",
   "weapon.excalibur.name": "誓约胜利之剑",
-  "weapon.lightning_bolt.name": "闪电箭"
+  "weapon.lightning_bolt.name": "闪电箭",
+  "meta.upgrades.title": "潜能升级",
+  "meta.upgrades.currency": "潜能金币：{0}",
+  "meta.upgrades.budget": "潜能总预算",
+  "meta.upgrades.budget.description": "潜能总点数 +2",
+  "meta.upgrades.budget.buy": "购买（+2）- 0",
+  "meta.upgrades.allocatable": "可分配潜能",
+  "meta.upgrades.allocatable.description": "玩家可分配点数 +1",
+  "meta.upgrades.allocatable.buy": "购买（+1）- 0",
+  "potential.entry.title": "配置本局潜能",
+  "potential.entry.summary": "随机基础：{0} | 你的点数：{1}",
+  "potential.entry.remaining": "剩余点数：{0}",
+  "potential.entry.random": "随机 {0} | 你分配 {1}",
+  "potential.entry.random_value": "随机：{0}",
+  "potential.entry.manual_value": "你分配：{0}"
 }

@@ -46,5 +46,19 @@
   "stat.Energy": "Energy",
   "stat.AttackSpeed": "Attack Speed",
   "weapon.excalibur.name": "Excalibur",
-  "weapon.lightning_bolt.name": "Lightning Bolt"
+  "weapon.lightning_bolt.name": "Lightning Bolt",
+  "meta.upgrades.title": "Potential Upgrades",
+  "meta.upgrades.currency": "Meta Coins: {0}",
+  "meta.upgrades.budget": "Potential Budget",
+  "meta.upgrades.budget.description": "+2 total Potential points",
+  "meta.upgrades.budget.buy": "Buy (+2) - 0",
+  "meta.upgrades.allocatable": "Allocatable Potential",
+  "meta.upgrades.allocatable.description": "+1 player-allocatable Potential point",
+  "meta.upgrades.allocatable.buy": "Buy (+1) - 0",
+  "potential.entry.title": "Prepare Your Potential",
+  "potential.entry.summary": "Random foundation: {0} | Your points: {1}",
+  "potential.entry.remaining": "Points remaining: {0}",
+  "potential.entry.random": "Random {0} | You {1}",
+  "potential.entry.random_value": "Random: {0}",
+  "potential.entry.manual_value": "You: {0}"
 }

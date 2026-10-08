@@ -34,6 +34,7 @@
  * Ch.Ref:   Ch.2.7 Core Data Structures, Ch.4.6-4.7 Damage Pipeline & Shield-Break, Ch.9 Combat.
  */
 using UnityEngine;
+using Zephyr.Core;
 using Zephyr.Core.Interfaces;
 using Zephyr.Core.Stats;
 
@@ -81,6 +82,14 @@ namespace Zephyr.Core.DamageSystem
 
             // 5. Apply mitigation
             float mitigated = ApplyMitigation(damage, info.Type, targetStats, info.Piercing);
+
+            // 5.5 Apply target-side scene/challenge damage reduction.
+            // The modifier is read through HealthComponent when available so
+            // scene rules can affect the actual damage receiver without
+            // changing the existing shield split contract.
+            var metaSource = target as IMetaStatSource ?? targetStats as IMetaStatSource;
+            float damageReduction = metaSource?.GetMetaStat(MetaStatType.DamageReduction) ?? 0f;
+            mitigated *= 1f - Mathf.Clamp01(damageReduction);
 
             // 6. Apply shield-break split (Ch.4.7 locked formula)
             var result = ApplyShieldSplit(mitigated, info.ShieldCoeff, target);

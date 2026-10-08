@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3000000000000000000000000000001, type: 3}
+  m_Name: Tutorial_Phase_1
+  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Flow.SceneSO
+  _id: 9
+  _sceneAsset: {fileID: 102900000, guid: 03520ef29aa58404eb3c3372667992f3, type: 3}
+  _sceneName: Tutorial_Phase_1
+  _scenePath: Assets/Scenes/Tutorial/Tutorial_Phase_1.unity
+  _statModifiers:
+  - _targetKind: 1
+    _operation: 2
+    _scope: 1
+    _statType: 0
+    _metaStatType: 12
+    _category: 
+    _value: 1

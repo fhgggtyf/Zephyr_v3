@@ -16,3 +16,4 @@ MonoBehaviour:
   _sceneAsset: {fileID: 102900000, guid: 33333333333333333333333333333333, type: 3}
   _sceneName: GameManager
   _scenePath: Assets/Scenes/Core/GameManager.unity
+  _statModifiers: []

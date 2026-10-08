@@ -26,11 +26,13 @@ namespace Zephyr.Gameplay.Player.StateMachine
     {
         private PlayerInputReader _inputReader;
         private MovementCore _movementCore;
+        private PlayerColliderController _colliderController;
 
         public override void Awake(CoreSM stateMachine)
         {
             _inputReader = stateMachine.GetCachedComponent<PlayerInputReader>();
             _movementCore = stateMachine.GetCachedComponent<MovementCore>();
+            stateMachine.TryGetCachedComponent(out _colliderController);
         }
 
         protected override bool Statement()
@@ -38,7 +40,8 @@ namespace Zephyr.Gameplay.Player.StateMachine
             if (_inputReader == null || _movementCore == null) return false;
 
             return _movementCore.IsGrounded
-                && _inputReader.HasCrouchInput
+                && (_inputReader.HasCrouchInput
+                    || (_colliderController != null && _colliderController.MustRemainCrouched))
                 && !_inputReader.HasHorizontalInput;
         }
     }

@@ -39,12 +39,15 @@ namespace Zephyr.Gameplay.Player.StateMachine
                 return false;
             }
 
-            var result = _spriteAnimator.IsPeakComplete;
-            if (result)
-            {
-                Debug.Log($"[JumpPeakToFallCondition] TRUE: IsPeakComplete={_spriteAnimator.IsPeakComplete}");
-            }
-            return result;
+            // JumpMid must finish its presentation animation before entering
+            // the falling phase. Prefer the authored animation event when one
+            // exists, but also accept the clip's normalized completion. The
+            // current JumpDown clip has no event, so relying only on
+            // IsPeakComplete would leave the player permanently in JumpMid.
+            // Landing is handled independently by JumpAnyToGrounded and does
+            // not shorten this presentation phase.
+            return _spriteAnimator.IsPeakComplete
+                || _spriteAnimator.IsCurrentAnimationComplete();
         }
     }
 }

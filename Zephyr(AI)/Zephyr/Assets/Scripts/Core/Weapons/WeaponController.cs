@@ -41,6 +41,21 @@ namespace Zephyr.Core.Weapons
         public bool IsAttackComplete => m_isAttackComplete;
         public AttackContext? CurrentAttackContext => m_currentAttackContext;
 
+        /// <summary>
+        /// Returns the authored combo step currently being executed. The
+        /// player presentation layer uses this to play the matching body
+        /// animation while WeaponRuntime continues to play the weapon motion.
+        /// </summary>
+        public ComboStep CurrentAttackStep
+        {
+            get
+            {
+                if (!m_currentAttackContext.HasValue) return null;
+                AttackContext context = m_currentAttackContext.Value;
+                return context.Weapon?.Combo.GetStep(context.ComboIndex);
+            }
+        }
+
         private void Awake()
         {
             m_statSource = GetComponentInParent<StatsCore>();

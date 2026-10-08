@@ -1,0 +1,676 @@
+fileFormatVersion: 2
+guid: 677b37403d0122140803e3f23c94cdb5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4809475213440744828
+    second: Excalibur_Player_Horizontal_Slash_0
+  - first:
+      213: 308697713012042678
+    second: Excalibur_Player_Horizontal_Slash_1
+  - first:
+      213: -6823914338964032846
+    second: Excalibur_Player_Horizontal_Slash_2
+  - first:
+      213: 8832260332880523251
+    second: Excalibur_Player_Horizontal_Slash_3
+  - first:
+      213: 7212842362385859708
+    second: Excalibur_Player_Horizontal_Slash_4
+  - first:
+      213: -261778052993659749
+    second: Excalibur_Player_Horizontal_Slash_5
+  - first:
+      213: -4226149669364960442
+    second: Excalibur_Player_Horizontal_Slash_6
+  - first:
+      213: 4950664085326257274
+    second: Excalibur_Player_Horizontal_Slash_7
+  - first:
+      213: 7374497786214902173
+    second: Excalibur_Player_Horizontal_Slash_8
+  - first:
+      213: 7504685886638427633
+    second: Excalibur_Player_Horizontal_Slash_9
+  - first:
+      213: 5163591739906837913
+    second: Excalibur_Player_Horizontal_Slash_10
+  - first:
+      213: -4109703859014961553
+    second: Excalibur_Player_Horizontal_Slash_11
+  - first:
+      213: 8849068310602346751
+    second: Excalibur_Player_Horizontal_Slash_12
+  - first:
+      213: 8658169456272440118
+    second: Excalibur_Player_Horizontal_Slash_13
+  - first:
+      213: 9195163602230974144
+    second: Excalibur_Player_Horizontal_Slash_14
+  - first:
+      213: 9156417586013217107
+    second: Excalibur_Player_Horizontal_Slash_15
+  - first:
+      213: 771648037710408279
+    second: Excalibur_Player_Horizontal_Slash_16
+  - first:
+      213: -4334950603706594469
+    second: Excalibur_Player_Horizontal_Slash_17
+  - first:
+      213: -6781558265817149579
+    second: Excalibur_Player_Horizontal_Slash_18
+  - first:
+      213: 3465963351481288879
+    second: Excalibur_Player_Horizontal_Slash_19
+  - first:
+      213: -7604648363891993671
+    second: Excalibur_Player_Horizontal_Slash_20
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 0
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1254
+        height: 1089
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48281da66cf414db0800000000000000
+      internalID: -4809475213440744828
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_1
+      rect:
+        serializedVersion: 2
+        x: 504
+        y: 1052
+        width: 279
+        height: 150
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6bbee073fe6b84400800000000000000
+      internalID: 308697713012042678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_2
+      rect:
+        serializedVersion: 2
+        x: 508
+        y: 1049
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b2ba5830169c41a0800000000000000
+      internalID: -6823914338964032846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_3
+      rect:
+        serializedVersion: 2
+        x: 965
+        y: 1016
+        width: 270
+        height: 218
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ffed193afd729a70800000000000000
+      internalID: 8832260332880523251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_4
+      rect:
+        serializedVersion: 2
+        x: 514
+        y: 1014
+        width: 8
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7406eec9e9291460800000000000000
+      internalID: 7212842362385859708
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_5
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 968
+        width: 15
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9cc15d6f3afd5cf0800000000000000
+      internalID: -261778052993659749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_6
+      rect:
+        serializedVersion: 2
+        x: 392
+        y: 966
+        width: 15
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 643fddd4443b955c0800000000000000
+      internalID: -4226149669364960442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_7
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 988
+        width: 15
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7cd72081ca44b440800000000000000
+      internalID: 4950664085326257274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_8
+      rect:
+        serializedVersion: 2
+        x: 530
+        y: 968
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d996e303aaa775660800000000000000
+      internalID: 7374497786214902173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_9
+      rect:
+        serializedVersion: 2
+        x: 536
+        y: 966
+        width: 10
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fd88f76d00062860800000000000000
+      internalID: 7504685886638427633
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_10
+      rect:
+        serializedVersion: 2
+        x: 1091
+        y: 964
+        width: 9
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99dc94e5453c8a740800000000000000
+      internalID: 5163591739906837913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_11
+      rect:
+        serializedVersion: 2
+        x: 1165
+        y: 925
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f667c574d1667f6c0800000000000000
+      internalID: -4109703859014961553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_12
+      rect:
+        serializedVersion: 2
+        x: 1141
+        y: 909
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff07e9e7eb43eca70800000000000000
+      internalID: 8849068310602346751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_13
+      rect:
+        serializedVersion: 2
+        x: 1144
+        y: 911
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63b714e5f3ff72870800000000000000
+      internalID: 8658169456272440118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_14
+      rect:
+        serializedVersion: 2
+        x: 321
+        y: 256
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c614920498cb9f70800000000000000
+      internalID: 9195163602230974144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_15
+      rect:
+        serializedVersion: 2
+        x: 522
+        y: 254
+        width: 26
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 351257d1841221f70800000000000000
+      internalID: 9156417586013217107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_16
+      rect:
+        serializedVersion: 2
+        x: 571
+        y: 242
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75a2b5b4dc175ba00800000000000000
+      internalID: 771648037710408279
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_17
+      rect:
+        serializedVersion: 2
+        x: 745
+        y: 192
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5b043bb46927d3c0800000000000000
+      internalID: -4334950603706594469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_18
+      rect:
+        serializedVersion: 2
+        x: 730
+        y: 160
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57fca5effa013e1a0800000000000000
+      internalID: -6781558265817149579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_19
+      rect:
+        serializedVersion: 2
+        x: 104
+        y: 130
+        width: 16
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa880910e43991030800000000000000
+      internalID: 3465963351481288879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Excalibur_Player_Horizontal_Slash_20
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 69
+        width: 15
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b3567caa9cd67690800000000000000
+      internalID: -7604648363891993671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Excalibur_Player_Horizontal_Slash_0: -4809475213440744828
+      Excalibur_Player_Horizontal_Slash_1: 308697713012042678
+      Excalibur_Player_Horizontal_Slash_10: 5163591739906837913
+      Excalibur_Player_Horizontal_Slash_11: -4109703859014961553
+      Excalibur_Player_Horizontal_Slash_12: 8849068310602346751
+      Excalibur_Player_Horizontal_Slash_13: 8658169456272440118
+      Excalibur_Player_Horizontal_Slash_14: 9195163602230974144
+      Excalibur_Player_Horizontal_Slash_15: 9156417586013217107
+      Excalibur_Player_Horizontal_Slash_16: 771648037710408279
+      Excalibur_Player_Horizontal_Slash_17: -4334950603706594469
+      Excalibur_Player_Horizontal_Slash_18: -6781558265817149579
+      Excalibur_Player_Horizontal_Slash_19: 3465963351481288879
+      Excalibur_Player_Horizontal_Slash_2: -6823914338964032846
+      Excalibur_Player_Horizontal_Slash_20: -7604648363891993671
+      Excalibur_Player_Horizontal_Slash_3: 8832260332880523251
+      Excalibur_Player_Horizontal_Slash_4: 7212842362385859708
+      Excalibur_Player_Horizontal_Slash_5: -261778052993659749
+      Excalibur_Player_Horizontal_Slash_6: -4226149669364960442
+      Excalibur_Player_Horizontal_Slash_7: 4950664085326257274
+      Excalibur_Player_Horizontal_Slash_8: 7374497786214902173
+      Excalibur_Player_Horizontal_Slash_9: 7504685886638427633
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

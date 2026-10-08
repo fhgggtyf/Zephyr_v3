@@ -43,10 +43,10 @@ namespace Zephyr.Gameplay.Player.StateMachine
             }
 
             var verticalVelocity = _movementCore.VerticalVelocity;
-            var result = _movementCore.IsGrounded && verticalVelocity <= 0f;
+            var result = _movementCore.HasStableGroundContact && verticalVelocity <= 0f;
             if (result)
             {
-                Debug.Log($"[JumpAnyToGroundedCondition] TRUE: IsGrounded={_movementCore.IsGrounded}, VerticalVelocity={verticalVelocity:F2}");
+                Debug.Log($"[JumpAnyToGroundedCondition] TRUE: StableGround={_movementCore.HasStableGroundContact}, VerticalVelocity={verticalVelocity:F2}");
             }
             return result;
         }

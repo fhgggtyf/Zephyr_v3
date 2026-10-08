@@ -61,7 +61,10 @@ namespace Zephyr.Gameplay.Player.UI
         {
             if (!_built || _health == null) return;
 
-            _healthBar.Set(_health.CurrentHp, _health.MaxHp);
+            if (_health.IsHealthUnbounded)
+                _healthBar.SetUnbounded();
+            else
+                _healthBar.Set(_health.CurrentHp, _health.MaxHp);
             _staminaBar.Set(_resources != null ? _resources.CurrentStamina : 0f,
                 _resources != null ? _resources.MaxStamina : 1f);
             _energyBar.Set(_resources != null ? _resources.CurrentEnergy : 0f,
@@ -260,6 +263,12 @@ namespace Zephyr.Gameplay.Player.UI
             }
 
             public void RefreshLocalization() => _label.text = Localize(_localizationKey, _fallback);
+
+            public void SetUnbounded()
+            {
+                _fill.fillAmount = 1f;
+                _value.text = "∞";
+            }
 
             public void Set(float current, float maximum)
             {

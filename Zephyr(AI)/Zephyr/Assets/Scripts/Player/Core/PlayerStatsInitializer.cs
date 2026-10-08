@@ -36,6 +36,7 @@ namespace Zephyr.Gameplay.Player.Core
         private void Awake()
         {
             _statsCore = GetComponent<StatsCore>();
+            _statsCore.SetOwnerRole(StatsOwnerRole.Player);
             ApplyDefaults();
         }
 

@@ -77,8 +77,8 @@ MonoBehaviour:
   m_weaponSocket: {fileID: 8265904234777347262}
   m_runtimePrefab: {fileID: 700000000000000001}
   m_weaponSet:
-    m_primary: {fileID: 11400000, guid: 44e093bf053cc9c49aa9fb070f55aa2f, type: 2}
-    m_secondary: {fileID: 11400000, guid: 5f6fd47ed70b4ab48b626b55c13058dc, type: 2}
+    m_primary: {fileID: 0}
+    m_secondary: {fileID: 0}
   m_activeSlot: 0
 --- !u!1 &2418395887755726052
 GameObject:
@@ -208,6 +208,169 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c861cf26c2391e4fbcd0952452de921, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Weapons.WeaponAnimEventHandler
+--- !u!1 &2424998108843592814
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3141093295677995453}
+  - component: {fileID: 6094622185116023510}
+  m_Layer: 0
+  m_Name: InteractionDetector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3141093295677995453
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2424998108843592814}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2892429184346525890}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!58 &6094622185116023510
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2424998108843592814}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 1.25
+--- !u!1 &2823842270110366859
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4894223771054291105}
+  m_Layer: 0
+  m_Name: WallCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4894223771054291105
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2823842270110366859}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.95, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2046172552728923915}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3330205839027771488
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4018603717777921198}
+  m_Layer: 0
+  m_Name: GroundCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4018603717777921198
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3330205839027771488}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.03, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2046172552728923915}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4318371653097961033
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2046172552728923915}
+  m_Layer: 0
+  m_Name: CollisionChecks
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2046172552728923915
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4318371653097961033}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4018603717777921198}
+  - {fileID: 4894223771054291105}
+  m_Father: {fileID: 2892429184346525890}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5438757880527228006
 GameObject:
   m_ObjectHideFlags: 0
@@ -221,6 +384,7 @@ GameObject:
   - component: {fileID: 1204962946470013947}
   - component: {fileID: 3318319276805319208}
   - component: {fileID: 3123243398822262701}
+  - component: {fileID: 6252047162707526239}
   m_Layer: 0
   m_Name: Core
   m_TagString: Untagged
@@ -297,9 +461,30 @@ MonoBehaviour:
   _contactLayer:
     serializedVersion: 2
     m_Bits: 8
-  _groundCheckDistance: 0
-  _groundCheckRadius: 0.05
+  _groundCheck: {fileID: 4018603717777921198}
+  _bodyCollider: {fileID: 5738636537747508958}
+  _groundCheckDistance: 0.05
+  _groundCheckRadius: 0.12
+  _requiredStableGroundFrames: 2
+  _groundedGracePeriod: 0.08
   _wallCheckDistance: 0.1
+--- !u!114 &6252047162707526239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5438757880527228006}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13807ba9cd174fc48b6596f6add46b47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Core.PlayerColliderController
+  _standingCollider: {fileID: 5738636537747508958}
+  _crouchingCollider: {fileID: 5025953185339713918}
+  _obstructionLayers:
+    serializedVersion: 2
+    m_Bits: 8
 --- !u!1 &5745911219366126701
 GameObject:
   m_ObjectHideFlags: 0
@@ -319,6 +504,8 @@ GameObject:
   - component: {fileID: 700000000000000005}
   - component: {fileID: 700000000000000007}
   - component: {fileID: 700000000000000008}
+  - component: {fileID: 3048025312669000495}
+  - component: {fileID: 4315390835847933885}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -342,6 +529,8 @@ Transform:
   - {fileID: 207779651766057373}
   - {fileID: 1133536307404043173}
   - {fileID: 8265904234777347262}
+  - {fileID: 3141093295677995453}
+  - {fileID: 2046172552728923915}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4057963845699544161
@@ -375,6 +564,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f8d06882d76ed24391bf4ca2c19152c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Stats.StatsCore
+  _ownerRole: 0
 --- !u!114 &700000000000000006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -418,7 +608,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
@@ -540,11 +730,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44541d8a937c4954bb73aba82e9774f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Core.PlayerResourceController
-  _staminaRegenPerSecond: 15
+  _staminaRegenPerSecond: 30
   _energyRegenPerSecond: 5
-  _regenDelayAfterUse: 1
-  _sprintStaminaPerSecond: 10
-  _jumpStaminaCost: 15
+  _regenDelayAfterUse: 0.5
+  _sprintStaminaPerSecond: 5
+  _sprintRestartStaminaThreshold: 5
+  _jumpStaminaCost: 7.5
   _logConsumption: 0
 --- !u!114 &700000000000000007
 MonoBehaviour:
@@ -556,9 +747,61 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8a7b6c5d4e3f210fedcba9876543210f, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Combat.CombatTargetAvailability
   _available: 1
+--- !u!114 &700000000000000008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5745911219366126701}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b7c7d8e9f0011223344556677889900, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Core.PlayerImpactController
+  _damagePerSecond: 100
+  _maximumTenacityReduction: 0.8
+  _knockbackSpeed: 6
+  _hitbackHorizontalSpeed: 8
+  _hitbackVerticalSpeed: 11
+  _minimumHitbackFlight: 0.1
+  _bounceDamping: 0.85
+  _flashColor: {r: 1, g: 1, b: 1, a: 0.25}
+  _flashInterval: 0.06
+--- !u!114 &3048025312669000495
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5745911219366126701}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4629a85cb0c3aff428da3fda48d4bf7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Interaction.PlayerInteraction
+  _interactionTrigger: {fileID: 6094622185116023510}
+  _interactionRadius: 1.25
+  _interactionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!114 &4315390835847933885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5745911219366126701}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 314717353c13a534bbd6f6e8f5927577, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Interaction.PlayerGustJumpController
+  _defaultDuration: 0.8
+  _easeOutPower: 2.4
 --- !u!1 &8060358551992824621
 GameObject:
   m_ObjectHideFlags: 0
@@ -642,7 +885,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 2270550464981165412, guid: 4f7011154c8ff1c4fbcc09e03d4b15c3, type: 3}
+  m_Sprite: {fileID: 5824402216780410361, guid: c6b6c52f026974a45b99f4299510813f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -689,24 +932,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Visual.SpriteAnimator
   _facingProvider: {fileID: 3199585197511728849}
   _useScaleFlipping: 1
---- !u!114 &700000000000000008
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5745911219366126701}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b7c7d8e9f0011223344556677889900, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Core.PlayerImpactController
-  _damagePerSecond: 100
-  _maximumTenacityReduction: 0.8
-  _knockbackSpeed: 6
-  _hitbackHorizontalSpeed: 8
-  _hitbackVerticalSpeed: 11
-  _minimumHitbackFlight: 0.1
-  _bounceDamping: 0.85
-  _flashColor: {r: 1, g: 1, b: 1, a: 0.25}
-  _flashInterval: 0.06

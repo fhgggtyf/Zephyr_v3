@@ -3,8 +3,8 @@
  * -----------
  * Module:  Core / Save
  * Purpose: Persistent meta-game data that survives across runs. Contains profile identity
- *          (GUID), progress flags (HasCompletedTutorial), story progression (FulfilledObjectives,
- *          TriggeredStoryBeats), mechanic unlocks (UnlockedMechanics), meta currency, weapon
+ *          (GUID), progress flags (HasCompletedTutorial), story progression facts and milestones,
+ *          mechanic unlocks (UnlockedMechanics), meta currency, weapon
  *          codex (UnlockedWeapons), meta upgrade values (BaseStatUpgrades, CombatAcquiredUpgrades,
  *          PotentialBudgetUpgrades, PotentialAllocatableUpgrades), and challenge mode level.
  *          Written to disk via SaveSystem and loaded at boot. Monotonic — values only increase.
@@ -28,9 +28,11 @@ namespace Zephyr.Core.Save
         // Progress flags
         public bool HasCompletedTutorial;
 
-        // Story progression (monotonic, never removed)
-        public HashSet<string> FulfilledObjectives = new HashSet<string>();
-        public HashSet<string> TriggeredStoryBeats = new HashSet<string>();
+        // Formal story progression state. Definitions live in ScriptableObjects;
+        // these collections contain only the selected save slot's runtime values.
+        public HashSet<string> StoryFacts = new HashSet<string>();
+        public Dictionary<string, int> StoryFactIntegers = new Dictionary<string, int>();
+        public HashSet<string> CompletedMilestones = new HashSet<string>();
 
         // Mechanic unlocks (permanent, monotonic)
         public HashSet<string> UnlockedMechanics = new HashSet<string>();

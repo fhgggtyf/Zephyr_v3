@@ -86,7 +86,7 @@ namespace Zephyr.Core.Weapons
             if (m_animator != null && m_animator.runtimeAnimatorController != null)
             {
                 ComboStep step = context.Weapon.Combo.GetStep(context.ComboIndex);
-                float durationInSeconds = context.EndsAt - context.StartedAt;
+                float durationInSeconds = context.Duration;
                 float clipLength = step?.AnimationClip != null
                     ? step.AnimationClip.length
                     : durationInSeconds;

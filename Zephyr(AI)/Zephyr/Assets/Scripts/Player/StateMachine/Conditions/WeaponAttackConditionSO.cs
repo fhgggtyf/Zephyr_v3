@@ -47,14 +47,33 @@ namespace Zephyr.Gameplay.Player.StateMachine
         protected override bool Statement()
         {
             if (m_inputReader == null || m_weaponController == null) return false;
-            if (!m_weaponController.CanAttack(m_weaponSlot)) return false;
 
             bool hasInput = m_weaponSlot == WeaponSlot.Primary
-                ? m_inputReader.ConsumePrimaryAttackInput()
-                : m_inputReader.ConsumeSecondaryAttackInput();
-            if (hasInput) m_weaponController.RequestAttack(m_weaponSlot);
+                ? m_inputReader.HasPrimaryAttackInput
+                : m_inputReader.HasSecondaryAttackInput;
+            if (!hasInput) return false;
 
-            return hasInput;
+            // Reject resource-gated presses immediately; do not replay them after regeneration.
+            if (!m_weaponController.HasAttackResource(m_weaponSlot))
+            {
+                ConsumeAttackInput();
+                return false;
+            }
+
+            // Preserve ordinary attack buffering while an affordable attack is temporarily blocked.
+            if (!m_weaponController.CanAttack(m_weaponSlot)) return false;
+
+            ConsumeAttackInput();
+            m_weaponController.RequestAttack(m_weaponSlot);
+            return true;
+        }
+
+        private void ConsumeAttackInput()
+        {
+            if (m_weaponSlot == WeaponSlot.Primary)
+                m_inputReader.ConsumePrimaryAttackInput();
+            else
+                m_inputReader.ConsumeSecondaryAttackInput();
         }
     }
 }

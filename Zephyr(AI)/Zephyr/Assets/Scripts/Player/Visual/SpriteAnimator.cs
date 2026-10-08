@@ -36,6 +36,8 @@ namespace Zephyr.Gameplay.Player.Visual
 
         private SpriteRenderer _spriteRenderer;
         private Animator _animator;
+        private RuntimeAnimatorController _baseController;
+        private AnimatorOverrideController _overrideController;
         private Vector2 _lastFacing = Vector2.right;
         private string _currentAnim;
         private int _currentAnimHash;
@@ -61,6 +63,7 @@ namespace Zephyr.Gameplay.Player.Visual
         {
             _spriteRenderer = GetComponent<SpriteRenderer>();
             _animator = GetComponent<Animator>();
+            _baseController = _animator != null ? _animator.runtimeAnimatorController : null;
 
             if (_facingProvider == null)
                 _facingProvider = GetComponentInParent<MovementCore>();
@@ -96,6 +99,47 @@ namespace Zephyr.Gameplay.Player.Visual
             _currentAnimHash = Animator.StringToHash(animName);
             IsRollComplete = false;
             IsPeakComplete = false;
+        }
+
+        /// <summary>
+        /// Plays a state from the player controller while replacing the
+        /// authored placeholder clip for that state with a weapon-specific
+        /// body animation. The weapon Animator remains independent and is
+        /// still driven by WeaponRuntime.
+        /// </summary>
+        public bool PlayAnimationOverride(
+            string animName,
+            AnimationClip placeholderClip,
+            AnimationClip replacementClip,
+            float speed = 1f,
+            bool restart = true)
+        {
+            if (_animator == null || string.IsNullOrEmpty(animName)
+                || placeholderClip == null || replacementClip == null)
+                return false;
+
+            EnsureOverrideController();
+            if (_overrideController == null) return false;
+
+            _overrideController[placeholderClip] = replacementClip;
+            PlayAnimation(animName, speed, restart);
+            return true;
+        }
+
+        /// <summary>
+        /// Restores the player's base controller after a weapon attack is
+        /// cancelled or completed. The normal state machine then owns the
+        /// next locomotion animation as usual.
+        /// </summary>
+        public void RestoreBaseController()
+        {
+            if (_animator == null || _baseController == null) return;
+            if (_animator.runtimeAnimatorController == _baseController) return;
+
+            _animator.runtimeAnimatorController = _baseController;
+            _overrideController = null;
+            _currentAnim = null;
+            _currentAnimHash = 0;
         }
 
         /// <summary>
@@ -180,6 +224,21 @@ namespace Zephyr.Gameplay.Player.Visual
             {
                 _spriteRenderer.flipX = !facingRight;
             }
+        }
+
+        private void EnsureOverrideController()
+        {
+            if (_animator == null) return;
+            if (_baseController == null)
+                _baseController = _animator.runtimeAnimatorController;
+
+            if (_baseController == null) return;
+            if (_overrideController != null
+                && _animator.runtimeAnimatorController == _overrideController)
+                return;
+
+            _overrideController = new AnimatorOverrideController(_baseController);
+            _animator.runtimeAnimatorController = _overrideController;
         }
     }
 }

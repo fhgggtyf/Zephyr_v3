@@ -60,13 +60,13 @@ namespace Zephyr.Core.Camera
 
         private void OnDisable()
         {
-            CameraController camera = FindAnyObjectByType<CameraController>();
+            CameraController camera = CameraController.FindForGameplay(gameObject.scene);
             camera?.ClearRoomBounds(this);
         }
 
         private void ApplyBounds()
         {
-            CameraController camera = FindAnyObjectByType<CameraController>();
+            CameraController camera = CameraController.FindForGameplay(gameObject.scene);
             camera?.SetRoomBounds(this);
         }
 

@@ -77,6 +77,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f8d06882d76ed24391bf4ca2c19152c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Stats.StatsCore
+  _ownerRole: 0
 --- !u!114 &1000000005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -105,6 +106,8 @@ MonoBehaviour:
   _attackDuration: 0.6
   _attackActiveDuration: 0.18
   _contactDamage: 12
+  _targetPotential: 4
+  _potentialAttack: 1
 --- !u!114 &1000000006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -269,7 +272,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 10
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 322297020329756245, guid: 3877d93a9fbdc564a80c2b812b86e230, type: 3}
+  m_Sprite: {fileID: -3147482019783707281, guid: 9c88ac1d07a1c92498cfa392bcbf1a65, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -347,7 +350,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9c796a521c846fcbcab0aadbe735c2a, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Zephyr.Gameplay.Enemies.EnemyComponentGenerator
 --- !u!114 &1000000018
 MonoBehaviour:
@@ -359,7 +362,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 739df9476c294b2d84c96c221fc9776f, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Zephyr.Gameplay.Enemies.EnemyAttackController
 --- !u!114 &1000000019
 MonoBehaviour:
@@ -371,7 +374,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b4ec0d9ea71a479290a58ebd987c1e67, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Zephyr.Gameplay.Enemies.EnemyMeleeHitboxComponent
   _localOffset: {x: 0.55, y: 0.85}
   _size: {x: 0.9, y: 1.2}

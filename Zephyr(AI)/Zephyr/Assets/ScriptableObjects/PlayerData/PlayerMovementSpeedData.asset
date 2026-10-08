@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: PlayerMovementSpeedData
   m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Data.PlayerMovementSpeedDataSO
   idleSpeed: 0
-  walkSpeed: 3
-  sprintSpeed: 8
+  walkSpeed: 6
+  sprintSpeed: 12
   rollSpeed: 10
   dashSpeed: 30
+  crouchSpeed: 3

@@ -25,6 +25,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
 
     public class AnyStateToFallCondition : Condition
     {
+        private const float k_minimumFallingSpeed = -0.1f;
         private MovementCore _movementCore;
 
         public override void Awake(CoreSM stateMachine)
@@ -36,8 +37,13 @@ namespace Zephyr.Gameplay.Player.StateMachine
         {
             if (_movementCore == null) return false;
 
-            // 触地时不触发，离开地面时触发（从高台走下来）
-            return !_movementCore.IsGrounded;
+            // A brief ground-probe miss at touchdown must not send the player
+            // from a grounded locomotion state back into JumpEnd. Require actual
+            // downward motion as well as lost contact; walking off a ledge still
+            // enters the falling state as soon as gravity starts pulling down.
+            return !_movementCore.IsGrounded
+                   && !_movementCore.HasGroundedGrace
+                   && _movementCore.VerticalVelocity < k_minimumFallingSpeed;
         }
     }
 }

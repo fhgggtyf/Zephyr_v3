@@ -10,6 +10,7 @@ using UnityEngine;
 using Zephyr.Core.StateMachine;
 using CoreSM = Zephyr.Core.StateMachine.StateMachine;
 using Zephyr.Core.StateMachine.ScriptableObjects;
+using Zephyr.Gameplay.Player.Core;
 using Zephyr.Gameplay.Player.Input;
 
 namespace Zephyr.Gameplay.Player.StateMachine
@@ -23,17 +24,20 @@ namespace Zephyr.Gameplay.Player.StateMachine
     public class CrouchExitCondition : Condition
     {
         private PlayerInputReader _inputReader;
+        private PlayerColliderController _colliderController;
 
         public override void Awake(CoreSM stateMachine)
         {
             _inputReader = stateMachine.GetCachedComponent<PlayerInputReader>();
+            stateMachine.TryGetCachedComponent(out _colliderController);
         }
 
         protected override bool Statement()
         {
             if (_inputReader == null) return false;
 
-            return !_inputReader.HasCrouchInput;
+            return !_inputReader.HasCrouchInput
+                && (_colliderController == null || _colliderController.CanUseStandingProfile());
         }
     }
 }

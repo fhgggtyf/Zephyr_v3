@@ -59,6 +59,19 @@ namespace Zephyr.UI
             _labelText.text = string.IsNullOrEmpty(value) || value == _labelLocalizationKey ? _label : value;
         }
 
+        public void SetUnbounded()
+        {
+            _currentValue = _maxValue = 1f;
+            if (_slider != null)
+            {
+                _slider.minValue = 0f;
+                _slider.maxValue = 1f;
+                _slider.value = 1f;
+            }
+            if (_fillImage != null) _fillImage.fillAmount = 1f;
+            if (_valueText != null && _showValueText) _valueText.text = "∞";
+        }
+
         public void UpdateBar(float currentValue, float maxValue)
         {
             _currentValue = currentValue;

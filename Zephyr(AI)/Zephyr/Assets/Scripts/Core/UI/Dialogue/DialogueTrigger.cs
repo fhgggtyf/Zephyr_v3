@@ -10,8 +10,9 @@ namespace Zephyr.Core.UI.Dialogue
     {
         [SerializeField] private DialogueSO _dialogue;
         [SerializeField] private bool _triggerOnce = true;
-        [SerializeField] private string _requiredObjectiveId;
-        [SerializeField] private string _requiredStoryBeatId;
+        [SerializeField] private StoryFactSO _requiredFact;
+        [SerializeField] private MilestoneSO _requiredMilestone;
+        [SerializeField] private MilestoneSO _completionMilestone;
         [SerializeField] private int _minimumRunStage = -1;
         [SerializeField] private bool _requireCompletedTutorial;
         [SerializeField] private string _playerTag = "Player";
@@ -47,32 +48,31 @@ namespace Zephyr.Core.UI.Dialogue
         private void MarkTriggered()
         {
             if (!_triggerOnce || _dialogue == null) return;
-            SaveSystem save = SaveSystem.Instance;
-            if (save?.Meta == null || string.IsNullOrWhiteSpace(_dialogue.DialogueId)) return;
-            StoryProgressionSystem.MarkBeatTriggered(save.Meta, _dialogue.DialogueId);
+            if (_completionMilestone != null)
+                StoryProgressionService.Instance?.Complete(_completionMilestone);
         }
 
         private bool HasBeenRecorded()
         {
-            SaveSystem save = SaveSystem.Instance;
-            return save?.Meta != null && !string.IsNullOrWhiteSpace(_dialogue?.DialogueId)
-                && save.Meta.TriggeredStoryBeats.Contains(_dialogue.DialogueId);
+            return _completionMilestone != null
+                && StoryProgressionService.Instance != null
+                && StoryProgressionService.Instance.IsCompleted(_completionMilestone);
         }
 
         private bool IsProgressReached()
         {
             bool hasRequirement = _requireCompletedTutorial || _minimumRunStage >= 0
-                || !string.IsNullOrWhiteSpace(_requiredObjectiveId)
-                || !string.IsNullOrWhiteSpace(_requiredStoryBeatId);
+                || _requiredFact != null || _requiredMilestone != null;
             if (!hasRequirement) return true;
 
             SaveSystem save = SaveSystem.Instance;
             if (save?.Meta == null) return false;
             if (_requireCompletedTutorial && !save.Meta.HasCompletedTutorial) return false;
-            if (!string.IsNullOrWhiteSpace(_requiredObjectiveId)
-                && !save.Meta.FulfilledObjectives.Contains(_requiredObjectiveId)) return false;
-            if (!string.IsNullOrWhiteSpace(_requiredStoryBeatId)
-                && !save.Meta.TriggeredStoryBeats.Contains(_requiredStoryBeatId)) return false;
+            if (_requiredFact != null
+                && (StoryProgressionService.Instance == null || !_requiredFact.ValueType.Equals(StoryFactValueType.Bool)
+                    || !StoryProgressionService.Instance.GetBool(_requiredFact))) return false;
+            if (_requiredMilestone != null
+                && (StoryProgressionService.Instance == null || !StoryProgressionService.Instance.IsCompleted(_requiredMilestone))) return false;
             if (_minimumRunStage >= 0 && (save.CurrentRun == null || save.CurrentRun.CurrentStage < _minimumRunStage)) return false;
             return true;
         }

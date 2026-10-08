@@ -29,6 +29,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
     public class CrouchAction : StateAction
     {
         private MovementCore _movementCore;
+        private PlayerColliderController _colliderController;
         private readonly PlayerMovementSpeedDataSO _speedData;
 
         public CrouchAction(PlayerMovementSpeedDataSO speedData)
@@ -39,6 +40,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
         public override void Awake(CoreSM stateMachine)
         {
             _movementCore = stateMachine.GetCachedComponent<MovementCore>();
+            stateMachine.TryGetCachedComponent(out _colliderController);
         }
 
         public override void OnStateEnter()
@@ -47,6 +49,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
 
             _movementCore.SetMoveSpeed(_speedData != null ? _speedData.crouchSpeed : 3f);
             _movementCore.SetCrouching(true);
+            _colliderController?.RequestCrouch(true);
         }
 
         public override void OnStateExit()
@@ -54,6 +57,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
             if (_movementCore == null) return;
 
             _movementCore.SetCrouching(false);
+            _colliderController?.RequestCrouch(false);
         }
 
         public override void OnUpdate() { }

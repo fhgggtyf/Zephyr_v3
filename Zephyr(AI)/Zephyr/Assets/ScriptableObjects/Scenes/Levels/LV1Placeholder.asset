@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3000000000000000000000000000001, type: 3}
+  m_Name: LV1Placeholder
+  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Flow.SceneSO
+  _id: 11
+  _sceneAsset: {fileID: 102900000, guid: 948d30b796014d64cb4cdd72170d110a, type: 3}
+  _sceneName: LV1Placeholder
+  _scenePath: Assets/Scenes/Levels/LV1Placeholder.unity
+  _statModifiers: []

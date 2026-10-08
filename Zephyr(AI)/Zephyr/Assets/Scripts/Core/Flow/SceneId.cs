@@ -27,6 +27,11 @@ namespace Zephyr.Core.Flow
         MetaHub,
         LoadingRun,
         Room_Generic,
-        Room_Boss
+        Room_Boss,
+        Tutorial_Phase_1,
+        Tutorial_Phase_2,
+        LV1Placeholder,
+        LV2Placeholder,
+        LV3Placeholder
     }
 }

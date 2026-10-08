@@ -56,6 +56,21 @@ namespace Zephyr.Gameplay.Player.Core
         public bool IsGrounded => _groundChecker != null && _groundChecker.IsGrounded;
 
         /// <summary>
+        /// True when the ground probe has remained valid for the configured
+        /// number of physics frames. Used by jump landing transitions so a
+        /// single edge/probe flicker cannot complete a landing early.
+        /// </summary>
+        public bool HasStableGroundContact =>
+            _groundChecker != null && _groundChecker.HasStableGroundContact;
+
+        /// <summary>
+        /// True during the short post-contact grace window used to suppress a
+        /// transient ground-probe loss immediately after landing.
+        /// </summary>
+        public bool HasGroundedGrace =>
+            _groundChecker != null && _groundChecker.HasGroundedGrace;
+
+        /// <summary>
         /// True when the player's left side is touching a wall.
         /// Used by ApplyMovement to prevent getting stuck when pushing into a wall.
         /// Reads from GroundChecker.

@@ -4,8 +4,8 @@
  * Module:  Core / Save
  * Purpose: Session-local data created at run start and discarded at run end. Contains the
  *          seed (for deterministic RNG), current stage/room depth, run currency, base stats
- *          brought into the run, acquired in-run modifiers, pending objectives (committed to
- *          MetaData at run-end), equipped weapon ID, and damage/kill statistics. Stored as
+ *          brought into the run, acquired in-run modifiers, equipped weapon ID, and damage/kill
+ *          statistics. Stored as
  *          a JSON file via SaveSystem and loaded on resume. The seed is predetermined at
  *          run creation and drives all reward randomness.
  * Dependencies: System.Collections.Generic (Dictionary, HashSet).
@@ -38,9 +38,6 @@ namespace Zephyr.Core.Save
 
         // Potentially-scaled gains acquired during run
         public Dictionary<int, float> AcquiredModifiers = new Dictionary<int, float>();
-
-        // Objectives fulfilled mid-run (committed to meta at run-end)
-        public HashSet<string> PendingObjectives = new HashSet<string>();
 
         // Weapon picked up in this run
         public int EquippedWeaponId;

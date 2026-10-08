@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4522592b5bf466e4bbc7257eaabff7f9, type: 3}
   m_Name: JumpData
   m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Data.JumpDataSO
-  jumpForce: 8
+  jumpForce: 11.5
   gravityScale: 2
   variableJumpGravityScale: 3
-  fallGravityMultiplier: 2
+  fallGravityMultiplier: 4
   maxFallSpeed: 20
