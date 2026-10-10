@@ -2787,13 +2787,14 @@ Action maps switch with `GameFlow` state (Ch.14) **and** with transient UI modes
 ## Chapter 19 — Camera System (Hollow Knight-style)
 
 > **Implemented snapshot (supersedes `CameraZoneSO` below):** camera authorship is scene-local.
-> `CameraBounds` defines room bounds, default behavior, and priority custom regions. `[ExecuteAlways]`
+> `CameraBounds` defines room bounds, default behavior, and priority custom regions. It supplies a child `PolygonCollider2D` to `CinemachineConfiner2D` at runtime.
 > `CameraZone` objects are editable rectangles with Follow, VerticalLock, HorizontalLock,
 > VerticalCenter, and FullLock modes plus offset, look-ahead, anchor, and priority. CameraController
-> provides deadzone follow, smoothed velocity look-ahead, viewport clamping, and edge-jitter
-> suppression. Shake is not implemented.
+> applies these values to the default Cinemachine Position Composer and Confiner. Damage shake is
+> emitted through Cinemachine Impulse and never feeds back into logical follow state.
 
 > Layer 🟥: locked foundation. Namespace `Zephyr.Core.Camera`. A **deadzone-based** follow camera with **soft** room bounds and **authored camera zones** that reframe the view when the player enters them (Hollow Knight / Metroidvania-style, not Dead-Cells-style rigid confinement).
+> **Cinemachine migration contract (2026-10-08):** Cinemachine is responsible for the actual camera calculation. `GameManager` owns the gameplay output `Camera`/`CinemachineBrain` lifecycle and the default gameplay `CinemachineCamera`; `Persistent` owns no camera. Gameplay scenes provide `CameraBounds`, their `CameraBoundsShape`/`PolygonCollider2D`, and `CameraZone` data only. `CameraController` remains the single upper-layer camera API, but now acts as the Cinemachine adapter: it sets `Follow`, `CinemachinePositionComposer`, `CinemachineConfiner2D`, and Cinemachine impulse components rather than moving the output camera in `LateUpdate`. Local gameplay cameras lose output authority when the GameManager camera is present. The current implementation can create the Cinemachine child rig at runtime so existing scene files remain loadable; serialized hierarchy cleanup should still be performed through Unity MCP when that tool is available.
 
 ### 19.1 CameraController
 
@@ -2813,7 +2814,7 @@ namespace Zephyr.Core.Camera
 }
 ```
 
-- `CameraController` owns the main `Camera` component and runs all motion in `LateUpdate` (after `Update`/`FixedUpdate` resolve gameplay position). The camera **never writes gameplay transforms** — it only reads the follow target.
+- `CameraController` owns the gameplay camera service contract, not a second transform-motion system. CinemachineBrain and the active CinemachineCamera calculate the final output. CameraController only reads the follow target and updates Cinemachine configuration in `LateUpdate`; it never writes gameplay transforms or directly moves the output camera.
 - Frame-rate independent damping (`Mathf.SmoothDamp` with `Time.deltaTime`) is always applied — no transform-translate snapping (except explicit `SnapTo` on room transitions / telegraphs).
 
 ### 19.2 Deadzone Follow Model (binding — the core behavior)

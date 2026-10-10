@@ -76,6 +76,12 @@ namespace Zephyr.Gameplay.Levels
             return null;
         }
 
+        public bool IsFinalTutorialScene()
+        {
+            SceneSO current = FindLoadedProgressionScene();
+            return Matches(current, _tutorialPhase2) && Matches(GetNext(current), _metaHub);
+        }
+
         private SceneSO FindLoadedProgressionScene()
         {
             for (int i = 0; i < SceneManager.sceneCount; i++)

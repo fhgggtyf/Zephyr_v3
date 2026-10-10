@@ -1,8 +1,10 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zephyr.Core.Camera;
 using Zephyr.Core.Flow;
+using Zephyr.Core.Weapons;
 
 namespace Zephyr.Gameplay.Player.Flow
 {
@@ -24,6 +26,11 @@ namespace Zephyr.Gameplay.Player.Flow
         public event Action PlayerDespawned;
         private Scene _playerScene;
         private Transform _respawnPoint;
+        private Coroutine _pendingSpawnRoutine;
+        private RespawnLoadout _pendingRespawnLoadout;
+        private bool _hasPendingRespawnLoadout;
+        private Vector3 _pendingRespawnPosition;
+        private bool _hasPendingRespawnPosition;
 
         private void Awake()
         {
@@ -53,6 +60,12 @@ namespace Zephyr.Gameplay.Player.Flow
         {
             SceneManager.sceneLoaded -= HandleSceneLoaded;
             SceneManager.sceneUnloaded -= HandleSceneUnloaded;
+
+            if (_pendingSpawnRoutine != null)
+            {
+                StopCoroutine(_pendingSpawnRoutine);
+                _pendingSpawnRoutine = null;
+            }
         }
 
         private void OnDestroy()
@@ -64,8 +77,30 @@ namespace Zephyr.Gameplay.Player.Flow
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (IsPlayerScene(scene)) SpawnIfNeeded(scene);
+            if (IsPlayerScene(scene)) QueueSpawnAfterSceneActivation(scene);
             else EvaluateLoadedScenes();
+        }
+
+        private void QueueSpawnAfterSceneActivation(Scene scene)
+        {
+            if (_pendingSpawnRoutine != null)
+                StopCoroutine(_pendingSpawnRoutine);
+
+            _pendingSpawnRoutine = StartCoroutine(SpawnAfterSceneActivation(scene));
+        }
+
+        private IEnumerator SpawnAfterSceneActivation(Scene scene)
+        {
+            // SceneLoader sets the newly loaded scene active after Unity invokes
+            // sceneLoaded. Waiting one frame guarantees that scene modifiers and
+            // the active-scene contract are settled before the player Awake runs.
+            yield return null;
+            _pendingSpawnRoutine = null;
+
+            if (!scene.IsValid() || !scene.isLoaded || !IsPlayerScene(scene))
+                yield break;
+
+            SpawnIfNeeded(scene);
         }
 
         private void HandleSceneUnloaded(Scene scene)
@@ -130,11 +165,14 @@ namespace Zephyr.Gameplay.Player.Flow
                 : FindSceneSpawnPoint(gameplayScene);
             _respawnPoint = sceneSpawnPoint != null ? sceneSpawnPoint : _spawnPoint;
             Transform spawnPoint = _respawnPoint;
-            Vector3 position = spawnPoint != null ? spawnPoint.position : Vector3.zero;
+            Vector3 position = _hasPendingRespawnPosition
+                ? _pendingRespawnPosition
+                : spawnPoint != null ? spawnPoint.position : Vector3.zero;
             Quaternion rotation = spawnPoint != null ? spawnPoint.rotation : Quaternion.identity;
             CurrentPlayer = Instantiate(_playerPrefab, position, rotation);
             SceneManager.MoveGameObjectToScene(CurrentPlayer, gameplayScene);
             _playerScene = gameplayScene;
+            ApplyPendingRespawnLoadout();
 
             CameraController camera = CameraController.FindForGameplay(gameplayScene);
             camera?.SetFollow(CurrentPlayer.transform);
@@ -155,9 +193,48 @@ namespace Zephyr.Gameplay.Player.Flow
             if (!scene.IsValid() || !scene.isLoaded) return;
 
             Transform point = _respawnPoint;
+            CaptureCurrentLoadout();
+            if (CurrentPlayer != null)
+            {
+                _pendingRespawnPosition = CurrentPlayer.transform.position;
+                _hasPendingRespawnPosition = true;
+            }
             DespawnPlayer();
             _respawnPoint = point;
             SpawnIfNeeded(scene);
+        }
+
+        private void CaptureCurrentLoadout()
+        {
+            WeaponController controller = CurrentPlayer != null
+                ? CurrentPlayer.GetComponentInChildren<WeaponController>(true)
+                : null;
+            if (controller == null) return;
+
+            _pendingRespawnLoadout = new RespawnLoadout
+            {
+                Primary = controller.GetWeapon(WeaponSlot.Primary),
+                Secondary = controller.GetWeapon(WeaponSlot.Secondary),
+                ActiveSlot = controller.ActiveSlot
+            };
+            _hasPendingRespawnLoadout = true;
+        }
+
+        private void ApplyPendingRespawnLoadout()
+        {
+            if (_hasPendingRespawnLoadout && CurrentPlayer != null)
+            {
+                WeaponController controller = CurrentPlayer.GetComponentInChildren<WeaponController>(true);
+                if (controller != null)
+                {
+                    controller.Equip(WeaponSlot.Primary, _pendingRespawnLoadout.Primary);
+                    controller.Equip(WeaponSlot.Secondary, _pendingRespawnLoadout.Secondary);
+                    controller.SetActiveSlot(_pendingRespawnLoadout.ActiveSlot);
+                }
+            }
+
+            _hasPendingRespawnLoadout = false;
+            _hasPendingRespawnPosition = false;
         }
 
         private static Transform FindSceneSpawnPoint(Scene scene)
@@ -214,6 +291,13 @@ namespace Zephyr.Gameplay.Player.Flow
             }
 
             return false;
+        }
+
+        private struct RespawnLoadout
+        {
+            public WeaponSO Primary;
+            public WeaponSO Secondary;
+            public WeaponSlot ActiveSlot;
         }
     }
 }

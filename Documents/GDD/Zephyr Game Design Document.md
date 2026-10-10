@@ -759,7 +759,7 @@ Continue 在无有效存档时灰掉且不可点击。Start Game 根据槽位情
 
 ### 13.1 Hollow Knight 风格的跟随
 
-镜头由场景中的 CameraController 所有，不放在每个房间里重复实现。镜头不是每帧紧贴玩家，而是使用 Deadzone：
+Gameplay 阶段由 GameManager 提供唯一的真实输出 Camera 与 CinemachineBrain；默认 CinemachineCamera 也由 GameManager 生命周期管理。Gameplay 场景只提供 CameraBounds、CameraBoundsShape 和 CameraZone 配置，不再各自驱动真实 Camera。CameraController 保留为上层唯一镜头 API，并作为 Cinemachine 适配层。镜头不是每帧紧贴玩家，而是使用 Deadzone：
 
 - 玩家在 Deadzone 内时镜头保持稳定。
 - 玩家离开 Deadzone 时镜头重新追上。
@@ -787,7 +787,7 @@ Continue 在无有效存档时灰掉且不可点击。Start Game 根据槽位情
 
 镜头震动必须叠加在已经计算好的逻辑镜头位置上。震动偏移不能反过来成为下一帧的跟随输入，否则会造成边界漂移和镜头越跟越偏。震动来源包括有效受击、Boss 重击和重要环境事件。
 
-**当前实现（简述）：** CameraBounds、CameraZone 和 Deadzone 风格 CameraController 已建立；震动逻辑已有独立视觉偏移修正，仍需在实际房间和不同分辨率下持续调参。
+**当前实现（简述）：** CameraBounds、CameraZone 和 CameraController 外部契约已迁移到 Cinemachine 适配模式；GameManager 运行时提供 Brain/Gameplay VCam/Position Composer/Confiner/Impulse，场景 CameraBounds 会生成或绑定 PolygonCollider2D 边界形状。仍需在 Unity Editor 中完成持久化层级清理，并在实际房间和不同分辨率下继续调参。
 
 ---
 

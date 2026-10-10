@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zephyr.Core.Events;
 using Zephyr.Core.Meta;
+using Zephyr.Core.Stats;
 using Zephyr.Core.UI;
 
 namespace Zephyr.Core.Flow
@@ -201,7 +202,7 @@ namespace Zephyr.Core.Flow
 
             if (target == GameState.MainMenu)
             {
-                SceneSO previousScene = SceneForState(previous);
+                SceneSO previousScene = ResolveCurrentScene(previous);
                 if (previousScene != null) RequestSceneUnload(previousScene);
                 if (previous == GameState.InRun || previous == GameState.Paused) UnloadRoomScenes();
                 RequestSceneLoad(_mainMenuScene, _gameManagerScene);
@@ -224,7 +225,21 @@ namespace Zephyr.Core.Flow
             if (previous == GameState.InRun || previous == GameState.Paused)
                 UnloadRoomScenes();
 
-            RequestSceneLoad(targetScene, SceneForState(previous));
+            RequestSceneLoad(targetScene, ResolveCurrentScene(previous));
+        }
+
+        private SceneSO ResolveCurrentScene(GameState state)
+        {
+            if (state == GameState.Tutorial || state == GameState.LoadingRun ||
+                state == GameState.InRun || state == GameState.Paused)
+            {
+                SceneStatsModifierController statsController = SceneStatsModifierController.Instance;
+                if (statsController != null && statsController.TryGetActiveScene(out SceneSO activeScene) &&
+                    activeScene != _gameManagerScene && activeScene != _mainMenuScene)
+                    return activeScene;
+            }
+
+            return SceneForState(state);
         }
 
         private void UnloadRoomScenes()

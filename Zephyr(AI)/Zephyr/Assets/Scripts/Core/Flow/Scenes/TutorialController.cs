@@ -9,6 +9,12 @@ public sealed class TutorialController : MonoBehaviour
 
         public void CompleteTutorial()
         {
+            MarkCompleted();
+            OnTutorialComplete?.Invoke();
+        }
+
+        public static void MarkCompleted()
+        {
             var save = SaveSystem.Instance;
             if (save?.Meta == null)
             {
@@ -20,10 +26,6 @@ public sealed class TutorialController : MonoBehaviour
                 save.Meta.HasCompletedTutorial = true;
                 save.SaveMeta();
             }
-
-            // Scene exits own progression through SceneProgressionController.
-            // This method only records completion and notifies listeners.
-            OnTutorialComplete?.Invoke();
         }
     }
 }

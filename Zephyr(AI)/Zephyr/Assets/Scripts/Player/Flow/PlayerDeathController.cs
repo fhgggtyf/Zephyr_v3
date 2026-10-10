@@ -30,6 +30,7 @@ namespace Zephyr.Gameplay.Player.Flow
         private GameObject _player;
         private HealthComponent _health;
         private StatsCore _stats;
+        private HurtReceiver _hurtReceiver;
         private DamageInfo _lastDamage;
         private bool _hasLastDamage;
         private bool _processingDown;
@@ -88,6 +89,8 @@ namespace Zephyr.Gameplay.Player.Flow
 
             _health = _player.GetComponent<HealthComponent>();
             _stats = _player.GetComponent<StatsCore>();
+            _hurtReceiver = _player.GetComponentInChildren<HurtReceiver>(true);
+            _hurtReceiver?.SetInvincible(GameFlow.Instance?.CurrentState == GameState.Tutorial);
             RestorePotentials();
 
             CombatTargetAvailability availability = _player.GetComponent<CombatTargetAvailability>();
@@ -111,6 +114,7 @@ namespace Zephyr.Gameplay.Player.Flow
             _player = null;
             _health = null;
             _stats = null;
+            _hurtReceiver = null;
             _hasLastDamage = false;
         }
 
@@ -190,6 +194,7 @@ namespace Zephyr.Gameplay.Player.Flow
 
         private void HandleGameStateChanged(GameState previous, GameState current)
         {
+            _hurtReceiver?.SetInvincible(current == GameState.Tutorial);
             if (current != GameState.MetaHub && current != GameState.MainMenu) return;
             StopAllCoroutines();
             _processingDown = false;

@@ -74,7 +74,7 @@ namespace Zephyr.Gameplay.Player.Core
                 : GetComponentsInChildren<SpriteRenderer>(true);
             _originalColors = new Color[_sprites.Length];
             for (int i = 0; i < _sprites.Length; i++) _originalColors[i] = _sprites[i].color;
-            _camera = FindAnyObjectByType<CameraController>();
+            _camera = CameraController.FindForGameplay(gameObject.scene);
         }
 
         private void OnEnable()
@@ -101,7 +101,7 @@ namespace Zephyr.Gameplay.Player.Core
             float damage = Mathf.Max(0f, result.DealtToHp + result.DealtToShield);
             if (damage <= 0f) return;
 
-            _camera ??= FindAnyObjectByType<CameraController>();
+            _camera = CameraController.FindForGameplay(gameObject.scene);
             _camera?.ShakeForDamage(damage);
 
             // DamageTaken is not raised for filtered hits. A lethal accepted hit

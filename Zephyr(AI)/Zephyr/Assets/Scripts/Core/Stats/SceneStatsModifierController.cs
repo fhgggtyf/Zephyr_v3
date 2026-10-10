@@ -44,7 +44,10 @@ namespace Zephyr.Core.Stats
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            RefreshActiveScene(SceneManager.GetActiveScene());
+            // Unity invokes sceneLoaded before SceneLoader switches the active
+            // scene. Resolve the scene that actually finished loading instead
+            // of reading the previous active scene.
+            RefreshActiveScene(scene);
         }
 
         private void HandleSceneUnloaded(Scene scene)

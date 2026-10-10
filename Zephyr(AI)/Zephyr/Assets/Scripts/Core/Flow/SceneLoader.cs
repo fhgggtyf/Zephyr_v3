@@ -151,6 +151,12 @@ namespace Zephyr.Core.Flow
                 yield return new WaitUntil(() => GameManagerBootstrap.IsReady);
 
             _onSceneLoaded?.Raise(new SceneInfo(scene));
+
+            if (GameFlow.Instance != null && GameFlow.Instance.CurrentState == GameState.LoadingRun &&
+                (scene.Id == SceneId.Room_Generic || scene.Id == SceneId.Room_Boss ||
+                 scene.Id == SceneId.LV1Placeholder || scene.Id == SceneId.LV2Placeholder ||
+                 scene.Id == SceneId.LV3Placeholder))
+                GameFlow.Instance.RequestTransition(GameState.InRun);
         }
 
         private static IEnumerator UnloadSceneAsync(SceneSO scene)

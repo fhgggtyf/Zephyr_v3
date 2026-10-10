@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zephyr.Core.Flow.Scenes;
 using Zephyr.Core.Levels;
 using Zephyr.Gameplay.Enemies;
 
@@ -46,6 +47,10 @@ namespace Zephyr.Gameplay.Levels
             }
 
             _roomController?.BeginExit();
+            if (SceneProgressionController.Instance != null &&
+                SceneProgressionController.Instance.IsFinalTutorialScene())
+                TutorialController.MarkCompleted();
+
             if (SceneProgressionController.Instance != null)
             {
                 SceneProgressionController.Instance.AdvanceFromCurrentScene();
@@ -64,7 +69,7 @@ namespace Zephyr.Gameplay.Levels
             for (int i = 0; i < _requiredEnemies.Length; i++)
             {
                 EnemyBrain enemy = _requiredEnemies[i];
-                if (enemy == null || (enemy.isActiveAndEnabled && !enemy.IsDead)) remaining++;
+                if (enemy != null && enemy.isActiveAndEnabled && !enemy.IsDead) remaining++;
             }
 
             return remaining;

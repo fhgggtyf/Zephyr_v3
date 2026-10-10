@@ -21,7 +21,10 @@ namespace Zephyr.Core.Camera
         public Vector2 Anchor { get; }
     }
 
-    /// <summary>Scene-owned camera bounds applied to the shared gameplay camera.</summary>
+    /// <summary>
+    /// Scene-owned camera bounds. Rect authoring remains backward compatible;
+    /// a child PolygonCollider2D is supplied to CinemachineConfiner2D at runtime.
+    /// </summary>
     public sealed class CameraBounds : MonoBehaviour
     {
         [Serializable]
@@ -46,6 +49,14 @@ namespace Zephyr.Core.Camera
         }
 
         [SerializeField] private Rect _bounds = new Rect(-12f, -6f, 24f, 12f);
+        [SerializeField] private PolygonCollider2D _boundsShape;
+        [Tooltip("Keep the polygon synchronized with Bounds. Disable to author a custom polygon instead.")]
+        [SerializeField] private bool _createRuntimeShape = true;
+        private Rect _lastShapeBounds;
+        private Matrix4x4 _lastShapeMatrix;
+        private Vector2 _lastShapeOffset;
+        private bool _shapeSynchronized;
+        public int ShapeVersion { get; private set; }
         [Header("Default Behavior")]
         [SerializeField] private CameraMode _defaultMode = CameraMode.Follow;
         [SerializeField] private Vector2 _defaultFollowOffset;
@@ -56,12 +67,62 @@ namespace Zephyr.Core.Camera
 
         public Rect Bounds => OffsetRect(_bounds, transform.position);
 
-        private void Start() => ApplyBounds();
+        private void OnEnable() => ApplyBounds();
 
         private void OnDisable()
         {
             CameraController camera = CameraController.FindForGameplay(gameObject.scene);
             camera?.ClearRoomBounds(this);
+        }
+
+        public PolygonCollider2D GetOrCreateBoundsShape()
+        {
+            if (_boundsShape != null)
+            {
+                _boundsShape.isTrigger = true;
+                _boundsShape.enabled = true;
+                SynchronizeRectShape();
+                return _boundsShape;
+            }
+
+            if (!_createRuntimeShape) return null;
+            Transform shapeTransform = transform.Find("CameraBoundsShape");
+            if (shapeTransform == null)
+            {
+                GameObject shapeObject = new GameObject("CameraBoundsShape");
+                shapeTransform = shapeObject.transform;
+                shapeTransform.SetParent(transform, false);
+            }
+
+            _boundsShape = shapeTransform.GetComponent<PolygonCollider2D>();
+            if (_boundsShape == null) _boundsShape = shapeTransform.gameObject.AddComponent<PolygonCollider2D>();
+            _boundsShape.isTrigger = true;
+            SynchronizeRectShape();
+            return _boundsShape;
+        }
+
+        private void SynchronizeRectShape()
+        {
+            if (!_createRuntimeShape || _boundsShape == null) return;
+            Rect worldBounds = Bounds;
+            Matrix4x4 matrix = _boundsShape.transform.worldToLocalMatrix;
+            Vector2 offset = _boundsShape.offset;
+            if (_shapeSynchronized && _lastShapeBounds == worldBounds &&
+                _lastShapeMatrix == matrix && _lastShapeOffset == offset) return;
+
+            _boundsShape.pathCount = 1;
+            _boundsShape.SetPath(0, new[]
+            {
+                (Vector2)matrix.MultiplyPoint3x4(new Vector3(worldBounds.xMin, worldBounds.yMin)) - offset,
+                (Vector2)matrix.MultiplyPoint3x4(new Vector3(worldBounds.xMin, worldBounds.yMax)) - offset,
+                (Vector2)matrix.MultiplyPoint3x4(new Vector3(worldBounds.xMax, worldBounds.yMax)) - offset,
+                (Vector2)matrix.MultiplyPoint3x4(new Vector3(worldBounds.xMax, worldBounds.yMin)) - offset
+            });
+            _lastShapeBounds = worldBounds;
+            _lastShapeMatrix = matrix;
+            _lastShapeOffset = offset;
+            _shapeSynchronized = true;
+            ShapeVersion++;
         }
 
         private void ApplyBounds()
@@ -113,6 +174,5 @@ namespace Zephyr.Core.Camera
         {
             return new Rect(source.position + offset, source.size);
         }
-
     }
 }

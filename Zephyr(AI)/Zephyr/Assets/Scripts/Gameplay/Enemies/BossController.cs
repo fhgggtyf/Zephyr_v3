@@ -25,11 +25,13 @@ namespace Zephyr.Gameplay.Enemies
         [SerializeField] private EnemyMotor _motor;
         [SerializeField] private EnemyAnimation _animation;
         [SerializeField] private Rigidbody2D _body;
-        [SerializeField] private Transform _spearVisual;
+        [SerializeField] private Collider2D _bodyCollider;
+        [SerializeField] private BossSpearController _spear;
         [SerializeField, Min(0f)] private float _closeRange = 2.2f;
         [SerializeField, Min(0f)] private float _approachSpeed = 3f;
         [SerializeField, Min(0f)] private float _initialAttackDelay = 0.5f;
         [SerializeField] private LayerMask _groundLayers = ~0;
+        [SerializeField] private LayerMask _playerCollisionIgnoreLayers = 1 << 0;
         [SerializeField, Min(1f)] private float _spearGroundProbeDistance = 30f;
 
         private readonly HashSet<int> _hitTargets = new HashSet<int>();
@@ -38,13 +40,20 @@ namespace Zephyr.Gameplay.Enemies
         private float _attackStartedAt;
         private float _nextAttackAt;
         private bool _spearThrown;
+        private bool _spearLanded;
+        private bool _spearReturned;
         private bool _jumpStarted;
         private bool _dashStarted;
+        private float _spearLandedAt;
+        private float _originalGravityScale;
         private bool _stageTwo;
         private bool _surroundSlash;
         private float _surroundStartedAt;
         private int _attackCursor;
         private bool _dead;
+        private LayerMask _configuredColliderIncludeLayers;
+        private LayerMask _configuredColliderExcludeLayers;
+        private bool _collisionOverridesCached;
 
         public StatType TargetPotential => _config != null ? _config.TargetPotential : StatType.MaxHp;
         public float PotentialAttack => _config != null ? _config.PotentialAttack : 0f;
@@ -58,21 +67,58 @@ namespace Zephyr.Gameplay.Enemies
             _stats ??= GetComponent<EnemyStats>();
             _health ??= GetComponent<HealthComponent>();
             _motor ??= GetComponent<EnemyMotor>();
-            _animation ??= GetComponent<EnemyAnimation>();
+            _animation ??= GetComponentInChildren<EnemyAnimation>(true);
             _body ??= GetComponent<Rigidbody2D>();
+            _bodyCollider ??= GetComponent<Collider2D>();
+            _spear ??= GetComponentInChildren<BossSpearController>(true);
+            CacheColliderOverrides();
+            ApplyBaseCollisionProfile();
+            if (_body != null) _originalGravityScale = _body.gravityScale;
             _nextAttackAt = Time.time + _initialAttackDelay;
             if (_body != null) _body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         }
 
         private void OnEnable()
         {
+            ApplyBaseCollisionProfile();
             if (_health != null) _health.Died += HandleDeath;
+            if (_spear != null) _spear.Landed += HandleSpearLanded;
         }
 
         private void OnDisable()
         {
             if (_health != null) _health.Died -= HandleDeath;
-            FinishAttack();
+            if (_spear != null) _spear.Landed -= HandleSpearLanded;
+            ReturnSpearToBoss();
+            RestoreBaseCollisionProfile();
+            RestoreBodyGravity();
+            FinishAttack(false);
+        }
+
+        private void FixedUpdate()
+        {
+            if (_dead || _activeAttack == null || _activeAttack.Kind != BossAttackKind.SpearThrowAndDash ||
+                !_spearLanded || !_dashStarted || _spearReturned || _body == null)
+                return;
+
+            Vector2 current = _body.position;
+            float distance = Vector2.Distance(current, _spearAnchor);
+            if (distance <= _activeAttack.SpearContactDistance)
+            {
+                _body.MovePosition(_spearAnchor);
+                ReturnSpearToBoss();
+                FinishAttack();
+                return;
+            }
+
+            Vector2 next = Vector2.MoveTowards(current, _spearAnchor,
+                Mathf.Max(0.1f, _activeAttack.MovementSpeed) * Time.fixedDeltaTime);
+            _body.MovePosition(next);
+            if (Vector2.Distance(next, _spearAnchor) <= _activeAttack.SpearContactDistance)
+            {
+                ReturnSpearToBoss();
+                FinishAttack();
+            }
         }
 
         private void Update()
@@ -159,9 +205,13 @@ namespace Zephyr.Gameplay.Enemies
             _activeAttack = attack;
             _attackStartedAt = Time.time;
             _spearThrown = false;
+            _spearLanded = false;
+            _spearReturned = false;
+            _spearLandedAt = 0f;
             _jumpStarted = false;
             _dashStarted = false;
-            if (_spearVisual != null) _spearVisual.gameObject.SetActive(false);
+            ReturnSpearToBoss();
+            RestoreBodyGravity();
             _hitTargets.Clear();
             _motor?.Stop();
             if (_motor != null) _motor.enabled = false;
@@ -190,17 +240,25 @@ namespace Zephyr.Gameplay.Enemies
                     LaunchHighJump();
                 }
                 if (!_spearThrown && elapsed >= _activeAttack.ThrowTime) ThrowSpear();
-                if (!_dashStarted && elapsed >= _activeAttack.DashToSpearTime)
+                if (!_dashStarted && _spearLanded && Time.time >= _spearLandedAt + _activeAttack.SpearDiveDelay)
                 {
                     _dashStarted = true;
                     LaunchDashToSpear();
+                }
+
+                if (_spearLanded && !_spearReturned &&
+                    Time.time >= _spearLandedAt + _activeAttack.SpearDiveDelay + _activeAttack.SpearDiveTimeout)
+                {
+                    ReturnSpearToBoss();
+                    FinishAttack();
+                    return;
                 }
             }
 
             if (elapsed >= _activeAttack.TelegraphDuration)
                 ProcessHitboxes(elapsed, _activeAttack.Hitboxes);
 
-            if (elapsed >= _activeAttack.TotalDuration)
+            if (_activeAttack.Kind != BossAttackKind.SpearThrowAndDash && elapsed >= _activeAttack.TotalDuration)
                 FinishAttack();
         }
 
@@ -211,18 +269,32 @@ namespace Zephyr.Gameplay.Enemies
             RaycastHit2D ground = Physics2D.Raycast(new Vector2(target.x, target.y + 2f), Vector2.down,
                 _spearGroundProbeDistance, _groundLayers);
             _spearAnchor = ground.collider != null ? ground.point : new Vector2(target.x, target.y);
-            if (_spearVisual != null)
-            {
-                _spearVisual.position = _spearAnchor;
-                _spearVisual.gameObject.SetActive(true);
-            }
+            if (_spear != null)
+                _spear.ThrowTo(_spearAnchor, _activeAttack.SpearFlightDuration, _activeAttack.SpearArcHeight);
+            else
+                HandleSpearLanded();
+        }
+
+        private void HandleSpearLanded()
+        {
+            if (_dead || _activeAttack == null || _activeAttack.Kind != BossAttackKind.SpearThrowAndDash ||
+                !_spearThrown || _spearLanded)
+                return;
+
+            _spearLanded = true;
+            _spearReturned = false;
+            _spearLandedAt = Time.time;
+            if (_body == null) return;
+            _body.gravityScale = 0f;
+            _body.linearVelocity = Vector2.zero;
         }
 
         private void LaunchDashToSpear()
         {
             if (_body == null) return;
-            Vector2 direction = (_spearAnchor - (Vector2)transform.position).normalized;
-            _body.linearVelocity = direction * Mathf.Max(0.1f, _activeAttack.MovementSpeed);
+            EnableDashCollisionBypass();
+            _body.gravityScale = 0f;
+            _body.linearVelocity = Vector2.zero;
         }
 
         private void LaunchDash(float speed)
@@ -249,6 +321,7 @@ namespace Zephyr.Gameplay.Enemies
             {
                 BossHitboxSegment segment = hitboxes[i];
                 if (segment == null || elapsed < segment.StartTime || elapsed > segment.EndTime) continue;
+                if (segment.UseSpearAnchor && !_spearLanded) continue;
                 Vector2 origin = segment.UseSpearAnchor ? _spearAnchor : transform.position;
                 Vector2 center = origin + FacingOffset(segment.LocalOffset);
                 Collider2D[] hits = Physics2D.OverlapBoxAll(center, segment.Size, 0f, segment.TargetLayers);
@@ -301,15 +374,32 @@ namespace Zephyr.Gameplay.Enemies
             }
         }
 
-        private void FinishAttack()
+        private void FinishAttack(bool scheduleNextAttack = true)
         {
-            if (_activeAttack == null && !_surroundSlash) return;
+            bool wasSpearAttack = _activeAttack != null && _activeAttack.Kind == BossAttackKind.SpearThrowAndDash;
+            RestoreBaseCollisionProfile();
+            if (_activeAttack == null && !_surroundSlash)
+            {
+                if (wasSpearAttack) RestoreBodyGravity();
+                return;
+            }
             _activeAttack = null;
-            if (_spearVisual != null) _spearVisual.gameObject.SetActive(false);
+            if (wasSpearAttack)
+            {
+                ReturnSpearToBoss();
+                RestoreBodyGravity();
+                if (_body != null) _body.linearVelocity = Vector2.zero;
+            }
             _motor?.Stop();
             if (_motor != null) _motor.enabled = true;
-            if (_body != null && Mathf.Abs(_body.linearVelocity.x) > 0.01f) _body.linearVelocity = new Vector2(0f, _body.linearVelocity.y);
+            if (_body != null && !wasSpearAttack && Mathf.Abs(_body.linearVelocity.x) > 0.01f)
+                _body.linearVelocity = new Vector2(0f, _body.linearVelocity.y);
             _hitTargets.Clear();
+            if (!scheduleNextAttack)
+            {
+                _surroundSlash = false;
+                return;
+            }
             if (_stageTwo && _config != null && _config.StageTwoSurroundDuration > 0f)
             {
                 _surroundSlash = true;
@@ -320,6 +410,27 @@ namespace Zephyr.Gameplay.Enemies
             {
                 _nextAttackAt = Time.time + (_config != null ? _config.StageOneAttackInterval : 2.5f);
             }
+        }
+
+        private void ReturnSpearToBoss()
+        {
+            if (_spear == null)
+            {
+                _spearLanded = false;
+                _spearReturned = true;
+                return;
+            }
+
+            _spear.ReturnToSocket();
+            _spearLanded = false;
+            _spearReturned = true;
+        }
+
+        private void RestoreBodyGravity()
+        {
+            if (_body == null) return;
+            _body.gravityScale = _originalGravityScale;
+            _body.linearVelocity = new Vector2(_body.linearVelocity.x, 0f);
         }
 
         private void FacePlayer()
@@ -347,9 +458,49 @@ namespace Zephyr.Gameplay.Enemies
             _dead = true;
             _activeAttack = null;
             _surroundSlash = false;
-            if (_spearVisual != null) _spearVisual.gameObject.SetActive(false);
+            ReturnSpearToBoss();
+            RestoreBaseCollisionProfile();
+            RestoreBodyGravity();
             _motor?.Stop();
             if (_body != null) _body.linearVelocity = Vector2.zero;
+            _animation?.Play(EnemyActionKind.Death);
+        }
+
+        private void CacheColliderOverrides()
+        {
+            if (_bodyCollider == null || _collisionOverridesCached) return;
+            _configuredColliderIncludeLayers = _bodyCollider.includeLayers;
+            _configuredColliderExcludeLayers = _bodyCollider.excludeLayers;
+            _collisionOverridesCached = true;
+        }
+
+        private void ApplyBaseCollisionProfile()
+        {
+            if (_bodyCollider == null) return;
+            CacheColliderOverrides();
+            _bodyCollider.includeLayers = _configuredColliderIncludeLayers;
+            _bodyCollider.excludeLayers = new LayerMask
+            {
+                value = _configuredColliderExcludeLayers.value | _playerCollisionIgnoreLayers.value
+            };
+        }
+
+        private void EnableDashCollisionBypass()
+        {
+            if (_bodyCollider == null) return;
+            CacheColliderOverrides();
+            _bodyCollider.excludeLayers = new LayerMask
+            {
+                value = _configuredColliderExcludeLayers.value |
+                        _playerCollisionIgnoreLayers.value |
+                        _groundLayers.value
+            };
+        }
+
+        private void RestoreBaseCollisionProfile()
+        {
+            if (_bodyCollider == null) return;
+            ApplyBaseCollisionProfile();
         }
 
         private void OnDrawGizmosSelected()

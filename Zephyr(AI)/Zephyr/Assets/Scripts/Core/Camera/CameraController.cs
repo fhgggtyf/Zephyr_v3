@@ -1,17 +1,31 @@
+using System;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Zephyr.Core.Camera
 {
     /// <summary>
-    /// Hollow Knight-style 2D camera: the player can move inside a dead zone,
-    /// the camera biases toward the facing direction, and scene-owned zones
-    /// can lock or center individual axes.
+    /// Public gameplay-camera API and Cinemachine adapter.
+    /// Cinemachine owns the actual camera calculation. This component only
+    /// selects the gameplay virtual camera and applies scene-owned settings.
     /// </summary>
     [DefaultExecutionOrder(1000)]
     public sealed class CameraController : MonoBehaviour
     {
+        private const string CinemachineNamespace = "Unity.Cinemachine.";
+        private const string VirtualCameraTypeName = "CinemachineCamera";
+        private const string BrainTypeName = "CinemachineBrain";
+        private const string PositionComposerTypeName = "CinemachinePositionComposer";
+        private const string ConfinerTypeName = "CinemachineConfiner2D";
+        private const string ImpulseListenerTypeName = "CinemachineImpulseListener";
+        private const string ImpulseSourceTypeName = "CinemachineImpulseSource";
+
         [SerializeField] private UnityEngine.Camera _camera;
+        [SerializeField] private Component _virtualCamera;
+        [SerializeField] private Component _positionComposer;
+        [SerializeField] private Component _confiner;
+        [SerializeField] private Component _impulseSource;
         [SerializeField] private Vector2 _deadzoneSize = new Vector2(3f, 2f);
         [SerializeField] private float _smoothTime = 0.12f;
         [SerializeField, Min(0f)] private float _lookAheadDistance = 1.5f;
@@ -22,23 +36,20 @@ namespace Zephyr.Core.Camera
         [SerializeField, Min(0f)] private float _shakeMaxDuration = 0.45f;
         [SerializeField, Min(0f)] private float _shakeAmplitudePerDamage = 0.012f;
         [SerializeField, Min(0f)] private float _shakeMaxAmplitude = 0.35f;
+
         private Transform _follow;
-        private Rect _roomBounds = new Rect(-1000f, -1000f, 2000f, 2000f);
-        private Vector3 _velocity;
-        private Vector2 _zoneOffset;
-        private Vector2 _lookAhead;
-        private Vector2 _lookDirection;
-        private Vector2 _lastFollowPosition;
-        private bool _hasFollowPosition;
-        private CameraZone _activeZone;
+        private Transform _lockTarget;
+        private PolygonCollider2D _rectBoundsShape;
+        private PolygonCollider2D _appliedBoundsShape;
+        private int _appliedShapeVersion = -1;
         private CameraBounds _roomConfiguration;
-        private CameraBounds _activeBehaviorBounds;
+        private CameraZone _activeZone;
         private int _activeRoomRegionIndex = int.MinValue;
-        private float _shakeUntil;
-        private float _shakeDuration;
-        private float _shakeAmplitude;
-        private Vector3 _logicalPosition;
-        private bool _hasLogicalPosition;
+        private bool _setupComplete;
+        private bool _isPrimary;
+        private CameraMode _activeMode = (CameraMode)(-1);
+        private Vector2 _activeOffset;
+        private float _activeLookAheadMultiplier = 1f;
 
         /// <summary>
         /// Resolves the gameplay camera deterministically. GameManager owns the
@@ -51,275 +62,499 @@ namespace Zephyr.Core.Camera
             CameraController preferred = null;
             CameraController gameManager = null;
 
-            foreach (CameraController candidate in Object.FindObjectsByType<CameraController>(
-                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            foreach (CameraController candidate in UnityEngine.Object.FindObjectsByType<CameraController>(FindObjectsInactive.Include))
             {
                 if (candidate == null || !candidate.gameObject.activeInHierarchy) continue;
                 fallback ??= candidate;
                 if (candidate.gameObject.scene == preferredScene) preferred ??= candidate;
-                if (candidate.gameObject.scene.path.EndsWith("/GameManager.unity", System.StringComparison.OrdinalIgnoreCase))
+                if (candidate.gameObject.scene.path.EndsWith("/GameManager.unity", StringComparison.OrdinalIgnoreCase))
                     gameManager ??= candidate;
             }
 
             return gameManager ?? preferred ?? fallback;
         }
 
-        /// <summary>Queues a short, damage-scaled camera shake.</summary>
+        /// <summary>Queues a damage-scaled Cinemachine impulse.</summary>
         public void ShakeForDamage(float damage)
         {
-            if (damage <= 0f) return;
+            if (!_setupComplete || damage <= 0f || _impulseSource == null) return;
+
             float duration = Mathf.Min(_shakeMaxDuration, damage * _shakeDurationPerDamage);
-            _shakeDuration = Mathf.Max(_shakeDuration, duration);
-            _shakeUntil = Mathf.Max(_shakeUntil, Time.unscaledTime + duration);
-            _shakeAmplitude = Mathf.Clamp(Mathf.Max(_shakeAmplitude, damage * _shakeAmplitudePerDamage), 0f, _shakeMaxAmplitude);
+            float amplitude = Mathf.Clamp(damage * _shakeAmplitudePerDamage, 0f, _shakeMaxAmplitude);
+            object definition = GetMember(_impulseSource, "ImpulseDefinition");
+            if (definition != null && duration > 0f)
+                SetMember(definition, "ImpulseDuration", duration);
+            InvokeMember(_impulseSource, "GenerateImpulseWithForce", amplitude);
         }
 
         public void SetFollow(Transform target)
         {
             _follow = target;
-            _hasFollowPosition = target != null;
-            if (target != null) _lastFollowPosition = target.position;
-            _lookAhead = Vector2.zero;
-            _lookDirection = Vector2.zero;
-            _lookAheadVelocity = Vector2.zero;
-            _velocity = Vector3.zero;
-            RestoreLogicalPosition();
+            ApplyFollowTarget();
         }
+
         public void SetRoomBounds(Rect bounds)
         {
             _roomConfiguration = null;
-            _roomBounds = bounds;
-            _activeBehaviorBounds = null;
             _activeRoomRegionIndex = int.MinValue;
+            EnsureSetup();
+
+            if (_rectBoundsShape == null)
+            {
+                GameObject shapeObject = new GameObject("RuntimeCameraBoundsShape");
+                shapeObject.transform.SetParent(transform, false);
+                shapeObject.transform.position = Vector3.zero;
+                _rectBoundsShape = shapeObject.AddComponent<PolygonCollider2D>();
+                _rectBoundsShape.isTrigger = true;
+            }
+
+            _rectBoundsShape.points = new[]
+            {
+                new Vector2(bounds.xMin, bounds.yMin),
+                new Vector2(bounds.xMin, bounds.yMax),
+                new Vector2(bounds.xMax, bounds.yMax),
+                new Vector2(bounds.xMax, bounds.yMin)
+            };
+            _rectBoundsShape.enabled = true;
+            ApplyBoundsShape(_rectBoundsShape);
         }
+
         public void SetRoomBounds(CameraBounds bounds)
         {
+            DisableRectBoundsShape();
             _roomConfiguration = bounds;
-            _roomBounds = bounds != null ? bounds.Bounds : _roomBounds;
-            _activeBehaviorBounds = null;
             _activeRoomRegionIndex = int.MinValue;
+            ApplyBoundsShape(bounds != null ? bounds.GetOrCreateBoundsShape() : null);
         }
+
         public void ClearRoomBounds()
         {
+            DisableRectBoundsShape();
             _roomConfiguration = null;
-            _roomBounds = new Rect(-1000f, -1000f, 2000f, 2000f);
-            _activeBehaviorBounds = null;
             _activeRoomRegionIndex = int.MinValue;
+            ClearConfiner();
         }
+
         public void ClearRoomBounds(CameraBounds owner)
         {
             if (_roomConfiguration != owner) return;
-            _roomConfiguration = null;
             ClearRoomBounds();
         }
-        public void ResetToRoomBounds() => _zoneOffset = Vector2.zero;
-        public void ApplyCameraZone(Vector2 followOffset) => _zoneOffset = followOffset;
-        public void SnapTo(Vector2 worldPosition)
+
+        public void ResetToRoomBounds()
         {
-            _logicalPosition = new Vector3(worldPosition.x, worldPosition.y, transform.position.z);
-            _hasLogicalPosition = true;
-            transform.position = _logicalPosition;
-            _velocity = Vector3.zero;
-            _lookAheadVelocity = Vector2.zero;
-            RestoreLogicalPosition();
+            _activeZone = null;
+            _activeMode = (CameraMode)(-1);
+            ApplyCurrentBehavior(force: true);
         }
 
-        private void Awake()
+        public void ApplyCameraZone(Vector2 followOffset)
         {
-            if (_camera == null) _camera = GetComponentInChildren<UnityEngine.Camera>();
-            _logicalPosition = transform.position;
-            _hasLogicalPosition = true;
+            _activeOffset = followOffset;
+            ApplyComposerSettings(CameraMode.Follow, followOffset, 1f, Vector2.zero);
         }
+
+        public void SnapTo(Vector2 worldPosition)
+        {
+            EnsureSetup();
+            if (_virtualCamera == null) return;
+
+            Vector3 position = _virtualCamera.transform.position;
+            _virtualCamera.transform.position = new Vector3(worldPosition.x, worldPosition.y, position.z);
+            SetMember(_virtualCamera, "PreviousStateIsValid", false);
+            InvokeMember(_virtualCamera, "ForceCameraPosition", _virtualCamera.transform.position, Quaternion.identity);
+            if (_lockTarget != null) _lockTarget.position = new Vector3(worldPosition.x, worldPosition.y, _lockTarget.position.z);
+        }
+
+        private void Awake() => EnsureSetup();
 
         private void OnEnable()
         {
             SceneManager.sceneLoaded += HandleSceneLoaded;
+            SceneManager.sceneUnloaded += HandleSceneUnloaded;
+            SceneManager.activeSceneChanged += HandleActiveSceneChanged;
         }
 
         private void OnDisable()
         {
             SceneManager.sceneLoaded -= HandleSceneLoaded;
+            SceneManager.sceneUnloaded -= HandleSceneUnloaded;
+            SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
         }
 
-        private void Start()
-        {
-            // Gameplay scenes may still contain a standalone camera for editor
-            // authoring. Once GameManager is loaded, only its camera may render.
-            RefreshCameraAuthorityAndTarget();
-        }
+        private void Start() => RefreshCameraAuthorityAndTarget();
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            // A direct-open scene can start its local camera before ColdStartup
-            // loads GameManager. Re-evaluate authority after every additive load
-            // so the shared GameManager camera takes over deterministically.
             RefreshCameraAuthorityAndTarget();
+            RebindSceneCameraBounds(scene);
+            ApplyCurrentBehavior(force: true);
+        }
+
+        private void HandleActiveSceneChanged(Scene previous, Scene current)
+        {
+            RebindSceneCameraBounds(current);
+            ApplyCurrentBehavior(force: true);
+        }
+
+        private void HandleSceneUnloaded(Scene scene)
+        {
+            if (_roomConfiguration != null && _roomConfiguration.gameObject.scene == scene)
+                ClearRoomBounds(_roomConfiguration);
+
+            // If GameManager was unloaded, a directly opened gameplay scene can
+            // reclaim the output camera until the next gameplay service is loaded.
+            RefreshCameraAuthorityAndTarget();
+        }
+
+        private void LateUpdate()
+        {
+            if (!_setupComplete) EnsureSetup();
+            if (!_isPrimary) return;
+            // PlayerSpawner binds the follow target after the player is spawned.
+            if (_follow == null) return;
+            ApplyCurrentBehavior(force: false);
+        }
+
+        private void ApplyCurrentBehavior(bool force)
+        {
+            if (_roomConfiguration != null)
+                ApplyBoundsShape(_roomConfiguration.GetOrCreateBoundsShape());
+
+            Vector2 followPosition = _follow != null ? _follow.position : transform.position;
+            CameraZone zone = CameraZone.FindActive(followPosition);
+            CameraBehavior behavior = _roomConfiguration != null
+                ? _roomConfiguration.GetBehavior(followPosition)
+                : new CameraBehavior(-1, CameraMode.Follow, Vector2.zero, 1f, followPosition);
+            int roomRegionIndex = zone != null ? int.MinValue : behavior.RegionIndex;
+
+            bool changed = force || zone != _activeZone || roomRegionIndex != _activeRoomRegionIndex;
+            if (!changed && zone == null &&
+                (_activeMode != behavior.Mode || _activeOffset != behavior.FollowOffset ||
+                 !Mathf.Approximately(_activeLookAheadMultiplier, behavior.LookAheadMultiplier)))
+                changed = true;
+            if (!changed) return;
+
+            _activeZone = zone;
+            _activeRoomRegionIndex = roomRegionIndex;
+            CameraMode mode = zone != null ? zone.Mode : behavior.Mode;
+            Vector2 offset = zone != null ? zone.FollowOffset : behavior.FollowOffset;
+            float lookAheadMultiplier = zone != null ? zone.LookAheadMultiplier : behavior.LookAheadMultiplier;
+            ApplyComposerSettings(mode, offset, lookAheadMultiplier, zone != null ? zone.Anchor : behavior.Anchor);
+        }
+
+        private void ApplyComposerSettings(CameraMode mode, Vector2 offset, float lookAheadMultiplier, Vector2 anchor)
+        {
+            EnsureSetup();
+            if (_positionComposer == null) return;
+
+            _activeMode = mode;
+            _activeOffset = offset;
+            _activeLookAheadMultiplier = lookAheadMultiplier;
+
+            if (mode == CameraMode.FullLock)
+            {
+                EnsureLockTarget();
+                _lockTarget.position = new Vector3(anchor.x, anchor.y, _lockTarget.position.z);
+                SetMember(_virtualCamera, "Follow", _lockTarget);
+            }
+            else ApplyFollowTarget();
+
+            SetMember(_positionComposer, "TargetOffset", new Vector3(offset.x, offset.y, 0f));
+            SetMember(_positionComposer, "Damping", new Vector3(_smoothTime, _smoothTime, 0f));
+            float effectiveLookAheadDistance = _lookAheadDistance >= _minimumLookDirection ? _lookAheadDistance : 0f;
+            SetNestedMember(_positionComposer, "Lookahead", "Enabled", effectiveLookAheadDistance > 0f);
+            SetNestedMember(_positionComposer, "Lookahead", "Time", Mathf.Clamp(effectiveLookAheadDistance * 0.1f * Mathf.Max(0f, lookAheadMultiplier), 0f, 1f));
+            SetNestedMember(_positionComposer, "Lookahead", "Smoothing", Mathf.Clamp(_lookAheadSmoothTime, 0f, 30f));
+            SetNestedMember(_positionComposer, "Lookahead", "IgnoreY", true);
+
+            object composition = GetMember(_positionComposer, "Composition");
+            if (composition != null)
+            {
+                object deadZone = GetMember(composition, "DeadZone");
+                if (deadZone != null)
+                {
+                    SetMember(deadZone, "Enabled", true);
+                    SetMember(deadZone, "Size", ResolveDeadZone(mode));
+                    SetMember(composition, "DeadZone", deadZone);
+                }
+                SetMember(_positionComposer, "Composition", composition);
+            }
+        }
+
+        private Vector2 ResolveDeadZone(CameraMode mode)
+        {
+            float halfHeight = _camera != null ? _camera.orthographicSize : 5f;
+            float halfWidth = halfHeight * (_camera != null ? _camera.aspect : 16f / 9f);
+            Vector2 normalized = new Vector2(
+                Mathf.Clamp01(_deadzoneSize.x / Mathf.Max(0.01f, halfWidth * 2f)),
+                Mathf.Clamp01(_deadzoneSize.y / Mathf.Max(0.01f, halfHeight * 2f)));
+
+            switch (mode)
+            {
+                case CameraMode.VerticalLock: normalized.x = 1f; break;
+                case CameraMode.HorizontalLock: normalized.y = 1f; break;
+                case CameraMode.VerticalCenter: normalized.y = 0f; break;
+                case CameraMode.FullLock: normalized = Vector2.one; break;
+            }
+
+            return normalized;
+        }
+
+        private void EnsureSetup()
+        {
+            if (_setupComplete) return;
+
+            Transform rig = transform.parent != null ? transform.parent : transform;
+            Transform outputTransform = rig.Find("GameplayOutputCamera");
+            Transform virtualCameraTransform = rig.Find("GameplayCamera");
+
+            if (_camera == null)
+            {
+                _camera = outputTransform != null
+                    ? outputTransform.GetComponentInChildren<UnityEngine.Camera>(true)
+                    : GetComponentInChildren<UnityEngine.Camera>(true);
+            }
+            if (_camera == null)
+            {
+                GameObject output = new GameObject("GameplayOutputCamera");
+                output.transform.SetParent(rig, false);
+                output.transform.localPosition = new Vector3(0f, 0f, -10f);
+                _camera = output.AddComponent<UnityEngine.Camera>();
+                _camera.orthographic = true;
+                _camera.orthographicSize = 5f;
+                outputTransform = output.transform;
+            }
+
+            Type brainType = FindCinemachineType(BrainTypeName);
+            Type vcamType = FindCinemachineType(VirtualCameraTypeName);
+            Type composerType = FindCinemachineType(PositionComposerTypeName);
+            Type confinerType = FindCinemachineType(ConfinerTypeName);
+            Type listenerType = FindCinemachineType(ImpulseListenerTypeName);
+            Type sourceType = FindCinemachineType(ImpulseSourceTypeName);
+
+            if (brainType != null) EnsureComponent(_camera.gameObject, brainType);
+
+            if (_virtualCamera == null && vcamType != null)
+            {
+                Transform child = virtualCameraTransform;
+                if (child == null)
+                {
+                    GameObject cameraObject = new GameObject("GameplayCamera");
+                    child = cameraObject.transform;
+                    child.SetParent(rig, false);
+                    child.localPosition = new Vector3(0f, 0f, -10f);
+                }
+
+                _virtualCamera = EnsureComponent(child.gameObject, vcamType);
+                _positionComposer = composerType != null ? EnsureComponent(child.gameObject, composerType) : null;
+                _confiner = confinerType != null ? EnsureComponent(child.gameObject, confinerType) : null;
+                if (listenerType != null) EnsureComponent(child.gameObject, listenerType);
+            }
+
+            if (_impulseSource == null && sourceType != null)
+                _impulseSource = EnsureComponent(gameObject, sourceType);
+
+            if (_virtualCamera != null)
+            {
+                SetNestedMember(_virtualCamera, "Priority", "Value", 10);
+                SetNestedMember(_virtualCamera, "Lens", "Orthographic", true);
+                SetNestedMember(_virtualCamera, "Lens", "OrthographicSize", _camera.orthographicSize);
+            }
+
+            _lockTarget = rig.Find("CameraLockTarget");
+            _setupComplete = true;
+            ApplyFollowTarget();
+        }
+
+        private void EnsureLockTarget()
+        {
+            if (_lockTarget != null) return;
+            GameObject target = new GameObject("CameraLockTarget");
+            target.transform.SetParent(transform, false);
+            _lockTarget = target.transform;
+        }
+
+        private void ApplyFollowTarget()
+        {
+            if (!_setupComplete || _virtualCamera == null || _activeMode == CameraMode.FullLock) return;
+            SetMember(_virtualCamera, "Follow", _follow);
+        }
+
+        private void ApplyBoundsShape(PolygonCollider2D shape)
+        {
+            EnsureSetup();
+            if (_confiner == null) return;
+            int shapeVersion = _roomConfiguration != null ? _roomConfiguration.ShapeVersion : 0;
+            if (ReferenceEquals(_appliedBoundsShape, shape) && _appliedShapeVersion == shapeVersion &&
+                ReferenceEquals(GetMember(_confiner, "BoundingShape2D"), shape)) return;
+
+            SetMember(_confiner, "BoundingShape2D", shape);
+            InvokeMember(_confiner, "InvalidateBoundingShapeCache");
+            _appliedBoundsShape = shape;
+            _appliedShapeVersion = shapeVersion;
+        }
+
+        private void ClearConfiner() => ApplyBoundsShape(null);
+
+        private void DisableRectBoundsShape()
+        {
+            if (_rectBoundsShape != null) _rectBoundsShape.enabled = false;
         }
 
         private void RefreshCameraAuthorityAndTarget()
         {
+            EnsureSetup();
             CameraController primary = FindForGameplay(gameObject.scene);
-            if (primary != this)
+            _isPrimary = primary == this;
+
+            if (_camera != null)
             {
-                if (_camera != null) _camera.enabled = false;
-                return;
+                _camera.enabled = _isPrimary;
+                _camera.tag = _isPrimary ? "MainCamera" : "Untagged";
             }
 
-            if (_camera != null) _camera.enabled = true;
-            TryBindSceneOwnedPlayer();
+            Component brain = _camera != null ? FindComponentByType(_camera.gameObject, BrainTypeName) : null;
+            if (brain != null) brain.gameObject.SetActive(_isPrimary);
+            if (_virtualCamera != null) _virtualCamera.gameObject.SetActive(_isPrimary);
+            if (_isPrimary)
+            {
+                TryBindSceneOwnedPlayer();
+                RebindSceneCameraBounds(SceneManager.GetActiveScene());
+            }
         }
 
         private void TryBindSceneOwnedPlayer()
         {
             if (_follow != null) return;
 
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null)
-                SetFollow(player.transform);
-        }
-
-        private void LateUpdate()
-        {
-            // Follow calculations use a dedicated logical position. The rendered
-            // transform may be shaken, but that visual offset never feeds back into
-            // dead-zone, bounds, or smoothing calculations.
-            if (_follow == null)
+            foreach (Transform candidate in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude))
             {
-                RestoreLogicalPosition();
+                if (!candidate.CompareTag("Player")) continue;
+                SetFollow(candidate);
                 return;
             }
-            if (!_hasLogicalPosition)
-            {
-                _logicalPosition = transform.position;
-                _hasLogicalPosition = true;
-            }
-            Vector3 current = _logicalPosition;
-            Vector3 target = current;
-            Vector2 followPosition = _follow.position;
-            Vector2 followVelocity = Vector2.zero;
-            if (_hasFollowPosition)
-            {
-                float dt = Mathf.Max(Time.unscaledDeltaTime, 0.0001f);
-                followVelocity = (followPosition - _lastFollowPosition) / dt;
-            }
-            _lastFollowPosition = followPosition;
-            _hasFollowPosition = true;
-
-            if (_roomConfiguration != null)
-                _roomBounds = _roomConfiguration.Bounds;
-
-            CameraZone zone = CameraZone.FindActive(followPosition);
-            CameraBehavior roomBehavior = _roomConfiguration != null
-                ? _roomConfiguration.GetBehavior(followPosition)
-                : new CameraBehavior(-1, CameraMode.Follow, _zoneOffset, 1f, Vector2.zero);
-            int roomRegionIndex = zone != null ? int.MinValue : roomBehavior.RegionIndex;
-            if (zone != _activeZone || _roomConfiguration != _activeBehaviorBounds || roomRegionIndex != _activeRoomRegionIndex)
-            {
-                _activeZone = zone;
-                _activeBehaviorBounds = _roomConfiguration;
-                _activeRoomRegionIndex = roomRegionIndex;
-                _velocity = Vector3.zero;
-                _lookAhead = Vector2.zero;
-                _lookAheadVelocity = Vector2.zero;
-            }
-
-            CameraMode mode = zone != null ? zone.Mode : roomBehavior.Mode;
-            Vector2 zoneOffset = zone != null ? zone.FollowOffset : roomBehavior.FollowOffset;
-            Vector2 lookDirection = ResolveLookDirection(followVelocity);
-            Vector2 desiredLookAhead = lookDirection * _lookAheadDistance;
-            desiredLookAhead *= zone != null ? zone.LookAheadMultiplier : roomBehavior.LookAheadMultiplier;
-            _lookAhead = Vector2.SmoothDamp(_lookAhead, desiredLookAhead, ref _lookAheadVelocity,
-                _lookAheadSmoothTime, Mathf.Infinity, Time.unscaledDeltaTime);
-
-            Vector2 delta = followPosition - (Vector2)current - zoneOffset - _lookAhead;
-            bool canMoveX = mode != CameraMode.VerticalLock && mode != CameraMode.FullLock;
-            bool canMoveY = mode != CameraMode.HorizontalLock && mode != CameraMode.FullLock;
-            if (mode == CameraMode.VerticalCenter) canMoveY = true;
-            if (canMoveX && Mathf.Abs(delta.x) > _deadzoneSize.x * 0.5f) target.x = followPosition.x - zoneOffset.x - _lookAhead.x;
-            if (canMoveY && Mathf.Abs(delta.y) > _deadzoneSize.y * 0.5f) target.y = followPosition.y - zoneOffset.y - _lookAhead.y;
-            if (mode == CameraMode.VerticalCenter) target.y = followPosition.y - zoneOffset.y;
-            if (mode == CameraMode.FullLock)
-            {
-                Vector2 anchor = zone != null ? zone.Anchor : roomBehavior.Anchor;
-                target = new Vector3(anchor.x, anchor.y, current.z);
-            }
-
-            Rect activeBounds = zone != null ? zone.WorldBounds : _roomBounds;
-            float halfHeight = _camera != null ? _camera.orthographicSize : 5f;
-            float halfWidth = _camera != null ? halfHeight * _camera.aspect : 8.9f;
-            float minX = activeBounds.xMin + halfWidth;
-            float maxX = activeBounds.xMax - halfWidth;
-            float minY = activeBounds.yMin + halfHeight;
-            float maxY = activeBounds.yMax - halfHeight;
-            target.x = ClampForViewport(target.x, minX, maxX);
-            target.y = ClampForViewport(target.y, minY, maxY);
-
-            if (mode != CameraMode.FullLock)
-            {
-                if (!canMoveX) target.x = current.x;
-                if (!canMoveY && mode != CameraMode.VerticalCenter) target.y = current.y;
-            }
-
-            Vector3 next = Vector3.SmoothDamp(current, target, ref _velocity, _smoothTime,
-                Mathf.Infinity, Time.unscaledDeltaTime);
-            // SmoothDamp can retain a tiny residual velocity while the target
-            // is pinned to a room edge. Lock the exact edge to prevent visible
-            // sub-pixel jitter while the player keeps pushing against it.
-            if (IsApproachingBound(target.x, next.x, minX, maxX))
-            {
-                next.x = Mathf.Clamp(next.x, minX, maxX);
-                _velocity.x = 0f;
-            }
-
-            if (IsApproachingBound(target.y, next.y, minY, maxY))
-            {
-                next.y = Mathf.Clamp(next.y, minY, maxY);
-                _velocity.y = 0f;
-            }
-
-            if (Time.unscaledTime < _shakeUntil)
-            {
-                float strength = Mathf.Clamp01((_shakeUntil - Time.unscaledTime) / Mathf.Max(0.01f, _shakeDuration));
-                Vector2 offset = Random.insideUnitCircle * (_shakeAmplitude * strength);
-                _logicalPosition = next;
-                transform.position = next + new Vector3(offset.x, offset.y, 0f);
-            }
-            else
-            {
-                _shakeAmplitude = 0f;
-                _shakeDuration = 0f;
-                _logicalPosition = next;
-                transform.position = next;
-            }
         }
 
-        private void RestoreLogicalPosition()
+        private void RebindSceneCameraBounds(Scene preferredScene)
         {
-            if (_hasLogicalPosition)
-                transform.position = _logicalPosition;
+            if (!_isPrimary) return;
+
+            CameraBounds activeBounds = null;
+            CameraBounds preferredBounds = null;
+            CameraBounds fallbackBounds = null;
+            Scene activeScene = SceneManager.GetActiveScene();
+
+            foreach (CameraBounds candidate in UnityEngine.Object.FindObjectsByType<CameraBounds>(FindObjectsInactive.Exclude))
+            {
+                if (candidate == null || !candidate.isActiveAndEnabled) continue;
+                Scene candidateScene = candidate.gameObject.scene;
+                if (!candidateScene.IsValid() || !candidateScene.isLoaded) continue;
+
+                fallbackBounds ??= candidate;
+                if (candidateScene == preferredScene) preferredBounds ??= candidate;
+                if (candidateScene == activeScene) activeBounds ??= candidate;
+            }
+
+            CameraBounds selectedBounds = activeBounds ?? preferredBounds ?? fallbackBounds;
+            if (selectedBounds != null)
+            {
+                if (_roomConfiguration != selectedBounds)
+                    SetRoomBounds(selectedBounds);
+                else
+                    ApplyBoundsShape(selectedBounds.GetOrCreateBoundsShape());
+                return;
+            }
+
+            // A destroyed Unity object compares equal to null; still clear the
+            // old Confiner reference after the final gameplay scene unloads.
+            ClearRoomBounds();
         }
 
-        private Vector2 _lookAheadVelocity;
 
-        private Vector2 ResolveLookDirection(Vector2 followVelocity)
+        private static Type FindCinemachineType(string shortName)
         {
-            if (Mathf.Abs(followVelocity.x) > _minimumLookDirection)
-                _lookDirection = new Vector2(Mathf.Sign(followVelocity.x), 0f);
-            return _lookDirection;
+            string fullName = string.Concat(CinemachineNamespace, shortName);
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type type = assembly.GetType(fullName, false);
+                if (type != null) return type;
+            }
+            return null;
         }
 
-        private static float ClampForViewport(float value, float min, float max)
+        private static Component EnsureComponent(GameObject target, Type type)
         {
-            // If a room is smaller than the camera viewport, keep the camera
-            // centered on the room instead of passing an inverted Clamp range.
-            return min > max ? (min + max) * 0.5f : Mathf.Clamp(value, min, max);
+            Component component = target.GetComponent(type);
+            return component != null ? component : target.AddComponent(type);
         }
 
-        private static bool IsApproachingBound(float target, float value, float min, float max)
+        private static Component FindComponentByType(GameObject target, string shortName)
         {
-            if (min > max) return false;
-            bool targetIsBound = Mathf.Abs(target - min) <= 0.0001f || Mathf.Abs(target - max) <= 0.0001f;
-            return targetIsBound && Mathf.Abs(value - target) <= 0.02f;
+            Type type = FindCinemachineType(shortName);
+            return type != null ? target.GetComponent(type) : null;
+        }
+
+        private static object GetMember(object target, string memberName)
+        {
+            if (target == null) return null;
+            Type type = target.GetType();
+            PropertyInfo property = type.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (property != null && property.CanRead) return property.GetValue(target);
+            FieldInfo field = type.GetField(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            return field != null ? field.GetValue(target) : null;
+        }
+
+        private static bool SetMember(object target, string memberName, object value)
+        {
+            if (target == null) return false;
+            Type type = target.GetType();
+            PropertyInfo property = type.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (property != null && property.CanWrite && CanAssign(property.PropertyType, value))
+            {
+                property.SetValue(target, value);
+                return true;
+            }
+
+            FieldInfo field = type.GetField(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (field != null && CanAssign(field.FieldType, value))
+            {
+                field.SetValue(target, value);
+                return true;
+            }
+            return false;
+        }
+
+        private static void SetNestedMember(object target, string parentName, string memberName, object value)
+        {
+            object parent = GetMember(target, parentName);
+            if (parent == null) return;
+            if (SetMember(parent, memberName, value)) SetMember(target, parentName, parent);
+        }
+
+        private static bool CanAssign(Type targetType, object value)
+        {
+            if (value == null) return !targetType.IsValueType || Nullable.GetUnderlyingType(targetType) != null;
+            return targetType.IsInstanceOfType(value) || targetType == value.GetType();
+        }
+
+        private static void InvokeMember(Component target, string methodName, params object[] arguments)
+        {
+            if (target == null) return;
+            MethodInfo[] methods = target.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            foreach (MethodInfo method in methods)
+            {
+                if (method.Name != methodName || method.GetParameters().Length != arguments.Length) continue;
+                try
+                {
+                    method.Invoke(target, arguments);
+                    return;
+                }
+                catch (ArgumentException)
+                {
+                    // Cinemachine minor versions can expose different overloads.
+                }
+            }
         }
     }
 }

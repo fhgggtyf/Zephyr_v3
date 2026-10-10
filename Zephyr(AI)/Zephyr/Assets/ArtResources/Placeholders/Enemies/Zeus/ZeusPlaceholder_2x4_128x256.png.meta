@@ -1,37 +1,34 @@
 fileFormatVersion: 2
-guid: e5080a51334538d49a775ea510e4e5ec
+guid: 2b4a813a5ca41af488e8cf7e398774ae
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2708751896028857950
-    second: Excalibur_Player_Vertical_Slash_0
+      213: 7572793105688669135
+    second: ZeusPlaceholder_2x4_128x256_0
   - first:
-      213: -1764010496621122526
-    second: Excalibur_Player_Vertical_Slash_1
+      213: 6443599119663244801
+    second: Zeus_0_0
   - first:
-      213: -7963458761684761777
-    second: Excalibur_Player_Vertical_Slash_2
+      213: 7587833625095507187
+    second: Zeus_0_1
   - first:
-      213: -4926129653420583063
-    second: Excalibur_Player_Vertical_Slash_3
+      213: -4037974775404691119
+    second: Zeus_1_0
   - first:
-      213: -1825850744534217921
-    second: Excalibur_Player_Vertical_Slash_4
+      213: -8773117699453264531
+    second: Zeus_1_1
   - first:
-      213: 1069484210174238018
-    second: Excalibur_Player_Vertical_Slash_5
+      213: 1694039034990066732
+    second: Zeus_2_0
   - first:
-      213: -1839780975176290041
-    second: Excalibur_Player_Vertical_Slash_6
+      213: -2569431185998042288
+    second: Zeus_2_1
   - first:
-      213: -7494489672015739685
-    second: Excalibur_Player_Vertical_Slash_7
+      213: -4848715375857289187
+    second: Zeus_3_0
   - first:
-      213: 7205497163245804743
-    second: Excalibur_Player_Vertical_Slash_8
-  - first:
-      213: 5077280934860124345
-    second: Excalibur_Player_Vertical_Slash_9
+      213: 4238045286983387118
+    second: Zeus_3_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -73,7 +70,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -82,7 +79,7 @@ TextureImporter:
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
-  alphaIsTransparency: 0
+  alphaIsTransparency: 1
   spriteTessellationDetail: -1
   textureType: 8
   textureShape: 1
@@ -140,221 +137,177 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_0
+      name: Zeus_0_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1233
-        height: 1236
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2a9b88c8084986ad0800000000000000
-      internalID: -2708751896028857950
+      spriteID: 1062c8a72434c6950800000000000000
+      internalID: 6443599119663244801
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_1
+      name: Zeus_0_1
       rect:
         serializedVersion: 2
-        x: 1157
-        y: 931
-        width: 10
-        height: 12
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 22c66d8acc9f487e0800000000000000
-      internalID: -1764010496621122526
+      spriteID: 3fc059eda766d4960800000000000000
+      internalID: 7587833625095507187
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_2
+      name: Zeus_1_0
       rect:
         serializedVersion: 2
-        x: 1164
-        y: 925
-        width: 7
-        height: 11
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f43ce4ec27c1c7190800000000000000
-      internalID: -7963458761684761777
+      spriteID: 151040cf55b36f7c0800000000000000
+      internalID: -4037974775404691119
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_3
+      name: Zeus_1_1
       rect:
         serializedVersion: 2
-        x: 1190
-        y: 883
-        width: 7
-        height: 11
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 96719521e2fd2abb0800000000000000
-      internalID: -4926129653420583063
+      spriteID: d6d556f2fef9f3680800000000000000
+      internalID: -8773117699453264531
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_4
+      name: Zeus_2_0
       rect:
         serializedVersion: 2
-        x: 1157
-        y: 819
-        width: 13
-        height: 19
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f3bc72feb6649a6e0800000000000000
-      internalID: -1825850744534217921
+      spriteID: c2c7a34e68f628710800000000000000
+      internalID: 1694039034990066732
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_5
+      name: Zeus_2_1
       rect:
         serializedVersion: 2
-        x: 1163
-        y: 632
-        width: 6
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 24d1358093297de00800000000000000
-      internalID: 1069484210174238018
+      spriteID: 05ba6c323fb875cd0800000000000000
+      internalID: -2569431185998042288
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_6
+      name: Zeus_3_0
       rect:
         serializedVersion: 2
-        x: 87
-        y: 612
-        width: 11
-        height: 13
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 701781e53f8c776e0800000000000000
-      internalID: -1839780975176290041
+      spriteID: d183d052e07e5bcb0800000000000000
+      internalID: -4848715375857289187
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_7
+      name: Zeus_3_1
       rect:
         serializedVersion: 2
-        x: 1163
-        y: 401
-        width: 6
-        height: 10
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bd40baec9593ef790800000000000000
-      internalID: -7494489672015739685
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_8
-      rect:
-        serializedVersion: 2
-        x: 95
-        y: 71
-        width: 16
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7ccd95d5e711ff360800000000000000
-      internalID: 7205497163245804743
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Excalibur_Player_Vertical_Slash_9
-      rect:
-        serializedVersion: 2
-        x: 772
-        y: 5
-        width: 17
-        height: 21
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 9b073331c10267640800000000000000
-      internalID: 5077280934860124345
+      spriteID: ee7c9a00cbf80da30800000000000000
+      internalID: 4238045286983387118
       vertices: []
       indices: 
       edges: []
@@ -363,7 +316,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -373,16 +326,15 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Excalibur_Player_Vertical_Slash_0: -2708751896028857950
-      Excalibur_Player_Vertical_Slash_1: -1764010496621122526
-      Excalibur_Player_Vertical_Slash_2: -7963458761684761777
-      Excalibur_Player_Vertical_Slash_3: -4926129653420583063
-      Excalibur_Player_Vertical_Slash_4: -1825850744534217921
-      Excalibur_Player_Vertical_Slash_5: 1069484210174238018
-      Excalibur_Player_Vertical_Slash_6: -1839780975176290041
-      Excalibur_Player_Vertical_Slash_7: -7494489672015739685
-      Excalibur_Player_Vertical_Slash_8: 7205497163245804743
-      Excalibur_Player_Vertical_Slash_9: 5077280934860124345
+      ZeusPlaceholder_2x4_128x256_0: 7572793105688669135
+      Zeus_0_0: 6443599119663244801
+      Zeus_0_1: 7587833625095507187
+      Zeus_1_0: -4037974775404691119
+      Zeus_1_1: -8773117699453264531
+      Zeus_2_0: 1694039034990066732
+      Zeus_2_1: -2569431185998042288
+      Zeus_3_0: -4848715375857289187
+      Zeus_3_1: 4238045286983387118
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

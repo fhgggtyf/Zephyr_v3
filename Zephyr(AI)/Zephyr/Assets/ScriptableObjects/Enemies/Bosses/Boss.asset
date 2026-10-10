@@ -36,7 +36,11 @@ MonoBehaviour:
     _jumpHorizontalSpeed: 0
     _jumpVelocity: 0
     _throwTime: 0
-    _dashToSpearTime: 0
+    _spearDiveDelay: 0
+    _spearArcHeight: 1.25
+    _spearContactDistance: 0.45
+    _spearDiveTimeout: 3
+    _spearFlightDuration: 0.25
     _hitboxes:
     - _id: DashDamage
       _startTime: 0.4
@@ -62,11 +66,15 @@ MonoBehaviour:
     _jumpHorizontalSpeed: 3
     _jumpVelocity: 18
     _throwTime: 0.75
-    _dashToSpearTime: 1
+    _spearDiveDelay: 0.3
+    _spearArcHeight: 1.25
+    _spearContactDistance: 0.45
+    _spearDiveTimeout: 3
+    _spearFlightDuration: 0.25
     _hitboxes:
     - _id: SpearDamage
-      _startTime: 0.75
-      _endTime: 0.98
+      _startTime: 1
+      _endTime: 1.25
       _localOffset: {x: 0, y: 0}
       _size: {x: 1, y: 2}
       _damageMultiplier: 1
@@ -77,8 +85,8 @@ MonoBehaviour:
       _useSpearAnchor: 1
       _showGizmo: 1
     - _id: SpearDashDamage
-      _startTime: 1
-      _endTime: 1.5
+      _startTime: 1.3
+      _endTime: 1.6
       _localOffset: {x: 0.8, y: 0.8}
       _size: {x: 1.5, y: 1.5}
       _damageMultiplier: 1
@@ -100,7 +108,11 @@ MonoBehaviour:
     _jumpHorizontalSpeed: 0
     _jumpVelocity: 0
     _throwTime: 0
-    _dashToSpearTime: 0
+    _spearDiveDelay: 0
+    _spearArcHeight: 1.25
+    _spearContactDistance: 0.45
+    _spearDiveTimeout: 3
+    _spearFlightDuration: 0.25
     _hitboxes:
     - _id: VerticalSlash
       _startTime: 0.35
@@ -138,7 +150,11 @@ MonoBehaviour:
     _jumpHorizontalSpeed: 0
     _jumpVelocity: 0
     _throwTime: 0
-    _dashToSpearTime: 0
+    _spearDiveDelay: 0
+    _spearArcHeight: 1.25
+    _spearContactDistance: 0.45
+    _spearDiveTimeout: 3
+    _spearFlightDuration: 0.25
     _hitboxes:
     - _id: GroundStabLeft
       _startTime: 0.35

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zephyr.Core;
 using Zephyr.Core.DamageSystem;
 
@@ -56,7 +57,12 @@ namespace Zephyr.Gameplay.Enemies
         [Min(0f)] [SerializeField] private float _jumpHorizontalSpeed = 4f;
         [Min(0f)] [SerializeField] private float _jumpVelocity = 17f;
         [Min(0f)] [SerializeField] private float _throwTime = 0.35f;
-        [Min(0f)] [SerializeField] private float _dashToSpearTime = 0.55f;
+        [FormerlySerializedAs("_dashToSpearTime")]
+        [Min(0f)] [SerializeField] private float _spearDiveDelay = 0.3f;
+        [Min(0.05f)] [SerializeField] private float _spearFlightDuration = 0.25f;
+        [Min(0f)] [SerializeField] private float _spearArcHeight = 1.25f;
+        [Min(0.05f)] [SerializeField] private float _spearContactDistance = 0.45f;
+        [Min(0.1f)] [SerializeField] private float _spearDiveTimeout = 3f;
         [SerializeField] private List<BossHitboxSegment> _hitboxes = new List<BossHitboxSegment>();
 
         public string Id => string.IsNullOrWhiteSpace(_id) ? "Attack" : _id;
@@ -71,7 +77,11 @@ namespace Zephyr.Gameplay.Enemies
         public float JumpHorizontalSpeed => Mathf.Max(0f, _jumpHorizontalSpeed);
         public float JumpVelocity => Mathf.Max(0f, _jumpVelocity);
         public float ThrowTime => Mathf.Clamp(_throwTime, 0f, TotalDuration);
-        public float DashToSpearTime => Mathf.Clamp(_dashToSpearTime, ThrowTime, TotalDuration);
+        public float SpearDiveDelay => Mathf.Max(0f, _spearDiveDelay);
+        public float SpearFlightDuration => Mathf.Max(0.05f, _spearFlightDuration);
+        public float SpearArcHeight => Mathf.Max(0f, _spearArcHeight);
+        public float SpearContactDistance => Mathf.Max(0.05f, _spearContactDistance);
+        public float SpearDiveTimeout => Mathf.Max(0.1f, _spearDiveTimeout);
         public IReadOnlyList<BossHitboxSegment> Hitboxes => _hitboxes;
     }
 

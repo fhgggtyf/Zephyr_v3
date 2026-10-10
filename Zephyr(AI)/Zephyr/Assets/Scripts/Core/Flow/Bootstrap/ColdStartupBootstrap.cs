@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -24,14 +25,15 @@ namespace Zephyr.Core.Flow
         private bool _waitingForGameManager;
         private float _gameManagerTimeoutAt;
 
-        private void Start()
+        private IEnumerator Start()
         {
-            // A scene reached through SceneLoader already has a session. Never
-            // reselect its profile or clear its run/allocation on a normal load.
+            // ColdStartup is an editor-only dependency bridge. Once the normal
+            // Initializer -> Persistent -> MainMenu flow is already alive, the
+            // scene-local instance must be inert and remove itself.
             if (s_owner != null || SceneLoader.Instance != null || GameFlow.Instance != null)
             {
                 Destroy(gameObject);
-                return;
+                yield break;
             }
 
             s_owner = this;
@@ -39,8 +41,18 @@ namespace Zephyr.Core.Flow
             _directOpenState = ResolveDirectOpenState(_directOpenScene);
             _shouldLoadGameManager = _loadGameManager && RequiresGameManager(_directOpenState);
 
-            EnsureSceneLoaded(_persistentScene, "Persistent");
+            // This is the same one-time Persistent bootstrap exception used by
+            // InitializerBootstrap. All later scene operations go through the
+            // Persistent SceneLoader.
+            if (!EnsureSceneLoaded(_persistentScene, "Persistent"))
+            {
+                s_owner = null;
+                Destroy(gameObject);
+                yield break;
+            }
+
             _waitingForPersistentServices = true;
+            yield return null;
         }
 
         private void Update()
@@ -99,6 +111,12 @@ namespace Zephyr.Core.Flow
 
         private void CompleteDirectOpen()
         {
+            _waitingForPersistentServices = false;
+            _waitingForGameManager = false;
+
+            if (_directOpenScene.IsValid() && _directOpenScene.isLoaded)
+                SceneManager.SetActiveScene(_directOpenScene);
+
             if (_directOpenState.HasValue && GameFlow.Instance != null)
                 GameFlow.Instance.InitializeForDirectOpen(_directOpenState.Value);
             else if (!_directOpenState.HasValue)
@@ -132,27 +150,36 @@ namespace Zephyr.Core.Flow
             return state.HasValue && state.Value != GameState.MainMenu;
         }
 
-        private static void EnsureSceneLoaded(SceneSO scene, string role)
+        private static bool EnsureSceneLoaded(SceneSO scene, string role)
         {
             if (scene == null || !scene.IsValid)
             {
                 Debug.LogError($"ColdStartupBootstrap: {role} SceneSO is missing or invalid.");
-                return;
+                return false;
             }
 
             Scene loaded = SceneManager.GetSceneByName(scene.SceneName);
             if (loaded.IsValid() && loaded.isLoaded)
-                return;
+                return true;
 
             try
             {
-                // Persistent is the only dependency loaded without SceneLoader:
-                // it does not exist yet during a direct scene open.
-                SceneManager.LoadSceneAsync(scene.LoadKey, LoadSceneMode.Additive);
+                // Persistent is the only dependency loaded directly here. Once
+                // Persistent is ready, GameManager and all gameplay scenes use
+                // SceneLoader just like the normal runtime flow.
+                AsyncOperation operation = SceneManager.LoadSceneAsync(scene.LoadKey, LoadSceneMode.Additive);
+                if (operation == null)
+                {
+                    Debug.LogError($"ColdStartupBootstrap: Unity could not start loading {role} scene.");
+                    return false;
+                }
+
+                return true;
             }
             catch (System.Exception exception)
             {
                 Debug.LogError($"ColdStartupBootstrap: Unity could not load {role} scene: {exception.Message}");
+                return false;
             }
         }
 
