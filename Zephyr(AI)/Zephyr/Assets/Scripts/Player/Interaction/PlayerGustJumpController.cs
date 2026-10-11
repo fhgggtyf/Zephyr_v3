@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zephyr.Core.Interfaces;
 using Zephyr.Gameplay.Player.Core;
 
 namespace Zephyr.Gameplay.Player.Interaction
@@ -8,7 +9,7 @@ namespace Zephyr.Gameplay.Player.Interaction
     /// component; the interactable only submits a destination request.
     /// </summary>
     [DisallowMultipleComponent]
-    public sealed class PlayerGustJumpController : MonoBehaviour
+    public sealed class PlayerGustJumpController : MonoBehaviour, IGustJumpReceiver
     {
         [SerializeField, Min(0.05f)] private float _defaultDuration = 0.8f;
         [SerializeField, Min(0.1f)] private float _easeOutPower = 2.4f;
@@ -26,6 +27,7 @@ namespace Zephyr.Gameplay.Player.Interaction
         private bool _complete;
 
         public bool HasRequest => _requestedDestination != null && !_active;
+        public bool CanRequestGustJump => !_active;
         public bool IsActive => _active;
         public bool IsComplete => _complete;
 

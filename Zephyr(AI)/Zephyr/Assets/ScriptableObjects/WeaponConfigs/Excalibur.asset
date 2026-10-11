@@ -61,7 +61,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 1861726335788646552
-      type: {class: AttackHitBoxData, ns: Zephyr.Core.Weapons, asm: Zephyr.Core}
+      type: {class: AttackHitBoxData, ns: Zephyr.Core.Weapons, asm: Zephyr.Weapons}
       data:
         m_repeatData: 0
         m_attackData:
@@ -76,5 +76,5 @@ MonoBehaviour:
             serializedVersion: 2
             m_Bits: 64
     - rid: 1861726335788646553
-      type: {class: AirAttackData, ns: Zephyr.Core.Weapons, asm: Zephyr.Core}
+      type: {class: AirAttackData, ns: Zephyr.Core.Weapons, asm: Zephyr.Weapons}
       data: 

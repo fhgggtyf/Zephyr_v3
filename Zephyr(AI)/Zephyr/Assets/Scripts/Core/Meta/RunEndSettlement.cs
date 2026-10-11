@@ -18,9 +18,8 @@ namespace Zephyr.Core.Meta
             return true;
         }
 
-        public static bool SettleCurrentRun()
+        public static bool SettleCurrentRun(ISaveDataGateway save)
         {
-            SaveSystem save = SaveSystem.Instance;
             if (save?.CurrentRun == null || save.Meta == null) return false;
             if (!Settle(save.CurrentRun, save.Meta)) return false;
 

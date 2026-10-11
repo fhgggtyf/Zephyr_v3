@@ -1,0 +1,22 @@
+{
+    "name": "Zephyr.Gameplay.Interaction",
+    "rootNamespace": "Zephyr.Gameplay.Interaction",
+    "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Flow",
+        "Zephyr.Core",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

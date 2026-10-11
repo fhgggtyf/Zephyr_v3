@@ -1,6 +1,7 @@
 using UnityEngine;
 using Zephyr.Core.Flow.Scenes;
 using Zephyr.Core.Interfaces;
+using Zephyr.Core.Meta;
 using Zephyr.Core.Save;
 
 namespace Zephyr.Gameplay.Interaction
@@ -10,8 +11,19 @@ namespace Zephyr.Gameplay.Interaction
     {
         [SerializeField] private GameObject _panelPrefab;
         private PotentialAllocationPanel _panel;
+        private IMetaGateway _metaGateway;
+        private ISaveDataGateway _saveData;
 
-        public bool CanInteract() => isActiveAndEnabled && _panel == null && SaveSystem.Instance?.Meta != null;
+        public IMetaGateway MetaGateway => _metaGateway;
+        public ISaveDataGateway SaveData => _saveData;
+
+        private void Awake()
+        {
+            _saveData = SaveSystem.Instance;
+            _metaGateway = new MetaGateway(_saveData);
+        }
+
+        public bool CanInteract() => isActiveAndEnabled && _panel == null && _metaGateway?.HasMeta == true;
 
         public void OnInteract()
         {

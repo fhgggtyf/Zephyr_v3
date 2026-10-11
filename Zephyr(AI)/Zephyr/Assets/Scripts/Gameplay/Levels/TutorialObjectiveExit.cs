@@ -1,7 +1,8 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Zephyr.Core.Flow.Scenes;
+using Zephyr.Core.Interfaces;
 using Zephyr.Core.Levels;
-using Zephyr.Gameplay.Enemies;
 
 namespace Zephyr.Gameplay.Levels
 {
@@ -13,7 +14,7 @@ namespace Zephyr.Gameplay.Levels
     public sealed class TutorialObjectiveExit : MonoBehaviour
     {
         [SerializeField] private RoomController _roomController;
-        [SerializeField] private EnemyBrain[] _requiredEnemies;
+        [SerializeField] private MonoBehaviour[] _requiredObjectives;
         [SerializeField] private bool _logBlockedAttempt = true;
         private bool _hasLoggedBlockedAttempt;
 
@@ -29,8 +30,16 @@ namespace Zephyr.Gameplay.Levels
             if (_roomController == null)
                 _roomController = FindAnyObjectByType<RoomController>();
 
-            if (_requiredEnemies == null || _requiredEnemies.Length == 0)
-                _requiredEnemies = FindObjectsByType<EnemyBrain>(FindObjectsInactive.Include);
+            if (_requiredObjectives == null || _requiredObjectives.Length == 0)
+            {
+                List<MonoBehaviour> objectives = new List<MonoBehaviour>();
+                MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include);
+                foreach (MonoBehaviour behaviour in behaviours)
+                {
+                    if (behaviour is ILevelObjective) objectives.Add(behaviour);
+                }
+                _requiredObjectives = objectives.ToArray();
+            }
         }
 
         private void OnTriggerEnter2D(Collider2D other)
@@ -63,13 +72,15 @@ namespace Zephyr.Gameplay.Levels
 
         private int CountRemainingTargets()
         {
-            if (_requiredEnemies == null || _requiredEnemies.Length == 0) return 0;
+            if (_requiredObjectives == null || _requiredObjectives.Length == 0) return 0;
 
             int remaining = 0;
-            for (int i = 0; i < _requiredEnemies.Length; i++)
+            for (int i = 0; i < _requiredObjectives.Length; i++)
             {
-                EnemyBrain enemy = _requiredEnemies[i];
-                if (enemy != null && enemy.isActiveAndEnabled && !enemy.IsDead) remaining++;
+                MonoBehaviour objectiveBehaviour = _requiredObjectives[i];
+                if (objectiveBehaviour != null && objectiveBehaviour.isActiveAndEnabled &&
+                    objectiveBehaviour is ILevelObjective objective && !objective.IsComplete)
+                    remaining++;
             }
 
             return remaining;

@@ -103,6 +103,61 @@
 - UI 分辨率基线为 `960 x 540`；Canvas、Scaler、锚点和安全区域必须在 SceneView 截图中确认可见且无裁切。
 - 按钮只负责触发中央控制器公开的方法；业务逻辑集中在 Controller/Manager。
 
+### 4.5 功能开发与架构专项分级
+
+当前架构评分已达到可以继续普通功能开发的门槛，但不代表所有架构债务已经清零。必须将“内容/玩法实现”和“底层架构变更”分开判断，不能因为普通功能需要跨模块就默认重写基础设施。
+
+#### 可以直接开始的普通功能
+
+- 新敌人行为、新武器、新房间、新关卡目标、新掉落内容、玩家表现、普通 UI 和现有模块内的小幅重构，可以在现有架构边界内直接开始。
+- 新敌人必须复用现有 StateMachine、`EnemyActionSO`、`EnemyConditionSO`、Animator、EnemyStats 和 EnemyBrain 边界。
+- 新武器必须复用现有 `WeaponSO`、`WeaponRuntime`、`WeaponComponent`、命中框、资源消耗和攻击输入边界。
+- 新关卡和房间必须复用 `SceneSO`、`SceneLoader`、`CameraBounds`、`CameraZone`、房间目标接口和现有场景生命周期。
+- 新 UI 必须复用现有 Controller、View、Popup、Localization 和 EventBus 模式；按钮只调用中央 Controller 的公开方法。
+- 新配置数据放入 ScriptableObject；单个 Actor、玩家、敌人和武器的运行时可变状态不能写回共享 SO。
+
+#### 新代码的硬性禁止项
+
+- 不得新增平行的 SceneLoader、玩家生成系统、状态机、事件总线、战斗服务、资源加载服务或全局 Manager。
+- 不得新增以 `DontDestroyOnLoad` 伪造生命周期的 Manager。
+- 不得在新业务代码中直接使用 `SceneManager.LoadScene`、`SceneManager.UnloadScene`、`Resources.Load`、`GameObject.Find` 或全局 Tag 查找。
+- 不得把 `GameFlow.Instance`、`SaveSystem.Instance`、`LocalizationManager.Instance`、`PlayerSpawner.Instance` 等单例访问扩散到新的领域逻辑、运行时服务或 UI 逻辑中。
+- 已存在的直接单例访问属于待收敛架构债务，不构成新代码的先例；新代码应优先使用已有 Gateway、接口、EventBus 或组合根注入。
+- 组合根可以在初始化边界解析已有单例一次，并缓存为接口或明确的服务引用；内部方法不得在每个调用路径中反复读取具体 `*.Instance`。
+- 不得通过局部功能提交顺手引入新的程序集边界、命名空间迁移、Core 大拆分或迁移桥删除。
+
+#### 开始跨模块功能前必须先确定
+
+任何涉及两个以上职责模块的功能，开始编码前必须明确记录以下内容；涉及三个以上模块时必须先给出简短架构方案：
+
+1. 功能归属模块和最终文件目录。
+2. 对象生命周期属于 `Persistent`、`GameManager`、具体游戏场景、房间、Prefab 实例还是 Actor 实例。
+3. 哪些是 ScriptableObject 配置，哪些是运行时状态，哪些需要写入存档。
+4. 模块之间使用方法、Gateway、接口、领域事件还是 EventBus 通信，以及依赖方向。
+5. UI 文本、本地化 Key、Prefab、资源引用和 `960 x 540` 布局如何进入现有管线。
+6. 需要执行的脚本验证、EditMode/PlayMode 验证、Console 检查、场景截图和 Prefab/SO 引用检查。
+
+#### 必须单独立项的架构专项
+
+以下工作不能与普通玩法提交混做，必须先完成边界设计、迁移顺序和回归门禁：
+
+- 修改 `Assets/Scripts/Core/StateMachine/` 或改变其运行时契约。
+- 修改 Persistent、GameManager、Initializer、SceneLoader 或场景生命周期协议。
+- 新增全局服务、改变单例生命周期或替换组合根。
+- 修改三个以上程序集之间的依赖方向，或新增/删除 asmdef。
+- 删除 `Zephyr.Enemies -> Zephyr.Items/Zephyr.Weapons`、`Zephyr.Items -> Zephyr.Weapons` 等迁移桥。
+- 对 Core 进行 Contracts、Flow、Persistence、Combat 等职责级拆分。
+- 全局替换 Save、Localization、GameFlow、Player 生命周期的依赖方式。
+
+架构专项的最低前置条件：写明目标边界、依赖图、序列化/Prefab/场景影响、迁移顺序、回滚方式和验收门禁；未满足前置条件时，不得以“顺便重构”的方式实施。
+
+#### 默认决策规则
+
+- 如果功能只是新增内容并能复用现有边界：直接实现，不暂停普通开发。
+- 如果功能需要改变 Persistent、GameManager、SceneLoader、StateMachine 或 Core Contract：先做架构方案，再实现。
+- 如果功能需要新增单例、直接场景加载、运行时资源路径查找、跨模块反向引用或删除迁移桥：默认禁止直接做，先设计替代的 Gateway、事件或组合根方案。
+- 如果无法判断属于普通功能还是架构专项：按架构专项处理，先确认边界，不凭感觉修改底层。
+
 ## 5. 资源、Prefab 和场景约定
 
 - 目录按职责分类：

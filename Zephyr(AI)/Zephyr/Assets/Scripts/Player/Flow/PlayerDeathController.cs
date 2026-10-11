@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Zephyr.Core;
-using Zephyr.Core.Combat;
 using Zephyr.Core.DamageSystem;
 using Zephyr.Core.Flow;
 using Zephyr.Core.Health;
@@ -10,13 +9,12 @@ using Zephyr.Core.Interfaces;
 using Zephyr.Core.Save;
 using Zephyr.Core.Stats;
 using Zephyr.Gameplay.Player.Core;
-using Zephyr.Gameplay.Player.Input;
 using Zephyr.Gameplay.Player.UI;
 using Zephyr.Gameplay.Player.Visual;
 
 namespace Zephyr.Gameplay.Player.Flow
 {
-    /// <summary>Owns player down, Potential loss, death presentation, and checkpoint respawn.</summary>
+    /// <summary>Unity facade for player down, death presentation, and respawn flow.</summary>
     public sealed class PlayerDeathController : MonoBehaviour
     {
         [Header("Presentation")]
@@ -26,7 +24,14 @@ namespace Zephyr.Gameplay.Player.Flow
         [Min(0.1f)] [SerializeField] private float _deathAnimationFallbackDuration = 1.2f;
 
         private readonly Dictionary<int, float> _sessionPotentials = new Dictionary<int, float>();
-        private DeathView _view;
+        private readonly PotentialLossService _potentialLoss = new PotentialLossService();
+        private RespawnCoordinator _respawnCoordinator;
+
+        private PlayerSpawner _playerSpawner;
+        private GameFlow _gameFlow;
+        private ISaveDataGateway _saveGateway;
+        private DeathPresentationController _presentation;
+        private PlayerDownUseCase _downUseCase;
         private GameObject _player;
         private HealthComponent _health;
         private StatsCore _stats;
@@ -38,46 +43,36 @@ namespace Zephyr.Gameplay.Player.Flow
 
         private void Start()
         {
+            ResolveDependencies();
             if (_viewPrefab != null)
-            {
-                _view = Instantiate(_viewPrefab, _viewParent != null ? _viewParent : transform);
-                _view.RespawnRequested += Respawn;
-                _view.GiveUpRequested += GiveUp;
-                _view.Hide();
-            }
+                _presentation = new DeathPresentationController(_viewPrefab, _viewParent != null ? _viewParent : transform,
+                    Respawn, GiveUp);
             else
-            {
                 Debug.LogError("PlayerDeathController: Death View Prefab is not assigned.", this);
-            }
 
-            if (PlayerSpawner.Instance != null)
+            if (_playerSpawner != null)
             {
-                PlayerSpawner.Instance.PlayerSpawned += BindPlayer;
-                PlayerSpawner.Instance.PlayerDespawned += UnbindPlayer;
-                BindPlayer(PlayerSpawner.Instance.CurrentPlayer);
+                _playerSpawner.PlayerSpawned += BindPlayer;
+                _playerSpawner.PlayerDespawned += UnbindPlayer;
+                BindPlayer(_playerSpawner.CurrentPlayer);
             }
 
-            if (GameFlow.Instance != null)
-                GameFlow.Instance.OnStateChanged += HandleGameStateChanged;
+            if (_gameFlow != null)
+                _gameFlow.OnStateChanged += HandleGameStateChanged;
         }
 
         private void OnDestroy()
         {
-            if (PlayerSpawner.Instance != null)
+            if (_playerSpawner != null)
             {
-                PlayerSpawner.Instance.PlayerSpawned -= BindPlayer;
-                PlayerSpawner.Instance.PlayerDespawned -= UnbindPlayer;
+                _playerSpawner.PlayerSpawned -= BindPlayer;
+                _playerSpawner.PlayerDespawned -= UnbindPlayer;
             }
 
-            if (GameFlow.Instance != null)
-                GameFlow.Instance.OnStateChanged -= HandleGameStateChanged;
+            if (_gameFlow != null)
+                _gameFlow.OnStateChanged -= HandleGameStateChanged;
 
-            if (_view != null)
-            {
-                _view.RespawnRequested -= Respawn;
-                _view.GiveUpRequested -= GiveUp;
-            }
-
+            _presentation?.Dispose();
             UnbindPlayer();
         }
 
@@ -90,11 +85,10 @@ namespace Zephyr.Gameplay.Player.Flow
             _health = _player.GetComponent<HealthComponent>();
             _stats = _player.GetComponent<StatsCore>();
             _hurtReceiver = _player.GetComponentInChildren<HurtReceiver>(true);
-            _hurtReceiver?.SetInvincible(GameFlow.Instance?.CurrentState == GameState.Tutorial);
+            _hurtReceiver?.SetInvincible(_gameFlow?.CurrentState == GameState.Tutorial);
+            _downUseCase = new PlayerDownUseCase(_player);
             RestorePotentials();
-
-            CombatTargetAvailability availability = _player.GetComponent<CombatTargetAvailability>();
-            availability?.SetAvailable(true);
+            _player.GetComponent<Zephyr.Core.Combat.CombatTargetAvailability>()?.SetAvailable(true);
 
             if (_health != null)
             {
@@ -115,6 +109,7 @@ namespace Zephyr.Gameplay.Player.Flow
             _health = null;
             _stats = null;
             _hurtReceiver = null;
+            _downUseCase = null;
             _hasLastDamage = false;
         }
 
@@ -122,8 +117,8 @@ namespace Zephyr.Gameplay.Player.Flow
         {
             _lastDamage = info;
             _hasLastDamage = true;
-            if (SaveSystem.Instance?.CurrentRun != null)
-                SaveSystem.Instance.CurrentRun.TotalDamageTaken += result.TotalDamage;
+            if (_saveGateway?.CurrentRun != null)
+                _saveGateway.CurrentRun.TotalDamageTaken += result.TotalDamage;
         }
 
         private void HandleDowned()
@@ -135,9 +130,9 @@ namespace Zephyr.Gameplay.Player.Flow
         private IEnumerator ProcessDown()
         {
             _processingDown = true;
-            SetPlayerDowned(true);
+            _downUseCase?.SetDown(true);
 
-            ResolvePotentialLoss(out StatType target, out float before, out float loss, out float after);
+            PotentialLossResult result = ResolvePotentialLoss();
             SavePotentials();
 
             SpriteAnimator animator = _player.GetComponentInChildren<SpriteAnimator>(true);
@@ -151,45 +146,38 @@ namespace Zephyr.Gameplay.Player.Flow
                 yield return null;
             }
 
-            _view?.Show(target, before, loss, after > 0f);
+            _presentation?.Show(result.Target, result.Before, result.Loss, result.After > 0f);
         }
 
-        private void ResolvePotentialLoss(out StatType target, out float before, out float loss, out float after)
+        private PotentialLossResult ResolvePotentialLoss()
         {
-            target = StatType.MaxHp;
+            StatType target = StatType.MaxHp;
             float potentialAttack = 0f;
             if (_hasLastDamage && TryFindPotentialSource(_lastDamage.Source, out IPotentialAttackSource source))
             {
                 target = source.TargetPotential;
-                potentialAttack = Mathf.Max(0f, source.PotentialAttack);
+                potentialAttack = source.PotentialAttack;
             }
 
-            int downCount = GetDownCount();
-            loss = potentialAttack * Mathf.Pow(2f, Mathf.Min(downCount, 30));
-            before = _stats.GetPotential(target);
-            after = Mathf.Max(0f, before - loss);
-            _stats.SetRunPotential(target, after);
-            SetDownCount(downCount + 1);
+            PotentialLossResult result = _potentialLoss.Calculate(_stats, target, potentialAttack, GetDownCount());
+            _stats.SetRunPotential(result.Target, result.After);
+            SetDownCount(GetDownCount() + 1);
+            return result;
         }
 
         private void Respawn()
         {
             if (!_processingDown || _stats == null) return;
             SavePotentials();
-            _view?.Hide();
+            _presentation?.Hide();
             _processingDown = false;
-            PlayerSpawner.Instance?.RespawnCurrentPlayer();
+            _respawnCoordinator.Respawn();
         }
 
         private void GiveUp()
         {
-            _view?.Hide();
-            GameFlow flow = GameFlow.Instance;
-            if (flow == null) return;
-
-            if (flow.CurrentState == GameState.Tutorial || flow.CurrentState == GameState.LoadingRun ||
-                flow.CurrentState == GameState.InRun || flow.CurrentState == GameState.Paused)
-                flow.RequestTransition(GameState.MetaHub);
+            _presentation?.Hide();
+            _respawnCoordinator.GiveUp();
         }
 
         private void HandleGameStateChanged(GameState previous, GameState current)
@@ -200,61 +188,45 @@ namespace Zephyr.Gameplay.Player.Flow
             _processingDown = false;
             _sessionDownCount = 0;
             _sessionPotentials.Clear();
-            _view?.Hide();
-        }
-
-        private void SetPlayerDowned(bool downed)
-        {
-            if (_player == null) return;
-            _player.GetComponent<CombatTargetAvailability>()?.SetAvailable(!downed);
-
-            PlayerInputReader input = _player.GetComponentInChildren<PlayerInputReader>(true);
-            if (input != null) input.enabled = !downed;
-
-            Zephyr.Core.StateMachine.StateMachine stateMachine =
-                _player.GetComponent<Zephyr.Core.StateMachine.StateMachine>();
-            if (stateMachine != null) stateMachine.enabled = !downed;
-
-            Rigidbody2D body = _player.GetComponent<Rigidbody2D>();
-            if (body != null)
-            {
-                body.linearVelocity = Vector2.zero;
-                if (downed) body.constraints = RigidbodyConstraints2D.FreezeAll;
-            }
+            _presentation?.Hide();
         }
 
         private void RestorePotentials()
         {
             if (_stats == null) return;
-            Dictionary<int, float> saved = SaveSystem.Instance?.CurrentRun?.Potentials;
+            Dictionary<int, float> saved = _saveGateway?.CurrentRun?.Potentials;
             Dictionary<int, float> source = saved != null && saved.Count > 0 ? saved : _sessionPotentials;
-            if (source.Count == 0) return;
-
-            foreach (KeyValuePair<int, float> pair in source)
-                if (System.Enum.IsDefined(typeof(StatType), pair.Key))
-                    _stats.SetRunPotential((StatType)pair.Key, pair.Value);
+            _potentialLoss.Restore(_stats, source, _stats.SetRunPotential);
         }
 
         private void SavePotentials()
         {
             if (_stats == null) return;
             _sessionPotentials.Clear();
-            foreach (StatType stat in System.Enum.GetValues(typeof(StatType)))
-                _sessionPotentials[(int)stat] = _stats.GetPotential(stat);
+            foreach (KeyValuePair<int, float> pair in _potentialLoss.Capture(_stats))
+                _sessionPotentials[pair.Key] = pair.Value;
 
-            RunData run = SaveSystem.Instance?.CurrentRun;
+            RunData run = _saveGateway?.CurrentRun;
             if (run == null) return;
-            run.Potentials = new Dictionary<int, float>(_sessionPotentials);
-            SaveSystem.Instance.SaveRun();
+            _potentialLoss.SaveToRun(run, _sessionPotentials);
+            _saveGateway.SaveRun();
         }
 
-        private int GetDownCount() => SaveSystem.Instance?.CurrentRun?.DownCount ?? _sessionDownCount;
+        private int GetDownCount() => _saveGateway?.CurrentRun?.DownCount ?? _sessionDownCount;
 
         private void SetDownCount(int value)
         {
             _sessionDownCount = value;
-            if (SaveSystem.Instance?.CurrentRun != null)
-                SaveSystem.Instance.CurrentRun.DownCount = value;
+            if (_saveGateway?.CurrentRun != null)
+                _saveGateway.CurrentRun.DownCount = value;
+        }
+
+        private void ResolveDependencies()
+        {
+            _playerSpawner = PlayerSpawner.Instance;
+            _gameFlow = GameFlow.Instance;
+            _saveGateway = SaveSystem.Instance;
+            _respawnCoordinator = new RespawnCoordinator(_playerSpawner, _gameFlow);
         }
 
         private static bool TryFindPotentialSource(GameObject sourceObject, out IPotentialAttackSource source)

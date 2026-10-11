@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
+using Zephyr.Core.Events;
 using Zephyr.Core.Flow;
 using Zephyr.Core.Health;
 using Zephyr.Core.Localization;
@@ -7,7 +9,6 @@ using Zephyr.Core.Save;
 using Zephyr.Core.UI;
 using Zephyr.Core.Weapons;
 using Zephyr.Gameplay.Player.Core;
-using Zephyr.Gameplay.Player.Flow;
 
 namespace Zephyr.Gameplay.Player.UI
 {
@@ -15,7 +16,7 @@ namespace Zephyr.Gameplay.Player.UI
     /// Gameplay HUD hosted by GameManager. It is visible only while a player scene
     /// is loaded, which keeps tutorial/run presentation out of the menu and hubs.
     /// </summary>
-    public sealed class GameplayHudController : MonoBehaviour
+    public sealed class GameplayHudController : LocalizedBehaviour
     {
         private Canvas _canvas;
         private HealthComponent _health;
@@ -28,31 +29,31 @@ namespace Zephyr.Gameplay.Player.UI
         private WeaponView _primaryWeapon;
         private WeaponView _secondaryWeapon;
         private bool _built;
+        private bool _subscribedToPlayerTarget;
+        private ISaveDataGateway _saveData;
 
         private void Start()
         {
             BuildInterface();
-            if (LocalizationManager.Instance != null)
-                LocalizationManager.Instance.OnLocaleChanged += HandleLocaleChanged;
+            _saveData = SaveSystem.Instance;
+            BindLocalization(HandleLocaleChanged);
 
-            if (PlayerSpawner.Instance != null)
+            if (EventBus.Instance != null)
             {
-                PlayerSpawner.Instance.PlayerSpawned += BindPlayer;
-                PlayerSpawner.Instance.PlayerDespawned += UnbindPlayer;
-                BindPlayer(PlayerSpawner.Instance.CurrentPlayer);
+                EventBus.Instance.Subscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+                _subscribedToPlayerTarget = true;
+                if (EventBus.Instance.TryGetLatest(out PlayerTargetChangedEvent current))
+                    HandlePlayerTargetChanged(current);
             }
         }
 
         private void OnDestroy()
         {
-            if (LocalizationManager.Instance != null)
-                LocalizationManager.Instance.OnLocaleChanged -= HandleLocaleChanged;
+            UnbindLocalization();
 
-            if (PlayerSpawner.Instance != null)
-            {
-                PlayerSpawner.Instance.PlayerSpawned -= BindPlayer;
-                PlayerSpawner.Instance.PlayerDespawned -= UnbindPlayer;
-            }
+            if (_subscribedToPlayerTarget && EventBus.Instance != null)
+                EventBus.Instance.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            _subscribedToPlayerTarget = false;
 
             UnsubscribeWeapons();
         }
@@ -70,7 +71,7 @@ namespace Zephyr.Gameplay.Player.UI
             _energyBar.Set(_resources != null ? _resources.CurrentEnergy : 0f,
                 _resources != null ? _resources.MaxEnergy : 1f);
 
-            long coins = SaveSystem.Instance?.CurrentRun?.RunCurrency ?? 0L;
+            long coins = _saveData?.CurrentRun?.RunCurrency ?? 0L;
             _coinsText.text = Format("hud.coins", "Coins: {0}", coins);
             RefreshWeapons();
         }
@@ -141,7 +142,13 @@ namespace Zephyr.Gameplay.Player.UI
                 TextAnchor.MiddleRight, Color.white);
             RuntimeUIFactory.Place((RectTransform)value.transform, new Vector2(1f, 0.5f),
                 new Vector2(92f, 22f), new Vector2(-50f, 0f));
-            return new BarView(fill, value, label, key, fallback);
+            return new BarView(
+                fill,
+                value,
+                label,
+                key,
+                fallback,
+                (localizationKey, defaultText) => Localize(localizationKey, defaultText));
         }
 
         private WeaponView CreateWeaponView(Transform parent, float x)
@@ -180,14 +187,7 @@ namespace Zephyr.Gameplay.Player.UI
             RefreshWeapons();
         }
 
-        private void UnbindPlayer()
-        {
-            UnsubscribeWeapons();
-            _health = null;
-            _resources = null;
-            _weapons = null;
-            SetVisible(false);
-        }
+        private void HandlePlayerTargetChanged(PlayerTargetChangedEvent change) => BindPlayer(change.Player);
 
         private void UnsubscribeWeapons()
         {
@@ -213,7 +213,7 @@ namespace Zephyr.Gameplay.Player.UI
             SetWeaponView(_secondaryWeapon, _weapons.GetWeapon(WeaponSlot.Secondary));
         }
 
-        private static void SetWeaponView(WeaponView view, WeaponSO weapon)
+        private void SetWeaponView(WeaponView view, WeaponSO weapon)
         {
             if (view == null) return;
             view.Icon.sprite = weapon != null ? weapon.Icon : null;
@@ -236,14 +236,8 @@ namespace Zephyr.Gameplay.Player.UI
             if (_canvas != null) _canvas.gameObject.SetActive(visible);
         }
 
-        private static string Localize(string key, string fallback)
-        {
-            string value = LocalizationManager.Instance?.Get(key);
-            return string.IsNullOrEmpty(value) || value == key ? fallback : value;
-        }
-
-        private static string Format(string key, string fallback, params object[] args)
-            => string.Format(Localize(key, fallback), args);
+        private string Format(string key, string fallback, params object[] args)
+            => FormatLocalized(key, fallback, args);
 
         private sealed class BarView
         {
@@ -252,17 +246,20 @@ namespace Zephyr.Gameplay.Player.UI
             private readonly Text _label;
             private readonly string _localizationKey;
             private readonly string _fallback;
+            private readonly Func<string, string, string> _localize;
 
-            public BarView(Image fill, Text value, Text label, string localizationKey, string fallback)
+            public BarView(Image fill, Text value, Text label, string localizationKey, string fallback,
+                Func<string, string, string> localize)
             {
                 _fill = fill;
                 _value = value;
                 _label = label;
                 _localizationKey = localizationKey;
                 _fallback = fallback;
+                _localize = localize;
             }
 
-            public void RefreshLocalization() => _label.text = Localize(_localizationKey, _fallback);
+            public void RefreshLocalization() => _label.text = _localize(_localizationKey, _fallback);
 
             public void SetUnbounded()
             {

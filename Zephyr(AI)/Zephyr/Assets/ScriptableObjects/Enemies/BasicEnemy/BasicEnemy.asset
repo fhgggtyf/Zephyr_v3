@@ -63,5 +63,5 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 1861800000000000001
-      type: {class: EnemyMeleeHitboxData, ns: Zephyr.Gameplay.Enemies, asm: Assembly-CSharp}
-      data: {}
+      type: {class: EnemyMeleeHitboxData, ns: Zephyr.Gameplay.Enemies, asm: Zephyr.Enemies}
+      data: 

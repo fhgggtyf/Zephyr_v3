@@ -3,14 +3,17 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Core.UI.Dialogue
 {
     /// <summary>Runs one dialogue at a time and owns the instantiated dialogue view.</summary>
     [DefaultExecutionOrder(-50)]
+    [SingletonLifetime(SingletonLifetime.GameManager, "GameManager")]
     public sealed class DialogueManager : MonoBehaviour, ZephyrInputActions.IDialogueActions
     {
-        public static DialogueManager Instance { get; private set; }
+        private static DialogueManager _instance;
+        public static DialogueManager Instance => _instance;
         public static event Action GameplayInputSuspended;
         public static event Action GameplayInputRestored;
 
@@ -31,13 +34,13 @@ namespace Zephyr.Core.UI.Dialogue
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (!SingletonLifecycle.TryClaim(this, ref _instance, nameof(DialogueManager))
+                || _instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            Instance = this;
             _inputActions = new ZephyrInputActions();
         }
 
@@ -77,7 +80,7 @@ namespace Zephyr.Core.UI.Dialogue
             Close(false);
             _inputActions?.Dispose();
             _inputActions = null;
-            if (Instance == this) Instance = null;
+            SingletonLifecycle.Release(this, ref _instance);
         }
 
         public bool TryStart(DialogueSO dialogue, Action completed = null)

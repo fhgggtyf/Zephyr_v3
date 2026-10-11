@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -140,3 +141,4 @@ namespace Zephyr.Gameplay.Testing.Editor
         }
     }
 }
+#endif

@@ -11,7 +11,7 @@ namespace Zephyr.UI
     /// Displays all player stats in a panel. Subscribes to StatsCore for updates.
     /// Attach to a UI panel and assign stat rows in the Inspector.
     /// </summary>
-    public class StatsPanelUI : MonoBehaviour
+    public class StatsPanelUI : LocalizedBehaviour
     {
         [Header("Source")]
         [SerializeField] private StatsCore _statsCore;
@@ -35,15 +35,13 @@ namespace Zephyr.UI
 
         private void OnEnable()
         {
-            if (LocalizationManager.Instance != null)
-                LocalizationManager.Instance.OnLocaleChanged += HandleLocaleChanged;
+            BindLocalization(HandleLocaleChanged);
             Refresh();
         }
 
         private void OnDisable()
         {
-            if (LocalizationManager.Instance != null)
-                LocalizationManager.Instance.OnLocaleChanged -= HandleLocaleChanged;
+            UnbindLocalization();
         }
 
         public void Refresh()
@@ -65,11 +63,10 @@ namespace Zephyr.UI
 
         private void HandleLocaleChanged(LocaleId _) => Refresh();
 
-        private static string LocalizeStat(StatType statType)
+        private string LocalizeStat(StatType statType)
         {
             string fallback = statType.ToString();
-            string value = LocalizationManager.Instance?.Get("stat." + statType);
-            return string.IsNullOrEmpty(value) || value.StartsWith("stat.") ? fallback : value;
+            return Localize("stat." + statType, fallback);
         }
 
         public void SetStatsSource(StatsCore statsCore)

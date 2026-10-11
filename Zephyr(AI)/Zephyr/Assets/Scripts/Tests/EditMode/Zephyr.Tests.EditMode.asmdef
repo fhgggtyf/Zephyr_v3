@@ -1,0 +1,27 @@
+{
+    "name": "Zephyr.Tests.EditMode",
+    "rootNamespace": "Zephyr.Tests.EditMode",
+    "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Flow",
+        "Zephyr.Core",
+        "Zephyr.Core.StateMachine"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

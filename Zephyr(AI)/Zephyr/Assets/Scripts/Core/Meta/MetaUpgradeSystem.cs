@@ -39,7 +39,8 @@ namespace Zephyr.Core.Meta
             return meta.MetaCurrency >= upgrade.Cost;
         }
 
-        public static bool Purchase(MetaUpgradeSO upgrade, MetaData meta, bool saveImmediately = true)
+        public static bool Purchase(MetaUpgradeSO upgrade, MetaData meta,
+            IMetaGateway metaGateway, bool saveImmediately = true)
         {
             if (!CanPurchase(upgrade, meta)) return false;
             Dictionary<string, float> target = ResolveTarget(upgrade.Target, meta);
@@ -56,7 +57,7 @@ namespace Zephyr.Core.Meta
             meta.MetaCurrency -= upgrade.Cost;
             target[key] = next;
             meta.PurchasedUpgrades.Add(upgrade.Id);
-            if (saveImmediately && SaveSystem.Instance?.Meta == meta) SaveSystem.Instance.SaveMeta();
+            if (saveImmediately && metaGateway?.Meta == meta) metaGateway.Save();
             return true;
         }
 

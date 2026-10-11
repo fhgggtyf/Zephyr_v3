@@ -1,15 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zephyr.Core.Events;
+using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Core.Flow
 {
     [DefaultExecutionOrder(-800)]
+    [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
     public sealed class SceneLoader : MonoBehaviour
     {
-        public static SceneLoader Instance { get; private set; }
+        private static SceneLoader _instance;
+        public static SceneLoader Instance => _instance;
 
         [Header("Event Channels")]
         [SerializeField] private GameEventSO<SceneLoadRequest> _onRequestSceneLoad;
@@ -23,15 +27,16 @@ namespace Zephyr.Core.Flow
         private readonly Dictionary<SceneId, bool> _expectedLoadedStates = new Dictionary<SceneId, bool>();
         private bool _isProcessing;
 
+        public event Action<SceneInfo> SceneLoaded;
+
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (!SingletonLifecycle.TryClaim(this, ref _instance, nameof(SceneLoader))
+                || _instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
-
-            Instance = this;
         }
 
         private void OnEnable()
@@ -54,7 +59,7 @@ namespace Zephyr.Core.Flow
 
         private void OnDestroy()
         {
-            if (Instance == this) Instance = null;
+            SingletonLifecycle.Release(this, ref _instance);
         }
 
         private void HandleSceneLoadRequest(SceneLoadRequest request)
@@ -150,13 +155,9 @@ namespace Zephyr.Core.Flow
             if (scene.Id == SceneId.GameManager)
                 yield return new WaitUntil(() => GameManagerBootstrap.IsReady);
 
-            _onSceneLoaded?.Raise(new SceneInfo(scene));
-
-            if (GameFlow.Instance != null && GameFlow.Instance.CurrentState == GameState.LoadingRun &&
-                (scene.Id == SceneId.Room_Generic || scene.Id == SceneId.Room_Boss ||
-                 scene.Id == SceneId.LV1Placeholder || scene.Id == SceneId.LV2Placeholder ||
-                 scene.Id == SceneId.LV3Placeholder))
-                GameFlow.Instance.RequestTransition(GameState.InRun);
+            SceneInfo info = new SceneInfo(scene);
+            _onSceneLoaded?.Raise(info);
+            SceneLoaded?.Invoke(info);
         }
 
         private static IEnumerator UnloadSceneAsync(SceneSO scene)

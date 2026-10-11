@@ -1,6 +1,6 @@
 using UnityEngine;
+using Zephyr.Core.Events;
 using Zephyr.Core.Interfaces;
-using Zephyr.Gameplay.Player.Interaction;
 
 namespace Zephyr.Gameplay.Interaction
 {
@@ -12,25 +12,67 @@ namespace Zephyr.Gameplay.Interaction
     {
         [SerializeField] private Transform _destination;
         [SerializeField] private float _minimumDistance = 0.05f;
+        private GameObject _player;
+        private bool _subscribedToPlayerTarget;
 
         public Transform Destination => _destination;
+
+        private void OnEnable()
+        {
+            SubscribeToPlayerTarget();
+        }
+
+        private void Start()
+        {
+            SubscribeToPlayerTarget();
+        }
+
+        private void OnDisable()
+        {
+            if (_subscribedToPlayerTarget && EventBus.Instance != null)
+                EventBus.Instance.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            _subscribedToPlayerTarget = false;
+            _player = null;
+        }
+
+        private void SubscribeToPlayerTarget()
+        {
+            if (EventBus.Instance == null) return;
+            EventBus.Instance.Subscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            _subscribedToPlayerTarget = true;
+            if (EventBus.Instance.TryGetLatest(out PlayerTargetChangedEvent current))
+                HandlePlayerTargetChanged(current);
+        }
+
+        private void HandlePlayerTargetChanged(PlayerTargetChangedEvent change) => _player = change.Player;
 
         public bool CanInteract()
         {
             if (_destination == null) return false;
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            return player != null && player.GetComponentInChildren<PlayerGustJumpController>(true) != null;
+            return FindReceiver() != null;
         }
 
         public void OnInteract()
         {
             if (_destination == null) return;
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            PlayerGustJumpController controller = player != null
-                ? player.GetComponentInChildren<PlayerGustJumpController>(true)
-                : null;
-            if (controller == null || Vector2.Distance(player.transform.position, _destination.position) < _minimumDistance) return;
-            controller.RequestGustJump(_destination);
+            IGustJumpReceiver receiver = FindReceiver(_player);
+            if (receiver == null || _player == null ||
+                Vector2.Distance(_player.transform.position, _destination.position) < _minimumDistance) return;
+            receiver.RequestGustJump(_destination);
+        }
+
+        private IGustJumpReceiver FindReceiver(GameObject player = null)
+        {
+            if (player == null) return null;
+
+            MonoBehaviour[] behaviours = player.GetComponentsInChildren<MonoBehaviour>(true);
+            foreach (MonoBehaviour behaviour in behaviours)
+            {
+                if (behaviour is IGustJumpReceiver receiver && receiver.CanRequestGustJump)
+                    return receiver;
+            }
+
+            return null;
         }
     }
 }

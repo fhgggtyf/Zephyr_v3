@@ -8,7 +8,7 @@ using Zephyr.Core.Save;
 namespace Zephyr.Gameplay.Interaction
 {
     /// <summary>Runtime controller for the replaceable MetaHub upgrade panel prefab.</summary>
-    public sealed class MetaUpgradePanel : MonoBehaviour
+    public sealed class MetaUpgradePanel : LocalizedBehaviour
     {
         [SerializeField] private Text _title;
         [SerializeField] private Text _currency;
@@ -22,10 +22,12 @@ namespace Zephyr.Gameplay.Interaction
         [SerializeField] private Button _allocatableButton;
         [SerializeField] private Button _closeButton;
         private MetaUpgradeStation _owner;
+        private IMetaGateway _metaGateway;
 
         private void Awake()
         {
             ResolveReferences();
+            BindLocalization(HandleLocaleChanged);
             _budgetButton?.onClick.AddListener(PurchaseBudget);
             _allocatableButton?.onClick.AddListener(PurchaseAllocatable);
             _closeButton?.onClick.AddListener(Close);
@@ -36,6 +38,7 @@ namespace Zephyr.Gameplay.Interaction
             _budgetButton?.onClick.RemoveListener(PurchaseBudget);
             _allocatableButton?.onClick.RemoveListener(PurchaseAllocatable);
             _closeButton?.onClick.RemoveListener(Close);
+            UnbindLocalization();
             Time.timeScale = 1f;
         }
 
@@ -47,6 +50,7 @@ namespace Zephyr.Gameplay.Interaction
         public void Show(MetaUpgradeStation owner)
         {
             _owner = owner;
+            _metaGateway = owner?.MetaGateway;
             ResolveReferences();
             Time.timeScale = 0f;
             Refresh();
@@ -70,16 +74,17 @@ namespace Zephyr.Gameplay.Interaction
 
         private void PurchaseBudget() => Purchase(MetaUpgradeTarget.PotentialBudget);
         private void PurchaseAllocatable() => Purchase(MetaUpgradeTarget.PotentialAllocatable);
+        private void HandleLocaleChanged(LocaleId _) => Refresh();
 
         private void Purchase(MetaUpgradeTarget target)
         {
-            MetaData meta = SaveSystem.Instance?.Meta;
+            MetaData meta = _metaGateway?.Meta;
             if (meta == null) return;
             MetaUpgradeSO[] upgrades = _owner?.Upgrades;
             for (int i = 0; upgrades != null && i < upgrades.Length; i++)
             {
                 if (upgrades[i].Target != target) continue;
-                MetaUpgradeSystem.Purchase(upgrades[i], meta);
+                MetaUpgradeSystem.Purchase(upgrades[i], meta, _metaGateway);
                 Refresh();
                 return;
             }
@@ -87,7 +92,7 @@ namespace Zephyr.Gameplay.Interaction
 
         private void Refresh()
         {
-            MetaData meta = SaveSystem.Instance?.Meta;
+            MetaData meta = _metaGateway?.Meta;
             if (meta == null) return;
             int budget = MetaUpgradeSystem.GetPotentialBudget(meta);
             int allocatable = MetaUpgradeSystem.GetPotentialAllocatable(meta);
@@ -120,10 +125,5 @@ namespace Zephyr.Gameplay.Interaction
 
         private Text FindText(string path) => transform.Find(path)?.GetComponent<Text>();
 
-        private static string Localize(string key, string fallback, params object[] args)
-        {
-            string value = LocalizationManager.Instance?.Get(key, args);
-            return string.IsNullOrEmpty(value) || value == key ? string.Format(fallback, args) : value;
-        }
     }
 }

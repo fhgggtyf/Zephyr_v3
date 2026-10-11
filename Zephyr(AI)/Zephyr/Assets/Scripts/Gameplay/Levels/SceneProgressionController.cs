@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zephyr.Core.Flow;
+using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Gameplay.Levels
 {
@@ -10,9 +11,11 @@ namespace Zephyr.Gameplay.Levels
     /// GameFlow; SceneLoader remains the sole authority that loads/unloads scenes.
     /// </summary>
     [DefaultExecutionOrder(-120)]
+    [SingletonLifetime(SingletonLifetime.GameManager, "GameManager")]
     public sealed class SceneProgressionController : MonoBehaviour
     {
-        public static SceneProgressionController Instance { get; private set; }
+        private static SceneProgressionController _instance;
+        public static SceneProgressionController Instance => _instance;
 
         [Header("Tutorial")]
         [SerializeField] private SceneSO _tutorialPhase1;
@@ -28,18 +31,18 @@ namespace Zephyr.Gameplay.Levels
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (!SingletonLifecycle.TryClaim(this, ref _instance, nameof(SceneProgressionController))
+                || _instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            Instance = this;
         }
 
         private void OnDestroy()
         {
-            if (Instance == this) Instance = null;
+            SingletonLifecycle.Release(this, ref _instance);
         }
 
         public bool AdvanceFromCurrentScene()

@@ -3,15 +3,20 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zephyr.Core.Events;
 using Zephyr.Core.Meta;
+using Zephyr.Core.Save;
 using Zephyr.Core.Stats;
 using Zephyr.Core.UI;
+using Zephyr.Core.Interfaces;
+using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Core.Flow
 {
     [DefaultExecutionOrder(-500)]
-    public sealed class GameFlow : MonoBehaviour
+    [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
+    public sealed class GameFlow : MonoBehaviour, IGameFlowGateway
     {
-        public static GameFlow Instance { get; private set; }
+        private static GameFlow _instance;
+        public static GameFlow Instance => _instance;
 
         [Header("Event Channels")]
         [SerializeField] private GameEventSO<GameState> _onGameStateChanged;
@@ -32,22 +37,37 @@ namespace Zephyr.Core.Flow
 
         public GameState CurrentState { get; private set; } = GameState.Boot;
         public event Action<GameState, GameState> OnStateChanged;
+        private ISaveDataGateway _saveData;
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (!SingletonLifecycle.TryClaim(this, ref _instance, nameof(GameFlow))
+                || _instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
-
-            Instance = this;
+            _saveData = SaveSystem.Instance;
             GameplayTimePause.ResetAll();
+        }
+
+        private void Start()
+        {
+            if (SceneLoader.Instance != null)
+                SceneLoader.Instance.SceneLoaded += HandleSceneLoaded;
         }
 
         private void OnDestroy()
         {
-            if (Instance == this) Instance = null;
+            if (SceneLoader.Instance != null)
+                SceneLoader.Instance.SceneLoaded -= HandleSceneLoaded;
+            SingletonLifecycle.Release(this, ref _instance);
+        }
+
+        private void HandleSceneLoaded(SceneInfo info)
+        {
+            if (CurrentState == GameState.LoadingRun && GameFlowTransitionPolicy.IsRunScene(info.SceneId))
+                RequestTransition(GameState.InRun);
         }
 
         public void RequestTransition(GameState targetState)
@@ -60,7 +80,7 @@ namespace Zephyr.Core.Flow
 
             if ((CurrentState == GameState.InRun || CurrentState == GameState.Paused)
                 && targetState == GameState.MetaHub)
-                RunEndSettlement.SettleCurrentRun();
+                RunEndSettlement.SettleCurrentRun(_saveData);
 
             GameState previous = CurrentState;
             CurrentState = targetState;
@@ -143,7 +163,7 @@ namespace Zephyr.Core.Flow
                 if ((CurrentState == GameState.InRun || CurrentState == GameState.Paused) &&
                     logicalState == GameState.MetaHub)
                 {
-                    RunEndSettlement.SettleCurrentRun();
+                    RunEndSettlement.SettleCurrentRun(_saveData);
                 }
 
                 GameState previous = CurrentState;
@@ -158,38 +178,13 @@ namespace Zephyr.Core.Flow
 
         private bool IsValidTransition(GameState from, GameState to)
         {
-            if (to == GameState.MainMenu)
-                return from != GameState.MainMenu;
-
-            switch (from)
-            {
-                case GameState.Boot:
-                    return to == GameState.MainMenu;
-                case GameState.MainMenu:
-                    return (to == GameState.Tutorial && !(Save.SaveSystem.Instance?.Meta?.HasCompletedTutorial ?? false)) ||
-                           to == GameState.MetaHub || to == GameState.LoadingRun;
-                case GameState.Tutorial:
-                    return to == GameState.MetaHub;
-                case GameState.MetaHub:
-                    // Authored placeholder progression may enter the first level directly;
-                    // the normal LoadingRun path remains valid for generated runs.
-                    return to == GameState.LoadingRun || to == GameState.InRun;
-                case GameState.LoadingRun:
-                    return to == GameState.InRun || to == GameState.MetaHub;
-                case GameState.InRun:
-                    return to == GameState.Paused || to == GameState.MetaHub;
-                case GameState.Paused:
-                    return to == GameState.InRun || to == GameState.MetaHub;
-                default:
-                    return false;
-            }
+            return GameFlowTransitionPolicy.IsValidTransition(from, to,
+                _saveData?.Meta?.HasCompletedTutorial ?? false);
         }
 
         private static bool IsDirectOpenState(GameState state)
         {
-            return state == GameState.MainMenu || state == GameState.Tutorial ||
-                   state == GameState.MetaHub || state == GameState.LoadingRun ||
-                   state == GameState.InRun;
+            return GameFlowTransitionPolicy.IsDirectOpenState(state);
         }
 
         private void ApplySceneTransition(GameState previous, GameState target)
@@ -250,14 +245,8 @@ namespace Zephyr.Core.Flow
 
         private SceneSO SceneForState(GameState state)
         {
-            switch (state)
-            {
-                case GameState.MainMenu: return _mainMenuScene;
-                case GameState.Tutorial: return _tutorialScene;
-                case GameState.MetaHub: return _metaHubScene;
-                case GameState.LoadingRun: return _loadingRunScene;
-                default: return null;
-            }
+            return GameFlowTransitionPolicy.SceneForState(state, _mainMenuScene, _tutorialScene,
+                _metaHubScene, _loadingRunScene);
         }
     }
 }

@@ -7,7 +7,7 @@
 
 ---
 
-## Current Implementation Baseline (2026-08-15)
+## Current Implementation Baseline (2026-10-11)
 
 This document is reconciled against the repository under `Assets/Scripts`, scene YAML, prefabs,
 ScriptableObject assets, input actions, and generated Unity project files.
@@ -23,7 +23,7 @@ ScriptableObject assets, input actions, and generated Unity project files.
 
 | Area | Current repository status |
 |------|---------------------------|
-| Assemblies | Seven asmdefs: Core, StateMachine, StateMachine Editor, Weapons Editor, Inputs, Player, UI |
+| Assemblies | Twenty-seven asmdefs with explicit Contracts, Runtime, Combat, Persistence, Meta, Flow, Audio, and Camera boundaries; legacy Core is an explicit non-auto-referenced host |
 | Combat | Stats, damage, health, resources, weapon components, dual-slot attacks, air-attack gating implemented |
 | Buffs | Buff config/controller implemented; authored assets and tests pending |
 | Projectiles | Pooled Rigidbody2D projectile implemented; ranged weapon launch integration pending |
@@ -32,8 +32,9 @@ ScriptableObject assets, input actions, and generated Unity project files.
 | Items | Deterministic rolls, pooled pickups, nearest-target interaction implemented; assets pending |
 | Rooms/enemies | Basic room lifecycle and BasicEnemy AI/data/component attacks implemented; selector, waves, and roster content pending |
 | UI/dialogue | 960x540 UI, menu, HUD, localized two-person dialogue (SO-based, trigger-gated, input-switched), localized dialogue and input lock implemented; modal gameplay UI pauses scaled time (death excluded) |
-| Camera | Scene-owned bounds/zones and Hollow-Knight-style follow implemented |
-| Tests | No test assemblies yet; the test strategy remains planned |
+| Audio | Persistent bus/voice-pool service implemented in the independent `Zephyr.Core.Audio` assembly |
+| Camera | Scene-owned bounds/zones and Hollow-Knight-style follow implemented in the independent `Zephyr.Core.Camera` assembly |
+| Tests | EditMode test and architecture-test assemblies are now present; coverage is being established in Phase 1 |
 
 ## Table of Contents & Progress
 
@@ -201,36 +202,140 @@ Assets/
 
 ### 1.3 Assembly Definition Strategy
 
-**Implemented topology (supersedes the one-asmdef-per-domain proposal below):** runtime assemblies are
-`Zephyr.Core`, `Zephyr.Core.StateMachine`, `Zephyr.Inputs`, `Zephyr.Player`, and `Zephyr.UI`; editor
-assemblies are StateMachine Editor and Weapons Editor. Weapons, projectiles, items, meta, camera, audio,
-save, and flow currently live in Core. Splitting them before a demonstrated ownership need would add
-assembly churn without useful isolation. The following diagram is retained as a long-term target.
+**Implemented topology (updated after Phase 2):** runtime assemblies are
+Zephyr.Core, Zephyr.Core.StateMachine, Zephyr.Inputs, Zephyr.Player, Zephyr.UI,
+Zephyr.Gameplay.Interaction, Zephyr.Testing, Zephyr.Enemies, Zephyr.Rooms,
+Zephyr.Weapons, Zephyr.Projectiles, and Zephyr.Items. Editor assemblies are StateMachine Editor,
+Weapons Editor, Enemies Editor, Player Editor, and Testing Editor; test assemblies are Zephyr.Architecture.Tests and
+Zephyr.Tests.EditMode. The new domain boundaries preserve existing script asset paths and GUIDs.
+
+Phase 2 intentionally left two migration dependencies visible to the compiler. The migration bridge
+cleanup completed on 2026-10-11 removes those references without changing serialized namespaces or
+asset GUIDs. Drop data now lives in Zephyr.Core.Runtime and stores stable weapon IDs; the weapon
+pickup implementation lives with the Weapons assembly; BossRewardDrop consumes the Core.Contracts
+pickup contract. Zephyr.Rooms depends only on Core contracts; Gameplay/Levels no longer references
+concrete enemy types, and Gameplay/Interaction no longer references concrete Player types.
+
+**Phase 3 implementation snapshot (2026-10-11):** Player down/death orchestration is now split
+between `PotentialLossService`, `PlayerDownUseCase`, `DeathPresentationController`, and
+`RespawnCoordinator`; `PlayerDeathController` remains a Unity facade so existing scene and prefab
+bindings stay valid. Main-menu save-slot decisions are isolated in `MainMenuUseCase`; the existing
+runtime-built UI remains in the controller as a composition-root concern rather than being rewritten
+into a new prefab pipeline. `GameFlowTransitionPolicy` owns transition validation and logical scene
+mapping. `SceneLoader` publishes `SceneLoaded` and owns only scene lifecycle operations; loading a
+run no longer calls `GameFlow` directly from the loader. The remaining direct singleton access is
+limited to facade/composition boundaries and is tracked for later lifecycle governance.
+
+**Phase 4 implementation snapshot (2026-10-11):** Runtime player discovery no longer uses
+`GameObject.Find*` or the Player tag. `PlayerSpawner` publishes the Core-level
+`PlayerTargetChangedEvent`; `EnemyBrain`, gust interaction, weapon pickup, and currency pickup
+subscribe to that lifecycle contract and cache the current target. `MainMenuUseCase` now depends on
+`ISaveSlotGateway` rather than the concrete `SaveSystem`. Architecture tests now reject new runtime
+global GameObject lookup, unauthorized scene loading, and new `Resources.Load` usage outside the
+localization adapter. The Enemies/Items/Weapons migration bridges were subsequently removed through
+stable drop IDs, a Core.Contracts pickup interface, and Unity AssetDatabase moves that preserved
+the existing script GUIDs.
 
 **Principle**: Core is its own asmdef, `internal` by default, only explicit public API. Each domain module is its own asmdef. Domain modules depend only on Core, never on each other.
 
+**Implementation snapshot after Phase G (2026-10-11):** The former Core monolith is being split
+incrementally without changing serialized namespaces. Stable interfaces, value types, and event
+payloads now live in `Zephyr.Core.Contracts`; reusable runtime implementations (EventBus,
+ScriptableObject event primitives, Timer, ObjectPool, and Logging) now live in
+`Zephyr.Core.Runtime`. Combat, health, damage, stats, and Buff implementations now live in the
+explicit `Zephyr.Core.Combat` assembly, which depends only on Contracts and Runtime. Scene-aware
+stat modifiers remain in the legacy Core host, but communicate with Combat through the Runtime
+`StatModifierRegistry`; this removes the former direct Combat → Flow coupling and avoids a circular
+assembly dependency. Save models and the JSON save service now live in `Zephyr.Core.Persistence`,
+with no dependency on Flow, Meta, Combat, or the legacy Core implementation. Scene lifecycle,
+scene event channels, `SceneStatsModifierController`, and the room lifecycle bridge now live in
+`Zephyr.Core.Flow`; Flow depends downward on Contracts, Runtime, Persistence, Meta, and the
+remaining legacy Core services, while the legacy Core assembly does not depend on Flow. Meta
+depends only on Contracts, Runtime, Persistence, and Localization; it does not depend on Flow,
+Combat, UI, Player, Enemies, Weapons, or the legacy Core host. Remaining `Zephyr.Core` references
+on domain assemblies are now limited to non-Meta legacy services and are compatibility
+dependencies, not the target architecture.
+
+Phase G closes the Core split at the safe boundary. The remaining `Zephyr.Core` host owns a small
+set of cross-system services and presentation-facing infrastructure: Localization, runtime UI/dialogue,
+shared constants, and a grid utility. Audio and Camera now live in dedicated non-auto-referenced
+assemblies (`Zephyr.Core.Audio` and `Zephyr.Core.Camera`) while preserving their existing namespaces,
+script GUIDs, scene ownership, and serialized component contracts. The host remains non-auto-referenced,
+so every runtime consumer must declare `Zephyr.Core` explicitly. This turns the remaining legacy surface
+into an auditable compatibility host and prevents new code from receiving it transitively.
+
 ```Plain Text
-Zephyr.Core              (no deps, internal by default, public API surface only)
- ├─ Zephyr.Player        → Core
- ├─ Zephyr.Enemies       → Core
- ├─ Zephyr.Weapons       → Core
- ├─ Zephyr.Projectiles   → Core
- ├─ Zephyr.Rooms         → Core
- ├─ Zephyr.Items         → Core
- ├─ Zephyr.Meta          → Core
- ├─ Zephyr.UI            → Core
- ├─ Zephyr.Audio         → Core
- ├─ Zephyr.Camera        → Core
+Zephyr.Core.Contracts    (stable interfaces, value types, event payloads; no implementation deps)
+Zephyr.Core.Runtime      (EventBus, SO events, Timer, ObjectPool, Logging → Contracts)
+Zephyr.Core.Combat      (Stats, DamageCalculator, Health, Buff, CombatSystem → Contracts / Runtime)
+Zephyr.Core.Persistence (Save DTOs, SaveSystem, slot gateway; no domain implementation deps)
+Zephyr.Core.Meta        (meta upgrades, unlocks, settlement, potential handoff, story progression → Contracts / Runtime / Persistence / Localization)
+Zephyr.Core              (legacy migration host; UI, Localization, and remaining Core services → Contracts / Runtime / Persistence / Meta)
+Zephyr.Core.Flow        (GameFlow, SceneLoader, SceneSO, scene events, scene integration → Core / Meta / Persistence / Runtime)
+ ├─ Zephyr.Player        → Core, Combat, Flow, Persistence, Meta, Weapons
+ ├─ Zephyr.Enemies       → Core, Combat, StateMachine, Runtime, Contracts
+ ├─ Zephyr.Weapons       → Core, Combat
+ ├─ Zephyr.Projectiles   → Core, Combat
+ ├─ Zephyr.Rooms         → Core, Flow
+ ├─ Zephyr.Items         → Core, Combat, Persistence, Runtime, Contracts
+ ├─ Zephyr.UI            → Core, Combat
+ ├─ Zephyr.Gameplay.Interaction → Core, Flow, Persistence, Meta
+ ├─ Zephyr.Testing       → Core, Combat, Player
+ ├─ Zephyr.Testing.Editor → Core, Meta, Player, Weapons, Interaction
  └─ Zephyr.Tests         → all (EditMode + PlayMode)
 ```
 
 Dependency direction (one-way):
 
 ```Plain Text
-Domain module ──► Zephyr.Core
+Domain module ──► Contracts / Runtime / explicit domain APIs
    │
-   └─(cross-domain)─► Core Event System ──► subscribing domain module
+   └─(cross-domain)─► Runtime Event System ──► subscribing domain module
 ```
+
+Combat-specific bridge:
+
+```Plain Text
+Core scene integration ──► Runtime StatModifierRegistry ◄── Combat StatsCore
+Core SceneSO ────────────► Contracts stat modifier definitions
+```
+
+Flow/Persistence split:
+
+```Plain Text
+Zephyr.Core.Persistence ──► no Flow / Meta / Combat implementation
+Zephyr.Core.Flow        ──► Contracts + Runtime + Persistence + legacy Core APIs
+Zephyr.Core             ──► Persistence / Meta
+```
+
+Meta split:
+
+```text
+Zephyr.Core.Meta       ──► Contracts / Runtime / Persistence / Unity.Localization
+Zephyr.Core             ──► Meta (legacy Core consumers only)
+Zephyr.Core.Flow        ──► Meta (settlement and run-entry orchestration)
+Gameplay / Player       ──► Meta (only where Meta contracts are consumed directly)
+```
+
+The Meta assembly is deliberately non-auto-referenced. Consumers must declare the dependency
+explicitly, which prevents new code from receiving progression services transitively through the
+legacy Core host. `RunEntryPotentialService` uses the `StatType` contract from Contracts rather than
+reintroducing a dependency on the old Core implementation. This preserves serialized namespaces
+and asset identities while making Meta extraction compiler-enforced.
+
+Core split closeout:
+
+```text
+Zephyr.Core              ──► explicit host only; autoReferenced = false
+Legacy host consumers    ──► Zephyr.Core by direct assembly reference
+Core host                ──✗ Flow / Combat / Player / Enemies / Weapons / Items / Projectiles
+Remaining future work   ──► Save gateway, UI/Localization refinement, serialized bridge migration
+```
+
+The Core split is considered complete for this architecture pass. Further extraction of UI,
+Localization, Camera, or Audio is deferred unless a concrete reuse or dependency problem justifies
+a new assembly boundary. Such work is a separate architecture proposal, not a continuation of the
+current split by default.
 
 **Benefits**: faster compilation; compile-time isolation (cross-domain refs error out); Core internals protected by `internal`, preventing AI misuse.
 
@@ -2316,7 +2421,7 @@ Room-to-room transitions stay **inside** the `InRun` state — they do not go th
 ## Chapter 15 — Pickup / Drop System
 
 > **Implemented snapshot:** deterministic rolls hash run seed, source ID, and room depth and use
-> `System.Random`. Drop tables directly reference `WeaponSO` because no item registry exists. Currency
+> `System.Random`. Drop tables store stable weapon IDs instead of referencing the Weapons assembly. Currency
 > pickups are magnetic and pooled; weapon pickups are pooled, interaction-only, and replace the selected
 > replacement-target slot. `PlayerInteractor` selects the nearest valid target and owns one configurable Interact action,
 > disabled during dialogue. Authored pools/tables/prompts and source event wiring remain pending.

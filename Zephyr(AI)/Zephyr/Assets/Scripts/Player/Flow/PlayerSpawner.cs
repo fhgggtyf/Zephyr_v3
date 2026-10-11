@@ -3,8 +3,11 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zephyr.Core.Camera;
+using Zephyr.Core.Events;
 using Zephyr.Core.Flow;
+using Zephyr.Core.Interfaces;
 using Zephyr.Core.Weapons;
+using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Gameplay.Player.Flow
 {
@@ -13,9 +16,11 @@ namespace Zephyr.Gameplay.Player.Flow
     /// player is scene-owned so unloading a tutorial or room also unloads it.
     /// </summary>
     [DefaultExecutionOrder(-150)]
-    public sealed class PlayerSpawner : MonoBehaviour
+    [SingletonLifetime(SingletonLifetime.GameManager, "GameManager")]
+    public sealed class PlayerSpawner : MonoBehaviour, IPlayerRespawnGateway
     {
-        public static PlayerSpawner Instance { get; private set; }
+        private static PlayerSpawner _instance;
+        public static PlayerSpawner Instance => _instance;
 
         [SerializeField] private GameObject _playerPrefab;
         [SerializeField] private SceneSO[] _playerScenes;
@@ -31,16 +36,17 @@ namespace Zephyr.Gameplay.Player.Flow
         private bool _hasPendingRespawnLoadout;
         private Vector3 _pendingRespawnPosition;
         private bool _hasPendingRespawnPosition;
+        private IGameFlowGateway _gameFlow;
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (!SingletonLifecycle.TryClaim(this, ref _instance, nameof(PlayerSpawner))
+                || _instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            Instance = this;
         }
 
         private void OnEnable()
@@ -51,8 +57,9 @@ namespace Zephyr.Gameplay.Player.Flow
 
         private void Start()
         {
-            if (GameFlow.Instance != null)
-                GameFlow.Instance.OnStateChanged += HandleGameStateChanged;
+            _gameFlow = GameFlow.Instance;
+            if (_gameFlow != null)
+                _gameFlow.OnStateChanged += HandleGameStateChanged;
             EvaluateLoadedScenes();
         }
 
@@ -70,9 +77,9 @@ namespace Zephyr.Gameplay.Player.Flow
 
         private void OnDestroy()
         {
-            if (GameFlow.Instance != null)
-                GameFlow.Instance.OnStateChanged -= HandleGameStateChanged;
-            if (Instance == this) Instance = null;
+            if (_gameFlow != null)
+                _gameFlow.OnStateChanged -= HandleGameStateChanged;
+            SingletonLifecycle.Release(this, ref _instance);
         }
 
         private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -110,6 +117,7 @@ namespace Zephyr.Gameplay.Player.Flow
                 _playerScene = default;
                 _respawnPoint = null;
                 CurrentPlayer = null;
+                PublishPlayerTargetChanged();
                 PlayerDespawned?.Invoke();
             }
 
@@ -177,6 +185,7 @@ namespace Zephyr.Gameplay.Player.Flow
             CameraController camera = CameraController.FindForGameplay(gameplayScene);
             camera?.SetFollow(CurrentPlayer.transform);
             PlayerSpawned?.Invoke(CurrentPlayer);
+            PublishPlayerTargetChanged();
         }
 
         /// <summary>Updates the checkpoint used by the next down respawn.</summary>
@@ -261,7 +270,13 @@ namespace Zephyr.Gameplay.Player.Flow
             _playerScene = default;
             _respawnPoint = null;
             if (player != null) Destroy(player);
+            PublishPlayerTargetChanged();
             PlayerDespawned?.Invoke();
+        }
+
+        private void PublishPlayerTargetChanged()
+        {
+            EventBus.Instance?.Publish(new PlayerTargetChangedEvent(CurrentPlayer));
         }
 
         private bool HasLoadedPlayerScene()
@@ -274,9 +289,9 @@ namespace Zephyr.Gameplay.Player.Flow
             return false;
         }
 
-        private static bool ShouldKeepCurrentPlayer()
+        private bool ShouldKeepCurrentPlayer()
         {
-            GameState state = GameFlow.Instance != null ? GameFlow.Instance.CurrentState : GameState.Boot;
+            GameState state = _gameFlow != null ? _gameFlow.CurrentState : GameState.Boot;
             return state == GameState.Tutorial || state == GameState.LoadingRun || state == GameState.InRun;
         }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Core.Audio
 {
@@ -24,9 +25,11 @@ namespace Zephyr.Core.Audio
     }
 
     /// <summary>Persistent audio owner. Playback assets are supplied by upper-layer events.</summary>
+    [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
     public sealed class AudioManager : MonoBehaviour
     {
-        public static AudioManager Instance { get; private set; }
+        private static AudioManager _instance;
+        public static AudioManager Instance => _instance;
 
         [SerializeField, Range(0f, 1f)] private float _sfxVolume = 1f;
         [SerializeField, Range(0f, 1f)] private float _musicVolume = 1f;
@@ -46,10 +49,15 @@ namespace Zephyr.Core.Audio
 
         private void Awake()
         {
-            if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-            Instance = this;
+            if (!SingletonLifecycle.TryClaim(this, ref _instance, nameof(AudioManager)))
+            {
+                Destroy(gameObject);
+                return;
+            }
             for (int i = 0; i < _voiceCount; i++) CreateVoice();
         }
+
+        private void OnDestroy() => SingletonLifecycle.Release(this, ref _instance);
 
         public void SetBusVolume(AudioBus bus, float value)
         {

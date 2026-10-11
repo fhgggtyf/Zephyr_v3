@@ -2,6 +2,9 @@
     "name": "Zephyr.UI",
     "rootNamespace": "Zephyr.UI",
     "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
         "Zephyr.Core"
     ],
     "includePlatforms": [],

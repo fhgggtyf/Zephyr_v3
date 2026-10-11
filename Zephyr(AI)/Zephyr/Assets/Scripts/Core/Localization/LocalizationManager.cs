@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
+using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Core.Localization
 {
@@ -11,18 +12,29 @@ namespace Zephyr.Core.Localization
 
     /// <summary>Persistent locale service. Tables can be populated by authored resources later.</summary>
     [DefaultExecutionOrder(-300)]
-    public sealed class LocalizationManager : MonoBehaviour
+    [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
+    public sealed class LocalizationManager : MonoBehaviour, ILocalizationGateway
     {
-        public static LocalizationManager Instance { get; private set; }
+        private static LocalizationManager _instance;
+        public static LocalizationManager Instance => _instance;
         public LocaleId ActiveLocale { get; private set; } = LocaleId.en_US;
         public LocaleId FallbackLocale => LocaleId.en_US;
         public event Action<LocaleId> OnLocaleChanged;
         private readonly Dictionary<string, string> _entries = new Dictionary<string, string>();
 
+        [Header("Localization Assets")]
+        [SerializeField] private TextAsset _englishTable;
+        [SerializeField] private TextAsset _chineseTable;
+        [SerializeField] private Locale _englishLocale;
+        [SerializeField] private Locale _chineseLocale;
+
         private void Awake()
         {
-            if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-            Instance = this;
+            if (!SingletonLifecycle.TryClaim(this, ref _instance, nameof(LocalizationManager)))
+            {
+                Destroy(gameObject);
+                return;
+            }
             ActiveLocale = (LocaleId)PlayerPrefs.GetInt("zephyr.locale", (int)LocaleId.en_US);
             LoadLocale(ActiveLocale);
             LocalizationSettings.SelectedLocaleChanged += HandleUnityLocaleChanged;
@@ -32,18 +44,30 @@ namespace Zephyr.Core.Localization
         private void OnDestroy()
         {
             LocalizationSettings.SelectedLocaleChanged -= HandleUnityLocaleChanged;
-            if (Instance == this) Instance = null;
+            SingletonLifecycle.Release(this, ref _instance);
         }
 
         public string Get(string key)
         {
-            if (string.IsNullOrEmpty(key)) return string.Empty;
-            if (_entries.TryGetValue(key, out var value)) return value;
+            if (TryGet(key, out string value)) return value;
             Debug.LogWarning($"Localization: missing key '{key}'", this);
             return key;
         }
 
-        public string Get(string key, params object[] args) => string.Format(Get(key), args ?? Array.Empty<object>());
+        public bool TryGet(string key, out string value)
+        {
+            if (!string.IsNullOrEmpty(key) && _entries.TryGetValue(key, out value) && !string.IsNullOrEmpty(value))
+                return true;
+
+            value = null;
+            return false;
+        }
+
+        public string GetOrFallback(string key, string fallback)
+            => TryGet(key, out string value) ? value : fallback;
+
+        public string Format(string key, string fallback, params object[] args)
+            => string.Format(GetOrFallback(key, fallback), args ?? Array.Empty<object>());
 
         public void SetLocale(LocaleId locale)
         {
@@ -61,7 +85,7 @@ namespace Zephyr.Core.Localization
         private void LoadLocale(LocaleId locale)
         {
             _entries.Clear();
-            TextAsset table = Resources.Load<TextAsset>($"Localization/strings.{locale}");
+            TextAsset table = locale == LocaleId.zh_CN ? _chineseTable : _englishTable;
             if (table == null) return;
             foreach (Match match in Regex.Matches(table.text, "\\\"([^\\\"]+)\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\""))
                 _entries[match.Groups[1].Value] = Regex.Unescape(match.Groups[2].Value);
@@ -69,14 +93,11 @@ namespace Zephyr.Core.Localization
 
         private void SyncUnityLocale(LocaleId locale)
         {
-            string resourcePath = locale == LocaleId.zh_CN
-                ? "Localization/Locales/Chinese (Simplified) (zh-Hans)"
-                : "Localization/Locales/English (en)";
-            Locale unityLocale = Resources.Load<Locale>(resourcePath);
+            Locale unityLocale = locale == LocaleId.zh_CN ? _chineseLocale : _englishLocale;
 
             if (unityLocale == null)
             {
-                Debug.LogWarning($"Unity Localization locale resource '{resourcePath}' was not found.", this);
+                Debug.LogWarning($"Unity Localization locale asset for '{locale}' is not assigned.", this);
                 return;
             }
 

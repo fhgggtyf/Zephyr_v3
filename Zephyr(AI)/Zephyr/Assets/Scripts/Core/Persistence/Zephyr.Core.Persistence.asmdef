@@ -1,0 +1,16 @@
+{
+    "name": "Zephyr.Core.Persistence",
+    "rootNamespace": "Zephyr.Core.Save",
+    "references": [
+        "Zephyr.Core.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

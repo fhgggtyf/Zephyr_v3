@@ -8,7 +8,7 @@ namespace Zephyr.UI
     /// Generic stat bar UI. Displays current/max as a slider or image fill.
     /// Attach to any UI bar (Slider or Image with Fill method).
     /// </summary>
-    public class StatBarUI : MonoBehaviour
+    public class StatBarUI : LocalizedBehaviour
     {
         [Header("References")]
         [SerializeField] private Slider _slider;
@@ -39,15 +39,13 @@ namespace Zephyr.UI
 
         private void OnEnable()
         {
-            if (LocalizationManager.Instance != null)
-                LocalizationManager.Instance.OnLocaleChanged += HandleLocaleChanged;
+            BindLocalization(HandleLocaleChanged);
             RefreshLabel();
         }
 
         private void OnDisable()
         {
-            if (LocalizationManager.Instance != null)
-                LocalizationManager.Instance.OnLocaleChanged -= HandleLocaleChanged;
+            UnbindLocalization();
         }
 
         private void HandleLocaleChanged(LocaleId _) => RefreshLabel();
@@ -55,8 +53,7 @@ namespace Zephyr.UI
         private void RefreshLabel()
         {
             if (_labelText == null) return;
-            string value = LocalizationManager.Instance?.Get(_labelLocalizationKey);
-            _labelText.text = string.IsNullOrEmpty(value) || value == _labelLocalizationKey ? _label : value;
+            _labelText.text = Localize(_labelLocalizationKey, _label);
         }
 
         public void SetUnbounded()

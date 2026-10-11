@@ -1,0 +1,25 @@
+{
+    "name": "Zephyr.Testing.Editor",
+    "rootNamespace": "Zephyr.Testing.Editor",
+    "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core",
+        "Zephyr.Player",
+        "Zephyr.Weapons",
+        "Zephyr.Testing",
+        "Zephyr.Gameplay.Interaction"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

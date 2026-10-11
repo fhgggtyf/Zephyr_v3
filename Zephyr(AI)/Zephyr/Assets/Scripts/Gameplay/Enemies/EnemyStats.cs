@@ -88,6 +88,6 @@ namespace Zephyr.Gameplay.Enemies
         }
 
         public float GetStatValue(StatType statType) => _stats != null ? _stats.GetStatValue(statType) : 0f;
-        public float GetPotential(StatType statType) => GameConstants.Stats.PotentialMax;
+        public float GetPotential(StatType statType) => StatConstants.PotentialMax;
     }
 }

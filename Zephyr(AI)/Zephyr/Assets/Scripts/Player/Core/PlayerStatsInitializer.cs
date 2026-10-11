@@ -28,14 +28,16 @@ namespace Zephyr.Gameplay.Player.Core
 
         [Header("Potential fallback")]
         [Tooltip("Used until run-entry Potential allocation is authored or when playing a scene directly.")]
-        [Range(0f, GameConstants.Stats.PotentialMax)]
-        [SerializeField] private float _defaultPotential = GameConstants.Stats.PotentialMax;
+        [Range(0f, StatConstants.PotentialMax)]
+        [SerializeField] private float _defaultPotential = StatConstants.PotentialMax;
 
         private StatsCore _statsCore;
+        private ISaveDataGateway _saveData;
 
         private void Awake()
         {
             _statsCore = GetComponent<StatsCore>();
+            _saveData = SaveSystem.Instance;
             _statsCore.SetOwnerRole(StatsOwnerRole.Player);
             ApplyDefaults();
         }
@@ -62,7 +64,7 @@ namespace Zephyr.Gameplay.Player.Core
 
         private void ApplyRunPotentials()
         {
-            Dictionary<int, float> saved = SaveSystem.Instance?.CurrentRun?.Potentials;
+            Dictionary<int, float> saved = _saveData?.CurrentRun?.Potentials;
             foreach (StatType statType in System.Enum.GetValues(typeof(StatType)))
             {
                 float potential = saved != null && saved.TryGetValue((int)statType, out float value)
@@ -74,7 +76,7 @@ namespace Zephyr.Gameplay.Player.Core
 
         private void ApplyMetaBaseUpgrades()
         {
-            Dictionary<string, float> upgrades = SaveSystem.Instance?.Meta?.BaseStatUpgrades;
+            Dictionary<string, float> upgrades = _saveData?.Meta?.BaseStatUpgrades;
             if (upgrades == null) return;
 
             foreach (KeyValuePair<string, float> upgrade in upgrades)

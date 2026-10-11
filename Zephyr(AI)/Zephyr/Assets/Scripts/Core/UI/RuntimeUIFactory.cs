@@ -35,6 +35,8 @@ namespace Zephyr.Core.UI
             text.color = color;
             text.horizontalOverflow = HorizontalWrapMode.Wrap;
             text.verticalOverflow = VerticalWrapMode.Truncate;
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 10;
             text.raycastTarget = false;
             return text;
         }

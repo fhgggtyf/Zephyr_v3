@@ -4,12 +4,15 @@ namespace Zephyr.Core.Meta
 {
     public static class MechanicUnlockSystem
     {
-        public static bool IsUnlocked(string mechanicId)
+        public static bool IsUnlocked(string mechanicId, IMetaGateway metaGateway)
         {
-            MetaData meta = SaveSystem.Instance?.Meta;
+            MetaData meta = metaGateway?.Meta;
             return meta != null && !string.IsNullOrWhiteSpace(mechanicId)
                 && meta.UnlockedMechanics.Contains(mechanicId);
         }
+
+        public static bool IsUnlocked(string mechanicId)
+            => IsUnlocked(mechanicId, new MetaGateway(SaveSystem.Instance));
 
         public static bool CanPurchase(MechanicUnlockSO unlock, MetaData meta)
         {
@@ -20,13 +23,14 @@ namespace Zephyr.Core.Meta
                     && StoryProgressionService.Instance.GetBool(unlock.RequiredFactId));
         }
 
-        public static bool Purchase(MechanicUnlockSO unlock, MetaData meta, bool saveImmediately = true)
+        public static bool Purchase(MechanicUnlockSO unlock, MetaData meta,
+            IMetaGateway metaGateway, bool saveImmediately = true)
         {
             if (!CanPurchase(unlock, meta)) return false;
             meta.MetaCurrency -= unlock.Cost;
             meta.UnlockedMechanics.Add(unlock.Id);
-            if (saveImmediately && SaveSystem.Instance?.Meta == meta)
-                SaveSystem.Instance.SaveMeta();
+            if (saveImmediately && metaGateway?.Meta == meta)
+                metaGateway.Save();
             return true;
         }
     }

@@ -11,10 +11,17 @@ namespace Zephyr.Gameplay.Interaction
         [SerializeField] private GameObject _panelPrefab;
         [SerializeField] private MetaUpgradeSO[] _upgrades;
         private MetaUpgradePanel _panel;
+        private IMetaGateway _metaGateway;
 
         public MetaUpgradeSO[] Upgrades => _upgrades;
+        public IMetaGateway MetaGateway => _metaGateway;
 
-        public bool CanInteract() => isActiveAndEnabled && _panel == null && SaveSystem.Instance?.Meta != null;
+        private void Awake()
+        {
+            _metaGateway = new MetaGateway(SaveSystem.Instance);
+        }
+
+        public bool CanInteract() => isActiveAndEnabled && _panel == null && _metaGateway?.HasMeta == true;
 
         public void OnInteract()
         {

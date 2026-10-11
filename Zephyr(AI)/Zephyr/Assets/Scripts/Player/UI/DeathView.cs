@@ -10,7 +10,7 @@ namespace Zephyr.Gameplay.Player.UI
     /// Authored death screen. All images are serialized so artists can replace the
     /// backdrop, panel, and button sprites directly in the prefab.
     /// </summary>
-    public sealed class DeathView : MonoBehaviour
+    public sealed class DeathView : LocalizedBehaviour
     {
         private static Font s_fallbackFont;
         [Header("Replaceable artwork")]
@@ -40,16 +40,14 @@ namespace Zephyr.Gameplay.Player.UI
             ResolveReferences();
             _respawnButton?.onClick.AddListener(HandleRespawn);
             _giveUpButton?.onClick.AddListener(HandleGiveUp);
-            if (LocalizationManager.Instance != null)
-                LocalizationManager.Instance.OnLocaleChanged += HandleLocaleChanged;
+            BindLocalization(HandleLocaleChanged);
         }
 
         private void OnDestroy()
         {
             _respawnButton?.onClick.RemoveListener(HandleRespawn);
             _giveUpButton?.onClick.RemoveListener(HandleGiveUp);
-            if (LocalizationManager.Instance != null)
-                LocalizationManager.Instance.OnLocaleChanged -= HandleLocaleChanged;
+            UnbindLocalization();
         }
 
         public void Show(StatType target, float before, float loss, bool canRespawn)
@@ -125,10 +123,5 @@ namespace Zephyr.Gameplay.Player.UI
         private Image FindImage(string path) => transform.Find(path)?.GetComponent<Image>();
         private Text FindText(string path) => transform.Find(path)?.GetComponent<Text>();
 
-        private static string Localize(string key, string fallback)
-        {
-            string value = LocalizationManager.Instance?.Get(key);
-            return string.IsNullOrEmpty(value) || value == key ? fallback : value;
-        }
     }
 }

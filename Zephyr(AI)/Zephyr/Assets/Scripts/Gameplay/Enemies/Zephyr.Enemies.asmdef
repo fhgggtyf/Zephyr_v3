@@ -1,0 +1,20 @@
+{
+    "name": "Zephyr.Enemies",
+    "rootNamespace": "Zephyr.Gameplay.Enemies",
+    "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core",
+        "Zephyr.Core.StateMachine"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

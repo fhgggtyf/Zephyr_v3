@@ -2,10 +2,18 @@
     "name": "Zephyr.Player",
     "rootNamespace": "Zephyr.Gameplay.Player",
     "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Flow",
         "Zephyr.Core",
+        "Zephyr.Core.Camera",
         "Zephyr.Core.StateMachine",
         "Zephyr.Inputs",
         "Zephyr.UI",
+        "Zephyr.Weapons",
         "Unity.InputSystem"
     ],
     "includePlatforms": [],

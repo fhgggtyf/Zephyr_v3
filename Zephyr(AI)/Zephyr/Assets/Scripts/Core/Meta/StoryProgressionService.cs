@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using Zephyr.Core.Events;
 using Zephyr.Core.Save;
+using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Core.Meta
 {
     [DefaultExecutionOrder(-450)]
+    [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
     public sealed class StoryProgressionService : MonoBehaviour
     {
-        public static StoryProgressionService Instance { get; private set; }
+        private static StoryProgressionService _instance;
+        public static StoryProgressionService Instance => _instance;
 
         [SerializeField] private StoryProgressionDatabaseSO _database;
         [SerializeField] private bool _saveImmediately = true;
@@ -18,18 +21,26 @@ namespace Zephyr.Core.Meta
         private readonly Dictionary<string, int> _intFacts = new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly HashSet<string> _completedMilestones = new HashSet<string>(StringComparer.Ordinal);
         private string _boundProfileId;
+        private IMetaGateway _metaGateway;
 
         public StoryProgressionDatabaseSO Database => _database;
 
+        public void Configure(IMetaGateway metaGateway)
+        {
+            _metaGateway = metaGateway;
+            _boundProfileId = null;
+            BindToCurrentSave();
+        }
+
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (!SingletonLifecycle.TryClaim(this, ref _instance, nameof(StoryProgressionService))
+                || _instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            Instance = this;
         }
 
         private void Start()
@@ -47,7 +58,7 @@ namespace Zephyr.Core.Meta
 
         private void OnDestroy()
         {
-            if (Instance == this) Instance = null;
+            SingletonLifecycle.Release(this, ref _instance);
         }
 
         public bool GetBool(StoryFactSO fact)
@@ -109,14 +120,14 @@ namespace Zephyr.Core.Meta
                 return false;
 
             BindToCurrentSave();
-            MetaData meta = SaveSystem.Instance?.Meta;
+            MetaData meta = _metaGateway?.Meta;
             if (meta == null || _completedMilestones.Contains(milestoneId)) return false;
             if (definition != null && definition.CompletionCondition != null
                 && !definition.CompletionCondition.Evaluate(this)) return false;
 
             _completedMilestones.Add(milestoneId);
             meta.CompletedMilestones.Add(milestoneId);
-            if (_saveImmediately) SaveSystem.Instance?.SaveMeta();
+            if (_saveImmediately) _metaGateway?.Save();
 
             if (definition != null)
             {
@@ -151,7 +162,7 @@ namespace Zephyr.Core.Meta
 
         private void BindToCurrentSave()
         {
-            MetaData meta = SaveSystem.Instance != null ? SaveSystem.Instance.Meta : null;
+            MetaData meta = _metaGateway?.Meta;
             if (meta == null || string.Equals(_boundProfileId, meta.ProfileId, StringComparison.Ordinal)) return;
 
             _boundProfileId = meta.ProfileId;
@@ -179,21 +190,21 @@ namespace Zephyr.Core.Meta
 
         private void PersistFact(string factId, bool value)
         {
-            MetaData meta = SaveSystem.Instance?.Meta;
+            MetaData meta = _metaGateway?.Meta;
             if (meta == null) return;
             meta.StoryFactIntegers.Remove(factId);
             if (value) meta.StoryFacts.Add(factId);
             else meta.StoryFacts.Remove(factId);
-            if (_saveImmediately) SaveSystem.Instance.SaveMeta();
+            if (_saveImmediately) _metaGateway?.Save();
         }
 
         private void PersistFact(string factId, int value)
         {
-            MetaData meta = SaveSystem.Instance?.Meta;
+            MetaData meta = _metaGateway?.Meta;
             if (meta == null) return;
             meta.StoryFacts.Remove(factId);
             meta.StoryFactIntegers[factId] = value;
-            if (_saveImmediately) SaveSystem.Instance.SaveMeta();
+            if (_saveImmediately) _metaGateway?.Save();
         }
 
         private static void PublishFactChanged(string factId)

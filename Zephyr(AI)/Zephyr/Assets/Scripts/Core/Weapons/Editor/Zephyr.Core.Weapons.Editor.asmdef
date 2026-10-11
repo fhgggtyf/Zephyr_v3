@@ -2,7 +2,7 @@
     "name": "Zephyr.Core.Weapons.Editor",
     "rootNamespace": "Zephyr.Core.Weapons.Editor",
     "references": [
-        "Zephyr.Core"
+        "Zephyr.Weapons"
     ],
     "includePlatforms": [
         "Editor"

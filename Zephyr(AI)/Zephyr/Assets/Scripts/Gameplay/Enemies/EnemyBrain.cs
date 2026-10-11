@@ -1,11 +1,13 @@
 using UnityEngine;
 using Zephyr.Core.DamageSystem;
+using Zephyr.Core.Events;
 using Zephyr.Core.Health;
 using Zephyr.Core.Combat;
+using Zephyr.Core.Interfaces;
 
 namespace Zephyr.Gameplay.Enemies
 {
-    public sealed class EnemyBrain : MonoBehaviour
+    public sealed class EnemyBrain : MonoBehaviour, ILevelObjective
     {
         [SerializeField] private EnemyStats _stats;
         [SerializeField] private EnemyMotor _motor;
@@ -18,6 +20,7 @@ namespace Zephyr.Gameplay.Enemies
         private bool _attackFinished = true;
         private bool _isTelegraphing;
         private float _phaseEndsAt;
+        private bool _subscribedToPlayerTarget;
 
         public EnemyStats Stats => _stats;
         public EnemyMotor Motor => _motor;
@@ -25,6 +28,7 @@ namespace Zephyr.Gameplay.Enemies
         public Transform Target => _target;
         public bool HasTarget => _target != null;
         public bool IsDead => _dead || (_health != null && _health.CurrentHp <= 0f);
+        public bool IsComplete => IsDead;
         public bool WasRecentlyDamaged => Time.time - _lastDamageTime < 0.15f;
         public EnemyAttackController AttackController => _attackController != null
             ? _attackController
@@ -51,6 +55,33 @@ namespace Zephyr.Gameplay.Enemies
                 _health.Died += HandleDeath;
             }
         }
+
+        private void OnEnable()
+        {
+            SubscribeToPlayerTarget();
+        }
+
+        private void Start()
+        {
+            SubscribeToPlayerTarget();
+        }
+
+        private void OnDisable()
+        {
+            if (_subscribedToPlayerTarget && EventBus.Instance != null)
+                EventBus.Instance.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            _subscribedToPlayerTarget = false;
+        }
+
+        private void SubscribeToPlayerTarget()
+        {
+            if (_subscribedToPlayerTarget || EventBus.Instance == null) return;
+            EventBus.Instance.Subscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            _subscribedToPlayerTarget = true;
+            if (EventBus.Instance.TryGetLatest(out PlayerTargetChangedEvent current))
+                HandlePlayerTargetChanged(current);
+        }
+
         private void OnDestroy()
         {
             if (_health != null)
@@ -62,11 +93,12 @@ namespace Zephyr.Gameplay.Enemies
         private void Update()
         {
             if (_target == null || !IsTargetValid(_target))
-            {
                 _target = null;
-                GameObject player = GameObject.FindGameObjectWithTag("Player");
-                if (player != null && IsTargetValid(player.transform)) _target = player.transform;
-            }
+        }
+
+        private void HandlePlayerTargetChanged(PlayerTargetChangedEvent change)
+        {
+            _target = change.Target != null && IsTargetValid(change.Target) ? change.Target : null;
         }
         public bool PlayerWithin(float range) => _target != null && Vector2.Distance(transform.position, _target.position) <= range;
         public bool PlayerWithinLoseRange()

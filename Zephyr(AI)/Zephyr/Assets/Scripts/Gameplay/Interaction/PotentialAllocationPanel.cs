@@ -12,7 +12,7 @@ using Zephyr.Core.UI;
 namespace Zephyr.Gameplay.Interaction
 {
     /// <summary>Run-entry Potential UI. N-M is rolled immediately and M is edited by the player.</summary>
-    public sealed class PotentialAllocationPanel : MonoBehaviour
+    public sealed class PotentialAllocationPanel : LocalizedBehaviour
     {
         [SerializeField] private Text _title;
         [SerializeField] private Text _summary;
@@ -24,6 +24,7 @@ namespace Zephyr.Gameplay.Interaction
         private readonly Dictionary<StatType, int> _randomValues = new Dictionary<StatType, int>();
         private readonly Dictionary<StatType, int> _manualValues = new Dictionary<StatType, int>();
         private RunStartInteractable _owner;
+        private IMetaGateway _metaGateway;
         private int _budget;
         private int _allocatable;
         private int _remainingManual;
@@ -31,6 +32,7 @@ namespace Zephyr.Gameplay.Interaction
         private void Awake()
         {
             ResolveReferences();
+            BindLocalization(HandleLocaleChanged);
             _startButton?.onClick.AddListener(StartRun);
             _cancelButton?.onClick.AddListener(Close);
         }
@@ -39,6 +41,7 @@ namespace Zephyr.Gameplay.Interaction
         {
             _startButton?.onClick.RemoveListener(StartRun);
             _cancelButton?.onClick.RemoveListener(Close);
+            UnbindLocalization();
             Time.timeScale = 1f;
         }
 
@@ -52,6 +55,7 @@ namespace Zephyr.Gameplay.Interaction
         public void Show(RunStartInteractable owner)
         {
             _owner = owner;
+            _metaGateway = owner?.MetaGateway;
             ResolveReferences();
             BuildAllocation();
             Time.timeScale = 0f;
@@ -72,10 +76,12 @@ namespace Zephyr.Gameplay.Interaction
             if (gameObject != null) Destroy(gameObject);
         }
 
+        private void HandleLocaleChanged(LocaleId _) => Refresh();
+
         private void BuildAllocation()
         {
-            _budget = MetaUpgradeSystem.GetPotentialBudget(SaveSystem.Instance?.Meta);
-            _allocatable = MetaUpgradeSystem.GetPotentialAllocatable(SaveSystem.Instance?.Meta);
+            _budget = MetaUpgradeSystem.GetPotentialBudget(_metaGateway?.Meta);
+            _allocatable = MetaUpgradeSystem.GetPotentialAllocatable(_metaGateway?.Meta);
             _allocatable = Mathf.Clamp(_allocatable, 0, Mathf.Min(_budget, MetaUpgradeSystem.MaxPotentialAllocatable));
             _randomValues.Clear();
             _manualValues.Clear();
@@ -101,7 +107,7 @@ namespace Zephyr.Gameplay.Interaction
             while (randomRemaining > 0)
             {
                 int index = UnityEngine.Random.Range(0, stats.Length);
-                if (_randomValues[stats[index]] >= GameConstants.Stats.PotentialMax) continue;
+                if (_randomValues[stats[index]] >= StatConstants.PotentialMax) continue;
                 _randomValues[stats[index]]++;
                 randomRemaining--;
             }
@@ -188,7 +194,7 @@ private void BuildRows(StatType[] stats)
             int minimum = randomValue == 0 ? 1 : 0;
             if (delta > 0)
             {
-                if (_remainingManual <= 0 || randomValue + manual >= GameConstants.Stats.PotentialMax) return;
+                if (_remainingManual <= 0 || randomValue + manual >= StatConstants.PotentialMax) return;
                 manual++;
                 _remainingManual--;
             }
@@ -255,11 +261,6 @@ private void Refresh()
             return true;
         }
 
-        private static string Localize(string key, string fallback, params object[] args)
-        {
-            string value = LocalizationManager.Instance?.Get(key, args);
-            return string.IsNullOrEmpty(value) || value == key ? string.Format(fallback, args) : value;
-        }
 
         private readonly struct RowView
         {

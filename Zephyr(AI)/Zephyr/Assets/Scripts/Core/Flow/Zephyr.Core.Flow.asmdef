@@ -1,0 +1,20 @@
+{
+    "name": "Zephyr.Core.Flow",
+    "rootNamespace": "Zephyr.Core.Flow",
+    "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

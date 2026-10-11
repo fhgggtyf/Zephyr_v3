@@ -23,7 +23,7 @@ namespace Zephyr.Core.Flow
         public bool IsValid => !string.IsNullOrWhiteSpace(_sceneName) &&
                                !string.IsNullOrWhiteSpace(_scenePath) &&
                                _scenePath.EndsWith(".unity", System.StringComparison.OrdinalIgnoreCase);
-        public bool AppliesTo(StatsCore stats) => stats != null;
+        public bool AppliesTo(IStatModifierTarget target) => target != null;
 
 #if UNITY_EDITOR
         private void OnValidate()

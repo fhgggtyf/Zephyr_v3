@@ -14,6 +14,7 @@ namespace Zephyr.Core.Flow.Scenes
         [SerializeField] private bool _resumeInterruptSave = true;
         [SerializeField] private SceneSO _firstRoomScene;
         [SerializeField] private SceneSO _loadingRunScene;
+        private ISaveDataGateway _saveData;
 
         private void OnEnable() => EventBus.Instance?.Subscribe<RoomEnteredInfo>(HandleRoomEntered);
         private void OnDisable() => EventBus.Instance?.Unsubscribe<RoomEnteredInfo>(HandleRoomEntered);
@@ -29,7 +30,8 @@ private IEnumerator Start()
             EventBus.Instance?.Unsubscribe<RoomEnteredInfo>(HandleRoomEntered);
             EventBus.Instance?.Subscribe<RoomEnteredInfo>(HandleRoomEntered);
 
-            var save = SaveSystem.Instance;
+            _saveData = SaveSystem.Instance;
+            ISaveDataGateway save = _saveData;
             // A confirmed MetaHub allocation always starts a fresh run. Resume loading
             // is retained only for the interrupt-save path that has no pending entry choice.
             var run = _resumeInterruptSave && !RunEntryPotentialService.HasPending ? save.LoadRun() : null;
