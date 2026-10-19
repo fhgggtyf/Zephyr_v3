@@ -36,6 +36,7 @@ namespace Zephyr.Core.Flow
             MonoBehaviour[] components = transform.root.GetComponentsInChildren<MonoBehaviour>(true);
             IPlayerSpawnGateway playerSpawn = null;
             IDialogueInputGateway dialogueInput = null;
+            ISceneLoadingGateway sceneLoading = SceneLoader.Instance;
             for (int i = 0; i < components.Length; i++)
             {
                 if (components[i] is IPlayerSpawnGateway spawnGateway)
@@ -52,6 +53,7 @@ namespace Zephyr.Core.Flow
                 saveData,
                 eventBus,
                 dialogueInput,
+                sceneLoading,
                 storyProgression,
                 localization,
                 dropSpawn,
@@ -133,6 +135,7 @@ namespace Zephyr.Core.Flow
                 ISaveDataGateway saveData,
                 IEventBusGateway eventBus,
                 IDialogueInputGateway dialogueInput,
+                ISceneLoadingGateway sceneLoading,
                 IStoryProgressionGateway storyProgression,
                 ILocalizationGateway localization,
                 IDropSpawnGateway dropSpawn,
@@ -148,6 +151,7 @@ namespace Zephyr.Core.Flow
                 SaveData = saveData;
                 EventBus = eventBus;
                 DialogueInput = dialogueInput;
+                SceneLoading = sceneLoading;
                 StoryProgression = storyProgression;
                 Localization = localization;
                 DropSpawn = dropSpawn;
@@ -164,6 +168,7 @@ namespace Zephyr.Core.Flow
             public ISaveDataGateway SaveData { get; }
             public IEventBusGateway EventBus { get; }
             public IDialogueInputGateway DialogueInput { get; }
+            public ISceneLoadingGateway SceneLoading { get; }
             public ILocalizationGateway Localization { get; }
             public IStoryProgressionGateway StoryProgression { get; }
             public IDropSpawnGateway DropSpawn { get; }

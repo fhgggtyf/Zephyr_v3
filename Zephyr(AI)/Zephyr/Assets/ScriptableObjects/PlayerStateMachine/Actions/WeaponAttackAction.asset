@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.StateMachine.WeaponAttackActionSO
   description: 
   m_speedData: {fileID: 11400000, guid: ed4705cc5160316408982b0bff68f585, type: 2}
+  m_jumpData: {fileID: 11400000, guid: 1c4205e9cf3de40429aa5f51e83c5203, type: 2}

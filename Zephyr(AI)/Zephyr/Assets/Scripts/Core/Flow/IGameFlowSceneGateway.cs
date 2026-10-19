@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.SceneManagement;
 using Zephyr.Contracts.Flow;
 using Zephyr.Contracts.Interfaces;
@@ -11,5 +12,13 @@ namespace Zephyr.Core.Flow
             LoadSceneMode mode = LoadSceneMode.Additive);
         void RequestProgressionSceneTransition(SceneSO targetScene, SceneSO sceneToReplace,
             GameState nextState);
+    }
+
+    public interface ISceneLoadingGateway
+    {
+        bool IsLoading { get; }
+        event Action LoadingStarted;
+        event Action LoadingCompleted;
+        event Action LoadingFailed;
     }
 }

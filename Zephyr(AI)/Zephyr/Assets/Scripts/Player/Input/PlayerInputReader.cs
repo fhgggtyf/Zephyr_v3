@@ -29,6 +29,8 @@ namespace Zephyr.Gameplay.Player.Input
     {
         private ZephyrInputActions _actions;
         private IDialogueInputGateway _dialogueInput;
+        private ISceneLoadingGateway _sceneLoading;
+        private bool _loadingBlocked;
         private bool _ignoreJumpUntilReleased;
 
         /// <summary>
@@ -151,6 +153,8 @@ private void OnEnable()
 
             if (_dialogueInput != null && _dialogueInput.IsOpen)
                 DisableGameplayInput();
+            else if (_loadingBlocked)
+                DisableGameplayInput();
             else
                 EnableGameplayInput();
         }
@@ -158,6 +162,7 @@ private void OnEnable()
 private void OnDisable()
         {
             UnsubscribeDialogueInput();
+            UnsubscribeSceneLoading();
             if (_actions == null) return;
             _actions.GamePlay.Disable();
             _actions.GamePlay.RemoveCallbacks(this);
@@ -173,10 +178,50 @@ private void OnDisable()
         public void Configure(IGameManagerServices services)
         {
             UnsubscribeDialogueInput();
+            UnsubscribeSceneLoading();
             _dialogueInput = services?.DialogueInput;
+            _sceneLoading = services?.SceneLoading;
             SubscribeDialogueInput();
+            SubscribeSceneLoading();
+            _loadingBlocked = _sceneLoading != null && _sceneLoading.IsLoading;
             if (_dialogueInput != null && _dialogueInput.IsOpen) DisableGameplayInput();
+            else if (_loadingBlocked) DisableGameplayInput();
             else EnableGameplayInput();
+        }
+
+        private void SubscribeSceneLoading()
+        {
+            if (_sceneLoading == null) return;
+            _sceneLoading.LoadingStarted += HandleLoadingStarted;
+            _sceneLoading.LoadingCompleted += HandleLoadingCompleted;
+            _sceneLoading.LoadingFailed += HandleLoadingFailed;
+        }
+
+        private void UnsubscribeSceneLoading()
+        {
+            if (_sceneLoading == null) return;
+            _sceneLoading.LoadingStarted -= HandleLoadingStarted;
+            _sceneLoading.LoadingCompleted -= HandleLoadingCompleted;
+            _sceneLoading.LoadingFailed -= HandleLoadingFailed;
+        }
+
+        private void HandleLoadingStarted()
+        {
+            _loadingBlocked = true;
+            DisableGameplayInput();
+        }
+
+        private void HandleLoadingCompleted()
+        {
+            _loadingBlocked = false;
+            if (_dialogueInput == null || !_dialogueInput.IsOpen)
+                RestoreGameplayInput();
+        }
+
+        private void HandleLoadingFailed()
+        {
+            _loadingBlocked = true;
+            DisableGameplayInput();
         }
 
         private void SubscribeDialogueInput()
@@ -237,6 +282,7 @@ private void OnDisable()
 
         private void OnDestroy()
         {
+            UnsubscribeSceneLoading();
             _actions?.Dispose();
         }
 

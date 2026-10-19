@@ -15,6 +15,7 @@ using CoreSM = Zephyr.Core.StateMachine.StateMachine;
 using Zephyr.Core.StateMachine.ScriptableObjects;
 using Zephyr.Gameplay.Player.Core;
 using Zephyr.Gameplay.Player.Data;
+using Zephyr.Gameplay.Player.Input;
 
 namespace Zephyr.Gameplay.Player.StateMachine
 {
@@ -30,6 +31,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
     public class JumpForceAction : StateAction
     {
         private MovementCore _movementCore;
+        private PlayerInputReader _inputReader;
         private PlayerResourceController _resources;
         private readonly JumpDataSO _jumpData;
         private bool _ownsGravity;
@@ -45,6 +47,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
         {
             _movementCore = stateMachine.GetCachedComponent<MovementCore>();
             stateMachine.TryGetCachedComponent(out _resources);
+            stateMachine.TryGetCachedComponent(out _inputReader);
         }
 
         public override void OnStateEnter()
@@ -60,6 +63,8 @@ namespace Zephyr.Gameplay.Player.StateMachine
                 Debug.LogWarning("[JumpForceAction] Jump blocked because stamina is unavailable.");
                 return;
             }
+
+            _inputReader?.ClearJumpAndAttackInputs();
 
             // 空中起跳消耗一次二段跳
             if (!_movementCore.IsGrounded)

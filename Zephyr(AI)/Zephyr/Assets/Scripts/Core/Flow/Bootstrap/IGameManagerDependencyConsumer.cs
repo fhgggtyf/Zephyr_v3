@@ -19,6 +19,7 @@ namespace Zephyr.Core.Flow
         ISaveDataGateway SaveData { get; }
         IEventBusGateway EventBus { get; }
         IDialogueInputGateway DialogueInput { get; }
+        ISceneLoadingGateway SceneLoading { get; }
                 ILocalizationGateway Localization { get; }
 IStoryProgressionGateway StoryProgression { get; }
     }

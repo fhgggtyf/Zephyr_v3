@@ -11,7 +11,7 @@ namespace Zephyr.Core.Flow
 {
     [DefaultExecutionOrder(-800)]
     [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
-    public sealed class SceneLoader : MonoBehaviour
+    public sealed class SceneLoader : MonoBehaviour, ISceneLoadingGateway
     {
         private static SceneLoader _instance;
         public static SceneLoader Instance => _instance;
@@ -27,8 +27,13 @@ namespace Zephyr.Core.Flow
         private readonly Queue<SceneOperation> _operations = new Queue<SceneOperation>();
         private readonly Dictionary<SceneId, bool> _expectedLoadedStates = new Dictionary<SceneId, bool>();
         private bool _isProcessing;
+        private bool _loadFailed;
 
         public event Action<SceneInfo> SceneLoaded;
+        public bool IsLoading => _isProcessing;
+        public event Action LoadingStarted;
+        public event Action LoadingCompleted;
+        public event Action LoadingFailed;
 
         private void Awake()
         {
@@ -114,6 +119,8 @@ namespace Zephyr.Core.Flow
 
         private IEnumerator ProcessOperations()
         {
+            _loadFailed = false;
+            LoadingStarted?.Invoke();
             ShowLoadingScreen();
             yield return null;
 
@@ -126,11 +133,15 @@ namespace Zephyr.Core.Flow
 
                 if (operation.TargetScene != null)
                     yield return LoadSceneAsync(operation.TargetScene, operation.Mode);
+
+                if (_loadFailed) break;
             }
 
             _expectedLoadedStates.Clear();
             HideLoadingScreen();
             _isProcessing = false;
+            if (_loadFailed) LoadingFailed?.Invoke();
+            else LoadingCompleted?.Invoke();
         }
 
         private IEnumerator LoadSceneAsync(SceneSO scene, LoadSceneMode mode)
@@ -141,6 +152,7 @@ namespace Zephyr.Core.Flow
             if (operation == null)
             {
                 Debug.LogError($"SceneLoader: Unity could not start loading '{scene.SceneName}'.", scene);
+                _loadFailed = true;
                 yield break;
             }
 

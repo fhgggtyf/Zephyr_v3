@@ -18,9 +18,12 @@ namespace Zephyr.Gameplay.Player.StateMachine
         [Tooltip("Movement speeds used by the Variable Input attack movement mode.")]
         [SerializeField] private PlayerMovementSpeedDataSO m_speedData;
 
+        [Tooltip("Jump physics used to preserve normal airborne motion during attacks.")]
+        [SerializeField] private JumpDataSO m_jumpData;
+
         protected override StateAction CreateAction()
         {
-            return new WeaponAttackAction(m_speedData);
+            return new WeaponAttackAction(m_speedData, m_jumpData);
         }
     }
 
@@ -28,14 +31,19 @@ namespace Zephyr.Gameplay.Player.StateMachine
     {
         private float m_entryMoveSpeed;
         private readonly PlayerMovementSpeedDataSO m_speedData;
+        private readonly JumpDataSO m_jumpData;
         private MovementCore m_movementCore;
         private PlayerInputReader m_inputReader;
         private WeaponController m_weaponController;
         private SpriteAnimator m_spriteAnimator;
+        private bool m_ownsAirborneGravity;
+        private float m_ownedGravityScale;
+        private float m_previousGravityScale;
 
-        public WeaponAttackAction(PlayerMovementSpeedDataSO speedData)
+        public WeaponAttackAction(PlayerMovementSpeedDataSO speedData, JumpDataSO jumpData)
         {
             m_speedData = speedData;
+            m_jumpData = jumpData;
         }
 
         public override void Awake(CoreSM stateMachine)
@@ -49,17 +57,20 @@ namespace Zephyr.Gameplay.Player.StateMachine
         public override void OnStateEnter()
         {
             if (m_movementCore != null) m_entryMoveSpeed = m_movementCore.CurrentSpeed;
+            m_inputReader?.ClearJumpAndAttackInputs();
 
             bool attackStarted = m_weaponController != null && m_weaponController.BeginRequestedAttack();
             if (!attackStarted) return;
 
             PlayPlayerAttackAnimation();
             ApplyInitialAttackFacing();
+            UpdateAirborneGravity();
             UpdateAttackMovement();
         }
 
         public override void OnUpdate()
         {
+            UpdateAirborneGravity();
             UpdateAttackFacing();
             UpdateAttackMovement();
             m_weaponController?.UpdateAttack();
@@ -67,6 +78,8 @@ namespace Zephyr.Gameplay.Player.StateMachine
 
         public override void OnStateExit()
         {
+            RestoreAirborneGravity();
+
             if (m_movementCore != null)
             {
                 m_movementCore.SetMoveInput(Vector2.zero);
@@ -75,6 +88,45 @@ namespace Zephyr.Gameplay.Player.StateMachine
 
             m_weaponController?.CancelAttack();
             m_spriteAnimator?.RestoreBaseController();
+        }
+
+        private void UpdateAirborneGravity()
+        {
+            if (m_jumpData == null || m_movementCore == null) return;
+
+            if (m_movementCore.IsGrounded)
+            {
+                RestoreAirborneGravity();
+                return;
+            }
+
+            float gravityScale = m_movementCore.VerticalVelocity > 0f
+                ? m_jumpData.gravityScale
+                : m_jumpData.gravityScale * m_jumpData.fallGravityMultiplier;
+
+            if (!m_ownsAirborneGravity)
+            {
+                m_previousGravityScale = m_movementCore.SetGravityScale(gravityScale);
+                m_ownedGravityScale = gravityScale;
+                m_ownsAirborneGravity = true;
+            }
+            else if (!Mathf.Approximately(m_ownedGravityScale, gravityScale))
+            {
+                m_movementCore.SetGravityScale(gravityScale);
+                m_ownedGravityScale = gravityScale;
+            }
+
+            m_movementCore.SetMaxFallSpeed(
+                m_movementCore.VerticalVelocity <= 0f ? m_jumpData.maxFallSpeed : 0f);
+        }
+
+        private void RestoreAirborneGravity()
+        {
+            if (!m_ownsAirborneGravity || m_movementCore == null) return;
+
+            m_movementCore.RestoreGravityScale(m_ownedGravityScale, m_previousGravityScale);
+            m_movementCore.SetMaxFallSpeed(0f);
+            m_ownsAirborneGravity = false;
         }
 
         /// <summary>

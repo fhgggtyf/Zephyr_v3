@@ -60,8 +60,11 @@ namespace Zephyr.Gameplay.Player.StateMachine
                 return false;
             }
 
-            // Preserve ordinary attack buffering while an affordable attack is temporarily blocked.
-            if (!m_weaponController.CanAttack(m_weaponSlot)) return false;
+            if (!m_weaponController.CanAttack(m_weaponSlot))
+            {
+                ConsumeAttackInput();
+                return false;
+            }
 
             ConsumeAttackInput();
             m_weaponController.RequestAttack(m_weaponSlot);
