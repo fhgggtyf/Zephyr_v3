@@ -1,6 +1,6 @@
 using Zephyr.Core.Buff;
 
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     public interface IBuffable
     {

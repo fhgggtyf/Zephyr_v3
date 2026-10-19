@@ -1,5 +1,5 @@
 using UnityEngine;
-using Zephyr.Core.Flow;
+using Zephyr.Contracts.Flow;
 
 namespace Zephyr.Core.Events
 {

@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62eb60d572cd315479201e925a77f731, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Weapons.WeaponRuntime
+  m_EditorClassIdentifier: Zephyr.Weapons::Zephyr.Core.Weapons.WeaponRuntime
   m_animator: {fileID: 5478649279060567371}
   m_useFlipX: 1
 --- !u!114 &700000000000000002
@@ -60,7 +60,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d68050aa5f3cc4bb1c1ce6a50f4b0e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Weapons.WeaponGenerator
+  m_EditorClassIdentifier: Zephyr.Weapons::Zephyr.Core.Weapons.WeaponGenerator
 --- !u!114 &700000000000000003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,7 +72,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d72e7c0c9200164f8090548c8723ed7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Weapons.WeaponController
+  m_EditorClassIdentifier: Zephyr.Weapons::Zephyr.Core.Weapons.WeaponController
   m_runtime: {fileID: 700000000000000001}
   m_weaponSocket: {fileID: 8265904234777347262}
   m_runtimePrefab: {fileID: 700000000000000001}
@@ -207,7 +207,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c861cf26c2391e4fbcd0952452de921, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Weapons.WeaponAnimEventHandler
+  m_EditorClassIdentifier: Zephyr.Weapons::Zephyr.Core.Weapons.WeaponAnimEventHandler
 --- !u!1 &2424998108843592814
 GameObject:
   m_ObjectHideFlags: 0
@@ -365,6 +365,8 @@ MonoBehaviour:
   _contactLayer:
     serializedVersion: 2
     m_Bits: 8
+  _groundCheck: {fileID: 0}
+  _bodyCollider: {fileID: 0}
   _groundCheckDistance: 0.05
   _groundCheckRadius: 0.12
   _requiredStableGroundFrames: 2
@@ -448,7 +450,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4f8d06882d76ed24391bf4ca2c19152c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Stats.StatsCore
+  m_EditorClassIdentifier: Zephyr.Core.Combat::Zephyr.Core.Stats.StatsCore
+  _ownerRole: 0
 --- !u!114 &700000000000000006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -599,7 +602,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bf79451bed6641f4d8912763fe0e9184, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Health.HealthComponent
+  m_EditorClassIdentifier: Zephyr.Core.Combat::Zephyr.Core.Health.HealthComponent
   _statsCore: {fileID: 4599453008118742597}
   _logDamage: 1
 --- !u!114 &700000000000000005
@@ -618,6 +621,7 @@ MonoBehaviour:
   _energyRegenPerSecond: 5
   _regenDelayAfterUse: 1
   _sprintStaminaPerSecond: 10
+  _sprintRestartStaminaThreshold: 5
   _jumpStaminaCost: 15
   _logConsumption: 0
 --- !u!114 &700000000000000007
@@ -631,7 +635,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8a7b6c5d4e3f210fedcba9876543210f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Combat.CombatTargetAvailability
+  m_EditorClassIdentifier: Zephyr.Core.Combat::Zephyr.Core.Combat.CombatTargetAvailability
   _available: 1
 --- !u!114 &700000000000000008
 MonoBehaviour:
@@ -696,7 +700,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4bac959e20602b34f8879eff9259bd23, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Zephyr.Testing.GrayboxAttackOverrideProbe
+  m_EditorClassIdentifier: Zephyr.Testing::Zephyr.Testing.GrayboxAttackOverrideProbe
   m_spriteAnimator: {fileID: 40219313062940606}
   m_horizontalAnimation: Idle
   m_verticalAnimation: Idle

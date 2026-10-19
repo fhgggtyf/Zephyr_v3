@@ -9,7 +9,7 @@ namespace Zephyr.Core.Stats
 {
     [DefaultExecutionOrder(-250)]
     [SingletonLifetime(SingletonLifetime.GameManager, "GameManager")]
-    public sealed class SceneStatsModifierController : MonoBehaviour, IStatModifierSource
+    public sealed class SceneStatsModifierController : MonoBehaviour, IStatModifierSource, ISceneRuleSource
     {
         private static SceneStatsModifierController _instance;
         public static SceneStatsModifierController Instance => _instance;
@@ -20,9 +20,11 @@ namespace Zephyr.Core.Stats
 
         private readonly List<IStatModifierSource> _externalSources = new List<IStatModifierSource>();
         private readonly List<StatModifierDefinition> _activeSceneModifiers = new List<StatModifierDefinition>();
+        private readonly List<SceneRuleOverrideDefinition> _activeSceneRuleOverrides = new List<SceneRuleOverrideDefinition>();
         private SceneSO _activeScene;
 
         public IReadOnlyList<StatModifierDefinition> Modifiers => _activeSceneModifiers;
+        public IReadOnlyList<SceneRuleOverrideDefinition> RuleOverrides => _activeSceneRuleOverrides;
 
         private void Awake()
         {
@@ -68,12 +70,25 @@ namespace Zephyr.Core.Stats
         {
             _activeScene = ResolveScene(scene);
             _activeSceneModifiers.Clear();
-            if (_activeScene == null || _activeScene.StatModifiers == null) return;
+            _activeSceneRuleOverrides.Clear();
+            if (_activeScene == null) return;
 
-            for (int i = 0; i < _activeScene.StatModifiers.Count; i++)
+            if (_activeScene.StatModifiers != null)
             {
-                StatModifierDefinition definition = _activeScene.StatModifiers[i];
-                if (definition != null) _activeSceneModifiers.Add(definition);
+                for (int i = 0; i < _activeScene.StatModifiers.Count; i++)
+                {
+                    StatModifierDefinition definition = _activeScene.StatModifiers[i];
+                    if (definition != null) _activeSceneModifiers.Add(definition);
+                }
+            }
+
+            if (_activeScene.RuleOverrides != null)
+            {
+                for (int i = 0; i < _activeScene.RuleOverrides.Count; i++)
+                {
+                    SceneRuleOverrideDefinition definition = _activeScene.RuleOverrides[i];
+                    if (definition != null) _activeSceneRuleOverrides.Add(definition);
+                }
             }
         }
 
@@ -86,14 +101,6 @@ namespace Zephyr.Core.Stats
                 SceneSO candidate = _sceneCatalog[i];
                 if (candidate != null && string.Equals(candidate.ScenePath, scene.path, System.StringComparison.OrdinalIgnoreCase))
                     return candidate;
-            }
-
-            SceneContext[] contexts = FindObjectsByType<SceneContext>(FindObjectsInactive.Include);
-            for (int i = 0; i < contexts.Length; i++)
-            {
-                SceneContext context = contexts[i];
-                if (context != null && context.gameObject.scene == scene)
-                    return context.Scene;
             }
 
             return null;

@@ -41,7 +41,10 @@ namespace Zephyr.Gameplay.Player.StateMachine
         {
             if (_inputReader == null || _movementCore == null) return false;
             if (_movementCore.IsRollOnCooldown) return false;
-            if (_colliderController != null && !_colliderController.CanUseStandingProfile()) return false;
+            if (_colliderController != null
+                && !_colliderController.IsCrouchingProfileActive
+                && !_colliderController.CanUseStandingProfile())
+                return false;
 
             return _inputReader.ConsumeRollInput();
         }

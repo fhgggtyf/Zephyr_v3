@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Zephyr.Core.Interfaces;
-using Zephyr.Core.UI.Dialogue;
+using Zephyr.Contracts.Interfaces;
+using Zephyr.Core.Flow;
 
 namespace Zephyr.Gameplay.Player.Interaction
 {
@@ -13,7 +13,7 @@ namespace Zephyr.Gameplay.Player.Interaction
     /// </summary>
     [DisallowMultipleComponent]
     [DefaultExecutionOrder(-150)]
-    public class PlayerInteraction : MonoBehaviour
+    public class PlayerInteraction : MonoBehaviour, IGameManagerDependencyConsumer
     {
         [SerializeField] private CircleCollider2D _interactionTrigger;
         [SerializeField, Min(0.05f)] private float _interactionRadius = 1.25f;
@@ -24,6 +24,7 @@ namespace Zephyr.Gameplay.Player.Interaction
         private ZephyrInputActions _actions;
         private IInteractable _currentTarget;
         private IInteractionFocusReceiver _focusedReceiver;
+        private IDialogueInputGateway _dialogueInput;
 
         public IInteractable CurrentTarget => _currentTarget;
         public float InteractionRadius => _interactionRadius;
@@ -39,10 +40,9 @@ namespace Zephyr.Gameplay.Player.Interaction
         {
             if (_actions == null) _actions = new ZephyrInputActions();
             _actions.GamePlay.Interact.started += HandleInteract;
-            DialogueManager.GameplayInputSuspended += DisableInput;
-            DialogueManager.GameplayInputRestored += EnableInput;
+            SubscribeDialogueInput();
 
-            if (DialogueManager.Instance != null && DialogueManager.Instance.IsOpen)
+            if (_dialogueInput != null && _dialogueInput.IsOpen)
                 DisableInput();
             else
                 EnableInput();
@@ -51,8 +51,7 @@ namespace Zephyr.Gameplay.Player.Interaction
         private void OnDisable()
         {
             if (_actions != null) _actions.GamePlay.Interact.started -= HandleInteract;
-            DialogueManager.GameplayInputSuspended -= DisableInput;
-            DialogueManager.GameplayInputRestored -= EnableInput;
+            UnsubscribeDialogueInput();
             _actions?.GamePlay.Disable();
             ClearFocus();
             _candidateColliders.Clear();
@@ -60,6 +59,29 @@ namespace Zephyr.Gameplay.Player.Interaction
         }
 
         private void OnDestroy() => _actions?.Dispose();
+
+        public void Configure(IGameManagerServices services)
+        {
+            UnsubscribeDialogueInput();
+            _dialogueInput = services?.DialogueInput;
+            SubscribeDialogueInput();
+            if (_dialogueInput != null && _dialogueInput.IsOpen) DisableInput();
+            else EnableInput();
+        }
+
+        private void SubscribeDialogueInput()
+        {
+            if (_dialogueInput == null) return;
+            _dialogueInput.InputSuspended += DisableInput;
+            _dialogueInput.InputRestored += EnableInput;
+        }
+
+        private void UnsubscribeDialogueInput()
+        {
+            if (_dialogueInput == null) return;
+            _dialogueInput.InputSuspended -= DisableInput;
+            _dialogueInput.InputRestored -= EnableInput;
+        }
 
         private void Update()
         {

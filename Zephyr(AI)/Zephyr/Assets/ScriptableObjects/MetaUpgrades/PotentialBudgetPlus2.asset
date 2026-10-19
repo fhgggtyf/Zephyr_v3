@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4830afc996a6bf941955735f9c55dbc4, type: 3}
   m_Name: PotentialBudgetPlus2
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Meta.MetaUpgradeSO
+  m_EditorClassIdentifier: Zephyr.Core.Meta::Zephyr.Core.Meta.MetaUpgradeSO
   _id: potential_budget_plus_2
   _displayNameKey: meta.upgrades.budget
   _descriptionKey: meta.upgrades.budget.description

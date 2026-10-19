@@ -1,5 +1,5 @@
 using UnityEngine;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Gameplay.Interaction
 {

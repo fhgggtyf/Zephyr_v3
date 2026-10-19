@@ -11,9 +11,13 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3000000000000000000000000000001, type: 3}
   m_Name: Tutorial_Phase_2
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Flow.SceneSO
+  m_EditorClassIdentifier: Zephyr.Core.Flow::Zephyr.Core.Flow.SceneSO
   _id: 10
   _sceneAsset: {fileID: 102900000, guid: abde05bd9e8ee074d8e1e298cedd6c03, type: 3}
   _sceneName: Tutorial_Phase_2
   _scenePath: Assets/Scenes/Tutorial/Tutorial_Phase_2.unity
   _statModifiers: []
+  _sceneRuleOverrides:
+  - _rule: 0
+    _scope: 1
+    _value: 1

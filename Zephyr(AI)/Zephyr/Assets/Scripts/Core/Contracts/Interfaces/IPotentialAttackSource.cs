@@ -1,6 +1,6 @@
 using Zephyr.Core;
 
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Describes the Potential penalty an attack source applies when it downs a player.

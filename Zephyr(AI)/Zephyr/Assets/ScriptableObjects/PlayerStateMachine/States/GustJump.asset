@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Zephyr.Core.StateMachine::Zephyr.Core.StateMachine.ScriptableObjects.StateSO
   _actions:
   - {fileID: 11400000, guid: fbb37f52adb4bfd4fb961a42c0f30c4e, type: 2}
+  - {fileID: 11400000, guid: 314fc272a2fb82f409f9c25a08c08362, type: 2}
   stateTag: 3

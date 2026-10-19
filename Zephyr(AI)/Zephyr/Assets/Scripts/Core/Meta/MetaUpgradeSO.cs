@@ -1,3 +1,5 @@
+using Zephyr.Core;
+using Zephyr.Core.Stats;
 using UnityEngine;
 
 namespace Zephyr.Core.Meta
@@ -18,6 +20,10 @@ namespace Zephyr.Core.Meta
         [SerializeField] private string _descriptionKey;
         [Min(0)] [SerializeField] private long _cost;
         [SerializeField] private MetaUpgradeTarget _target;
+        [SerializeField] private StatModifierOperation _operation = StatModifierOperation.Add;
+        [SerializeField] private StatType _baseStatType = StatType.Attack;
+        [SerializeField] private MetaStatType _metaStatType = MetaStatType.CritChance;
+        [Tooltip("Legacy key for existing assets. Leave empty for new upgrades; the enum above will be used.")]
         [SerializeField] private string _targetKey;
         [SerializeField] private float _amount = 1f;
         [SerializeField] private bool _repeatable;
@@ -27,7 +33,23 @@ namespace Zephyr.Core.Meta
         public string DescriptionKey => _descriptionKey;
         public long Cost => _cost;
         public MetaUpgradeTarget Target => _target;
-        public string TargetKey => _targetKey;
+        public StatModifierOperation Operation => _operation;
+        public StatType BaseStatType => _baseStatType;
+        public MetaStatType MetaStatType => _metaStatType;
+        public string TargetKey
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(_targetKey) && _targetKey != "default")
+                    return _targetKey;
+
+                if (_target == MetaUpgradeTarget.BaseStat)
+                    return _baseStatType.ToString();
+                if (_target == MetaUpgradeTarget.Combat)
+                    return _metaStatType.ToString();
+                return _targetKey;
+            }
+        }
         public float Amount => _amount;
         public bool Repeatable => _repeatable;
     }

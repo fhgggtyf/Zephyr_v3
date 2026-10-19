@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Zephyr.Core.Camera
@@ -27,6 +28,7 @@ namespace Zephyr.Core.Camera
     /// </summary>
     public sealed class CameraBounds : MonoBehaviour
     {
+        internal static readonly List<CameraBounds> Active = new List<CameraBounds>();
         [Serializable]
         private sealed class CameraRegion
         {
@@ -67,10 +69,15 @@ namespace Zephyr.Core.Camera
 
         public Rect Bounds => OffsetRect(_bounds, transform.position);
 
-        private void OnEnable() => ApplyBounds();
+        private void OnEnable()
+        {
+            if (!Active.Contains(this)) Active.Add(this);
+            ApplyBounds();
+        }
 
         private void OnDisable()
         {
+            Active.Remove(this);
             CameraController camera = CameraController.FindForGameplay(gameObject.scene);
             camera?.ClearRoomBounds(this);
         }

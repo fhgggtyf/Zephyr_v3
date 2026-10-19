@@ -10,7 +10,7 @@
  * Scene:    N/A (compilation-only; referenced by all combat subsystems).
  * Ch.Ref:   Ch.2.8 Damage Calculation Pipeline, Ch.9 Combat System.
  */
-namespace Zephyr.Core.DamageSystem
+namespace Zephyr.Contracts.Damage
 {
     /// <summary>
     /// Damage types: AD (attack damage), AP (ability power / magic damage), and true damage.

@@ -1,18 +1,19 @@
 using UnityEngine;
-using Zephyr.Core.Contracts;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Events;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.ObjectPool;
-using Zephyr.Core.Save;
 using Zephyr.Core.Weapons;
 using Zephyr.Core.DamageSystem;
-using Zephyr.Core.Events;
+using Zephyr.Contracts.Damage;
 
 namespace Zephyr.Core.Items
 {
     [RequireComponent(typeof(PooledObject))]
-    public sealed class WeaponPickup : MonoBehaviour, IInteractable, IInteractionFocusReceiver, IWeaponPickup
+    public sealed class WeaponPickup : MonoBehaviour, IInteractable, IInteractionFocusReceiver, IWeaponPickup, IPickupRuntimeContextConsumer
     {
         [SerializeField] private WeaponSO _weapon;
+        [SerializeField] private WeaponSO[] _weaponCatalog;
+
         [SerializeField] private SpriteRenderer _iconRenderer;
         [SerializeField] private SpriteRenderer _glowRenderer;
         [SerializeField] private Transform _visualRoot;
@@ -23,7 +24,7 @@ namespace Zephyr.Core.Items
         private bool _focused;
         private WeaponController _playerController;
         private bool _subscribedToPlayerTarget;
-        private ISaveDataGateway _saveData;
+        private IPickupRuntimeContext _runtimeContext;
         private static Sprite _fallbackSprite;
 
         public WeaponSO Weapon => _weapon;
@@ -31,7 +32,6 @@ namespace Zephyr.Core.Items
         private void Awake()
         {
             _pooledObject = GetComponent<PooledObject>();
-            _saveData = SaveSystem.Instance;
             EnsureVisuals();
             _visualBaseLocalPosition = _visualRoot != null ? _visualRoot.localPosition : Vector3.zero;
             RefreshVisuals();
@@ -45,6 +45,15 @@ namespace Zephyr.Core.Items
             RefreshVisuals();
         }
 
+        public void Configure(IPickupRuntimeContext context)
+        {
+            if (_subscribedToPlayerTarget) _runtimeContext?.UnsubscribePlayerTarget(HandlePlayerTargetChanged);
+            _runtimeContext = context;
+            _subscribedToPlayerTarget = false;
+            _playerController = null;
+            if (isActiveAndEnabled) SubscribeToPlayerTarget();
+        }
+
         private void Start()
         {
             SubscribeToPlayerTarget();
@@ -52,18 +61,18 @@ namespace Zephyr.Core.Items
 
         private void OnDisable()
         {
-            if (_subscribedToPlayerTarget && EventBus.Instance != null)
-                EventBus.Instance.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            if (_subscribedToPlayerTarget) _runtimeContext?.UnsubscribePlayerTarget(HandlePlayerTargetChanged);
             _subscribedToPlayerTarget = false;
             _playerController = null;
+            ResetState();
         }
 
         private void SubscribeToPlayerTarget()
         {
-            if (EventBus.Instance == null) return;
-            EventBus.Instance.Subscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            if (_runtimeContext == null || _subscribedToPlayerTarget) return;
+            _runtimeContext.SubscribePlayerTarget(HandlePlayerTargetChanged);
             _subscribedToPlayerTarget = true;
-            if (EventBus.Instance.TryGetLatest(out PlayerTargetChangedEvent current))
+            if (_runtimeContext.TryGetLatestPlayerTarget(out PlayerTargetChangedEvent current))
                 HandlePlayerTargetChanged(current);
         }
 
@@ -105,15 +114,37 @@ namespace Zephyr.Core.Items
 
         void IWeaponPickup.Spawn(Vector3 position) => Spawn((Vector2)position);
 
-        public bool CanInteract() => _weapon != null && _playerController != null;
+        
+        void IWeaponPickup.Spawn(Vector3 position, string weaponId)
+        {
+            WeaponSO resolvedWeapon = ResolveWeapon(weaponId);
+            if (resolvedWeapon == null)
+            {
+                Debug.LogError($"WeaponPickup could not resolve weapon id '{weaponId}'.", this);
+                return;
+            }
+            Spawn((Vector2)position, resolvedWeapon);
+        }
+
+        private WeaponSO ResolveWeapon(string weaponId)
+        {
+            if (string.IsNullOrWhiteSpace(weaponId)) return _weapon;
+            if (_weapon != null && _weapon.WeaponId == weaponId) return _weapon;
+            if (_weaponCatalog == null) return null;
+            for (int i = 0; i < _weaponCatalog.Length; i++)
+                if (_weaponCatalog[i] != null && _weaponCatalog[i].WeaponId == weaponId)
+                    return _weaponCatalog[i];
+            return null;
+        }
+
+public bool CanInteract() => _weapon != null && _playerController != null;
 
         public void OnInteract()
         {
             WeaponController controller = _playerController;
             if (controller == null || _weapon == null) return;
             controller.Equip(controller.ActiveSlot, _weapon);
-            if (_saveData?.CurrentRun != null && int.TryParse(_weapon.WeaponId, out int id))
-                _saveData.CurrentRun.AcquiredWeaponIds.Add(id);
+            _runtimeContext?.TryRecordAcquiredWeapon(_weapon.WeaponId);
             if (_pooledObject != null)
             {
                 // Scene-authored pickups can carry PooledObject without being

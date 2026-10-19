@@ -12,6 +12,7 @@
  * Ch.Ref:   Ch.8 Object Pooling System.
  */
 using UnityEngine;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Core.ObjectPool
 {
@@ -19,13 +20,38 @@ namespace Zephyr.Core.ObjectPool
     /// Component attached to pooled objects. Handles OnSpawn/OnDespawn lifecycle.
     /// Implements IPooledObject.
     /// </summary>
-    public class PooledObject : MonoBehaviour, Interfaces.IPooledObject
+    public class PooledObject : MonoBehaviour, IPooledObject
     {
         private ObjectPool _pool;
+        private IPickupRuntimeContext _pickupContext;
+        private ITimerGateway _timerGateway;
 
         public void Initialize(ObjectPool pool)
         {
             _pool = pool;
+        }
+
+        public void Configure(IPickupRuntimeContext pickupContext)
+        {
+            _pickupContext = pickupContext;
+
+            MonoBehaviour[] consumers = GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < consumers.Length; i++)
+            {
+                if (consumers[i] is IPickupRuntimeContextConsumer pickupConsumer)
+                    pickupConsumer.Configure(_pickupContext);
+                if (consumers[i] is IPlayerTargetContextConsumer targetConsumer)
+                    targetConsumer.Configure(_pickupContext);
+            }
+        }
+
+        public void ConfigureTimer(ITimerGateway timerGateway)
+        {
+            _timerGateway = timerGateway;
+            MonoBehaviour[] consumers = GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < consumers.Length; i++)
+                if (consumers[i] is ITimerGatewayConsumer timerConsumer)
+                    timerConsumer.Configure(_timerGateway);
         }
 
         public void OnSpawn()
@@ -40,7 +66,8 @@ namespace Zephyr.Core.ObjectPool
 
         public void ReturnToPool()
         {
-            _pool?.Despawn(this);
+            if (_pool != null) _pool.Despawn(this);
+            else OnDespawn();
         }
     }
 }

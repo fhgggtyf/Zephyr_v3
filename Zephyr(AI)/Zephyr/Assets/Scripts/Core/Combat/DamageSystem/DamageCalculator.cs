@@ -34,8 +34,9 @@
  * Ch.Ref:   Ch.2.7 Core Data Structures, Ch.4.6-4.7 Damage Pipeline & Shield-Break, Ch.9 Combat.
  */
 using UnityEngine;
+using Zephyr.Contracts.Damage;
 using Zephyr.Core.Combat;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Stats;
 
 namespace Zephyr.Core.DamageSystem

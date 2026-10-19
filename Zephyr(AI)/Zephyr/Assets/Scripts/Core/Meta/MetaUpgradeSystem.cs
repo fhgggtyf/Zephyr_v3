@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Zephyr.Core.Save;
+using Zephyr.Core.Stats;
 
 namespace Zephyr.Core.Meta
 {
@@ -47,6 +48,8 @@ namespace Zephyr.Core.Meta
             if (target == null) return false;
 
             string key = string.IsNullOrWhiteSpace(upgrade.TargetKey) ? upgrade.Id : upgrade.TargetKey;
+            if (upgrade.Target == MetaUpgradeTarget.BaseStat && upgrade.Operation == StatModifierOperation.Multiply)
+                key += ".Percent";
             float next = target.GetValueOrDefault(key) + upgrade.Amount;
             if (upgrade.Target == MetaUpgradeTarget.PotentialBudget)
                 next = System.Math.Min(next, MaxPotentialBudget - InitialPotentialBudget);

@@ -36,5 +36,19 @@ namespace Zephyr.Tests.EditMode
 
             Assert.That(_stats.GetStatValue(StatType.Attack), Is.EqualTo(10f).Within(0.001f));
         }
+
+        [Test]
+        public void FourLayerFormulaAddsNumbersBeforeSummingPercentages()
+        {
+            _stats.SetBase(StatType.MaxHp, 100f);
+            _stats.AddMetaBase(StatType.MaxHp, 50f);
+            _stats.AddMetaBasePercent(StatType.MaxHp, 0.3f);
+            _stats.SetRunPotential(StatType.MaxHp, 10f);
+            _stats.ApplyPotentialScaledGain(StatType.MaxHp, 30f);
+            _stats.AddTemporaryModifierPercent(StatType.MaxHp, 0.2f);
+
+            Assert.That(_stats.GetStatValue(StatType.MaxHp), Is.EqualTo(270f).Within(0.001f));
+        }
+
     }
 }

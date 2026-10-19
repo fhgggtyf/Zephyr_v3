@@ -1,0 +1,17 @@
+{
+    "name": "Zephyr.Core.Localization",
+    "rootNamespace": "Zephyr.Core.Localization",
+    "references": [
+        "Zephyr.Core.Runtime",
+        "Unity.Localization"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

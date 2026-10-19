@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
@@ -33,11 +34,12 @@ namespace Zephyr.Architecture.Tests
         [Test]
         public void PhaseTwoDomainAssembliesExistWithExpectedDirection()
         {
-            AssertAssemblyReferences("Zephyr.Weapons", "Zephyr.Core");
-            AssertAssemblyReferences("Zephyr.Projectiles", "Zephyr.Core");
-            AssertAssemblyReferences("Zephyr.Items", "Zephyr.Core");
-            AssertAssemblyReferences("Zephyr.Enemies", "Zephyr.Core", "Zephyr.Core.StateMachine");
-            AssertAssemblyReferences("Zephyr.Rooms", "Zephyr.Core");
+            AssertAssemblyReferences("Zephyr.Enemies", "Zephyr.Core.StateMachine");
+            AssertAssemblyDoesNotReference("Zephyr.Weapons", "Zephyr.Core");
+            AssertAssemblyDoesNotReference("Zephyr.Items", "Zephyr.Core");
+            AssertAssemblyDoesNotReference("Zephyr.Enemies", "Zephyr.Core");
+            AssertAssemblyDoesNotReference("Zephyr.Projectiles", "Zephyr.Core");
+            AssertAssemblyDoesNotReference("Zephyr.Rooms", "Zephyr.Core");
         }
 
         [Test]
@@ -50,6 +52,11 @@ namespace Zephyr.Architecture.Tests
             StringAssert.DoesNotContain("\"Zephyr.Items\"", enemiesAsmdef);
             StringAssert.DoesNotContain("\"Zephyr.Weapons\"", enemiesAsmdef);
             StringAssert.DoesNotContain("\"Zephyr.Weapons\"", itemsAsmdef);
+            StringAssert.DoesNotContain("\"Zephyr.Core\"", enemiesAsmdef);
+            StringAssert.DoesNotContain("\"Zephyr.Core\"", itemsAsmdef);
+
+            string weaponsAsmdef = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Weapons", "Zephyr.Weapons.asmdef"));
+            StringAssert.DoesNotContain("\"Zephyr.Core\"", weaponsAsmdef);
 
             string dropSystem = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Runtime", "Items", "DropSystem.cs"));
             string bossReward = File.ReadAllText(Path.Combine(scriptsRoot, "Gameplay", "Enemies", "BossRewardDrop.cs"));
@@ -57,6 +64,31 @@ namespace Zephyr.Architecture.Tests
             StringAssert.DoesNotContain("Zephyr.Core.Weapons", dropSystem);
             StringAssert.DoesNotContain("WeaponSO", bossReward);
             StringAssert.Contains("IWeaponPickup", bossReward);
+        }
+
+        [Test]
+        public void PickupAndDropBoundariesUseRuntimeContextsAndSharedPools()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string currencyPickup = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Items", "CurrencyPickup.cs"));
+            string weaponPickup = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Weapons", "WeaponPickup.cs"));
+            string gust = File.ReadAllText(Path.Combine(scriptsRoot, "Gameplay", "Interaction", "GustInteractable.cs"));
+            string bossReward = File.ReadAllText(Path.Combine(scriptsRoot, "Gameplay", "Enemies", "BossRewardDrop.cs"));
+            string poolRegistry = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Runtime", "ObjectPool", "PoolRegistry.cs"));
+            string objectPool = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Runtime", "ObjectPool", "ObjectPool.cs"));
+
+            StringAssert.Contains("IPickupRuntimeContextConsumer", currencyPickup);
+            StringAssert.Contains("IPickupRuntimeContextConsumer", weaponPickup);
+            StringAssert.Contains("IPlayerTargetContextConsumer", gust);
+            StringAssert.Contains("IDropSpawnGatewayConsumer", bossReward);
+            StringAssert.DoesNotContain("SaveSystem.Instance", currencyPickup);
+            StringAssert.DoesNotContain("SaveSystem.Instance", weaponPickup);
+            StringAssert.DoesNotContain("EventBus.Instance", currencyPickup);
+            StringAssert.DoesNotContain("EventBus.Instance", weaponPickup);
+            StringAssert.DoesNotContain("EventBus.Instance", gust);
+            StringAssert.DoesNotContain("Instantiate(_pickupPrefab", bossReward);
+            StringAssert.Contains("IDropSpawnGateway", poolRegistry);
+            StringAssert.Contains("IPickupRuntimeContext", objectPool);
         }
 
         [Test]
@@ -86,7 +118,6 @@ namespace Zephyr.Architecture.Tests
         [Test]
         public void PhaseABConsumersReferenceContractsDirectly()
         {
-            AssertAssemblyReferences("Zephyr.Core", "Zephyr.Core.Contracts");
             AssertAssemblyReferences("Zephyr.Enemies", "Zephyr.Core.Contracts");
             AssertAssemblyReferences("Zephyr.Gameplay.Interaction", "Zephyr.Core.Contracts");
             AssertAssemblyReferences("Zephyr.Rooms", "Zephyr.Core.Contracts");
@@ -129,7 +160,6 @@ namespace Zephyr.Architecture.Tests
         [Test]
         public void PhaseCRuntimeConsumersReferenceRuntimeDirectly()
         {
-            AssertAssemblyReferences("Zephyr.Core", "Zephyr.Core.Runtime");
             AssertAssemblyReferences("Zephyr.Enemies", "Zephyr.Core.Runtime");
             AssertAssemblyReferences("Zephyr.Gameplay.Interaction", "Zephyr.Core.Runtime");
             AssertAssemblyReferences("Zephyr.Rooms", "Zephyr.Core.Runtime");
@@ -316,6 +346,49 @@ namespace Zephyr.Architecture.Tests
         }
 
         [Test]
+        public void TutorialAndMetaHubEntrancesUseAuthoredBoundaries()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string tutorialExit = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Gameplay", "Levels", "TutorialObjectiveExit.cs"));
+            string runStart = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Gameplay", "Interaction", "RunStartInteractable.cs"));
+            string metaHubController = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Flow", "Scenes", "MetaHubController.cs"));
+
+            StringAssert.Contains("_roomController", tutorialExit);
+            StringAssert.Contains("_requiredObjectives", tutorialExit);
+            StringAssert.DoesNotContain("FindAnyObjectByType", tutorialExit);
+            StringAssert.DoesNotContain("FindObjectsByType", tutorialExit);
+
+            StringAssert.Contains("IRunEntryGateway", runStart);
+            StringAssert.Contains("_runEntryGatewaySource", runStart);
+            StringAssert.DoesNotContain("FindAnyObjectByType", runStart);
+            StringAssert.DoesNotContain("MetaHubController", runStart);
+            StringAssert.Contains("IRunEntryGateway", metaHubController);
+        }
+
+        [Test]
+        public void MetaHubInteractionsReceiveMetaGatewayFromSceneCompositionRoot()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string runStart = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Gameplay", "Interaction", "RunStartInteractable.cs"));
+            string station = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Gameplay", "Interaction", "MetaUpgradeStation.cs"));
+            string controller = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Flow", "Scenes", "MetaHubController.cs"));
+
+            StringAssert.Contains("IMetaHubDependencyConsumer", runStart);
+            StringAssert.Contains("IMetaHubDependencyConsumer", station);
+            StringAssert.Contains("_dependencyConsumers", controller);
+                        StringAssert.Contains("IGameManagerDependencyConsumer", controller);
+StringAssert.Contains("new MetaGateway(services.SaveData)", controller);
+            StringAssert.DoesNotContain("SaveSystem.Instance", runStart);
+            StringAssert.DoesNotContain("SaveSystem.Instance", station);
+        }
+
+        [Test]
         public void RuntimeResourcesLoadIsNotUsedForServiceDependencies()
         {
             string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
@@ -338,8 +411,112 @@ namespace Zephyr.Architecture.Tests
             string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
             string source = File.ReadAllText(Path.Combine(scriptsRoot, "Player", "Flow", "PlayerSpawner.cs"));
             StringAssert.Contains("IGameFlowGateway", source);
-            StringAssert.Contains("_gameFlow = GameFlow.Instance", source);
+            StringAssert.Contains("IGameManagerDependencyConsumer", source);
+            StringAssert.Contains("_gameFlow = services?.GameFlow", source);
+            StringAssert.DoesNotContain("GameFlow.Instance", source);
             StringAssert.DoesNotContain("GameFlow.Instance.CurrentState", source);
+        }
+
+        [Test]
+        public void PhaseTwoGameManagerConsumersUseInjectedServicesOnly()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string[] consumerPaths =
+            {
+                Path.Combine(scriptsRoot, "Player", "Flow", "PlayerSpawner.cs"),
+                Path.Combine(scriptsRoot, "Player", "Flow", "PlayerDeathController.cs"),
+                Path.Combine(scriptsRoot, "Player", "UI", "GameplayHudController.cs"),
+                Path.Combine(scriptsRoot, "Player", "Core", "PlayerStatsInitializer.cs")
+            };
+
+            foreach (string path in consumerPaths)
+            {
+                string source = File.ReadAllText(path);
+                StringAssert.DoesNotContain("SaveSystem.Instance", source, path);
+                StringAssert.DoesNotContain("EventBus.Instance", source, path);
+                StringAssert.DoesNotContain("GameFlow.Instance", source, path);
+            }
+
+            string bootstrap = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Flow", "Bootstrap", "GameManagerBootstrap.cs"));
+            StringAssert.Contains("GameFlow.Instance", bootstrap);
+            StringAssert.Contains("SaveSystem.Instance", bootstrap);
+            StringAssert.Contains("EventBus.Instance", bootstrap);
+            StringAssert.Contains("IGameManagerDependencyConsumer", bootstrap);
+            StringAssert.Contains("IPlayerSpawnGateway", bootstrap);
+
+            string death = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Player", "Flow", "PlayerDeathController.cs"));
+            StringAssert.Contains("IPlayerSpawnGateway", death);
+            StringAssert.DoesNotContain("as PlayerSpawner", death);
+        }
+
+        [Test]
+        public void PhaseTwoEventBusGatewayKeepsRuntimeContractIndependent()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string contract = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Contracts", "Interfaces", "IEventBusGateway.cs"));
+            string eventBus = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Runtime", "Events", "EventBus.cs"));
+
+            StringAssert.Contains("interface IEventBusGateway", contract);
+            StringAssert.Contains("IEventBusGateway", eventBus);
+            StringAssert.DoesNotContain("Zephyr.Core.Save", contract);
+        }
+
+        [Test]
+        public void PhaseThreeContractNamespacesAreSemanticAndLegacyInterfaceNamespaceIsUnused()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string interfacesRoot = Path.Combine(scriptsRoot, "Core", "Contracts", "Interfaces");
+            foreach (string file in Directory.GetFiles(interfacesRoot, "*.cs", SearchOption.AllDirectories))
+            {
+                string source = File.ReadAllText(file);
+                StringAssert.Contains("namespace Zephyr.Contracts.Interfaces", source, file);
+                StringAssert.DoesNotContain("namespace Zephyr.Core.Interfaces", source, file);
+            }
+
+            string[] runtimeFiles = Directory.GetFiles(scriptsRoot, "*.cs", SearchOption.AllDirectories);
+            foreach (string file in runtimeFiles)
+            {
+                string normalized = file.Replace('\\', '/');
+                if (normalized.Contains("/Editor/") || normalized.Contains("/Tests/")) continue;
+
+                StringAssert.DoesNotContain("Zephyr.Core.Interfaces", File.ReadAllText(file),
+                    "Runtime code still references the legacy interface namespace: " + normalized);
+            }
+
+            string playerTargetEvent = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Contracts", "Events", "PlayerTargetChangedEvent.cs"));
+            StringAssert.Contains("namespace Zephyr.Contracts.Events", playerTargetEvent);
+            StringAssert.DoesNotContain("namespace Zephyr.Core.Events", playerTargetEvent);
+
+            string flowContractsRoot = Path.Combine(scriptsRoot, "Core", "Contracts", "Flow");
+            string gameState = File.ReadAllText(Path.Combine(flowContractsRoot, "GameState.cs"));
+            string sceneId = File.ReadAllText(Path.Combine(flowContractsRoot, "SceneId.cs"));
+            StringAssert.Contains("namespace Zephyr.Contracts.Flow", gameState);
+            StringAssert.Contains("namespace Zephyr.Contracts.Flow", sceneId);
+            StringAssert.DoesNotContain("namespace Zephyr.Core.Flow", gameState);
+            StringAssert.DoesNotContain("namespace Zephyr.Core.Flow", sceneId);
+
+            string damageContractsRoot = Path.Combine(scriptsRoot, "Core", "Contracts", "DamageSystem");
+            string[] damageContractFiles =
+            {
+                "DamageInfo.cs",
+                "DamageResult.cs",
+                "DamageType.cs",
+                "ElementalType.cs",
+                "WeaponCategory.cs",
+                "WeaponRarity.cs"
+            };
+
+            foreach (string fileName in damageContractFiles)
+            {
+                string source = File.ReadAllText(Path.Combine(damageContractsRoot, fileName));
+                StringAssert.Contains("namespace Zephyr.Contracts.Damage", source, fileName);
+                StringAssert.DoesNotContain("namespace Zephyr.Core.DamageSystem", source, fileName);
+            }
         }
 
         [Test]
@@ -352,7 +529,7 @@ namespace Zephyr.Architecture.Tests
             string hudPath = Path.Combine(scriptsRoot, "Player", "UI", "GameplayHudController.cs");
 
             Assert.That(File.Exists(eventPath), Is.True);
-            StringAssert.Contains("PlayerTargetChangedEvent", File.ReadAllText(eventPath));
+            StringAssert.Contains("namespace Zephyr.Contracts.Events", File.ReadAllText(eventPath));
             StringAssert.Contains("PublishPlayerTargetChanged", File.ReadAllText(spawnerPath));
             string hudSource = File.ReadAllText(hudPath);
             StringAssert.Contains("Subscribe<PlayerTargetChangedEvent>", hudSource);
@@ -460,7 +637,7 @@ namespace Zephyr.Architecture.Tests
         public void PhaseEFlowAssemblyOwnsSceneIntegrationAndDependsDownward()
         {
             AssertAssemblyReferences("Zephyr.Core.Flow", "Zephyr.Core.Contracts", "Zephyr.Core.Runtime",
-                "Zephyr.Core.Persistence", "Zephyr.Core");
+                "Zephyr.Core.Persistence", "Zephyr.Core.Localization", "Zephyr.Core.UI");
 
             string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
             string flowRoot = Path.Combine(scriptsRoot, "Core", "Flow");
@@ -470,9 +647,7 @@ namespace Zephyr.Architecture.Tests
             Assert.That(File.Exists(Path.Combine(flowRoot, "Events", "SceneInfoEventSO.cs")), Is.True);
             Assert.That(File.Exists(Path.Combine(flowRoot, "RoomController.cs")), Is.True);
 
-            string coreAsmdef = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Zephyr.Core.asmdef"));
-            StringAssert.Contains("\"Zephyr.Core.Persistence\"", coreAsmdef);
-            StringAssert.DoesNotContain("\"Zephyr.Core.Flow\"", coreAsmdef);
+            Assert.That(File.Exists(Path.Combine(scriptsRoot, "Core", "Zephyr.Core.asmdef")), Is.False);
         }
 
         [Test]
@@ -518,7 +693,6 @@ namespace Zephyr.Architecture.Tests
         [Test]
         public void PhaseFMetaConsumersReferenceMetaDirectly()
         {
-            AssertAssemblyReferences("Zephyr.Core", "Zephyr.Core.Meta");
             AssertAssemblyReferences("Zephyr.Core.Flow", "Zephyr.Core.Meta");
             AssertAssemblyReferences("Zephyr.Gameplay.Interaction", "Zephyr.Core.Meta");
             AssertAssemblyReferences("Zephyr.Player", "Zephyr.Core.Meta");
@@ -641,45 +815,52 @@ namespace Zephyr.Architecture.Tests
         }
 
         [Test]
-        public void PhaseGLegacyCoreHostIsExplicitAndDoesNotDependUpward()
+        public void PhaseGLegacyCoreHostHasBeenRemovedAndHasNoConsumers()
         {
             string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
             string coreRoot = Path.Combine(scriptsRoot, "Core");
-            string coreAsmdef = File.ReadAllText(Path.Combine(coreRoot, "Zephyr.Core.asmdef"));
+            Assert.That(File.Exists(Path.Combine(coreRoot, "Zephyr.Core.asmdef")), Is.False);
 
-            StringAssert.Contains("\"autoReferenced\": false", coreAsmdef);
-            StringAssert.DoesNotContain("\"Zephyr.Core.Flow\"", coreAsmdef);
-            StringAssert.DoesNotContain("\"Zephyr.Core.Combat\"", coreAsmdef);
-            StringAssert.DoesNotContain("\"Zephyr.Player\"", coreAsmdef);
-            StringAssert.DoesNotContain("\"Zephyr.Enemies\"", coreAsmdef);
-            StringAssert.DoesNotContain("\"Zephyr.Weapons\"", coreAsmdef);
-            StringAssert.DoesNotContain("\"Zephyr.Items\"", coreAsmdef);
-            StringAssert.DoesNotContain("\"Zephyr.Projectiles\"", coreAsmdef);
-
-            string[] coreConsumers =
+            foreach (string asmdefPath in Directory.GetFiles(scriptsRoot, "*.asmdef", SearchOption.AllDirectories))
             {
-                "Zephyr.Core.Flow",
-                "Zephyr.Items",
-                "Zephyr.Projectiles",
-                "Zephyr.Weapons",
-                "Zephyr.Enemies",
-                "Zephyr.Gameplay.Interaction",
-                "Zephyr.Rooms",
-                "Zephyr.Player",
-                "Zephyr.Testing",
-                "Zephyr.Testing.Editor",
-                "Zephyr.Tests.EditMode",
-                "Zephyr.UI"
-            };
-
-            foreach (string consumer in coreConsumers)
-                AssertAssemblyReferences(consumer, "Zephyr.Core");
+                string source = File.ReadAllText(asmdefPath);
+                StringAssert.DoesNotContain("\"Zephyr.Core\"", source,
+                    "Legacy Core must not have runtime consumers: " + asmdefPath);
+            }
         }
 
         [Test]
         public void PhaseGCoreSplitCloseoutHasNoImplicitRuntimeCoreConsumers()
         {
             string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string[] explicitlyReferencedAssemblies =
+            {
+                "Zephyr.Core.StateMachine",
+                "Zephyr.Core.StateMachine.Editor",
+                "Zephyr.Core.Weapons.Editor",
+                "Zephyr.Enemies.Editor",
+                "Zephyr.Gameplay.Interaction",
+                "Zephyr.Inputs",
+                "Zephyr.Items",
+                "Zephyr.Player",
+                "Zephyr.Player.Editor",
+                "Zephyr.Projectiles",
+                "Zephyr.Rooms",
+                "Zephyr.Testing",
+                "Zephyr.Testing.Editor",
+                "Zephyr.UI",
+                "Zephyr.Weapons",
+                "Zephyr.Enemies"
+            };
+
+            foreach (string assemblyName in explicitlyReferencedAssemblies)
+            {
+                string[] matches = Directory.GetFiles(scriptsRoot, assemblyName + ".asmdef", SearchOption.AllDirectories);
+                Assert.That(matches, Has.Length.EqualTo(1), "Expected exactly one asmdef for " + assemblyName);
+                StringAssert.Contains("\"autoReferenced\": false", File.ReadAllText(matches[0]),
+                    assemblyName + " must not rely on implicit auto-references");
+            }
+
             foreach (string asmdefPath in Directory.GetFiles(scriptsRoot, "*.asmdef", SearchOption.AllDirectories))
             {
                 string source = File.ReadAllText(asmdefPath);
@@ -689,24 +870,54 @@ namespace Zephyr.Architecture.Tests
                 string assemblyName = Path.GetFileNameWithoutExtension(asmdefPath);
                 bool importsAudioNamespace = false;
                 bool importsCameraNamespace = false;
-                bool importsLegacyCoreNamespace = false;
+                bool importsLocalizationNamespace = false;
+                bool importsUiNamespace = false;
                 string assemblyDirectory = Path.GetDirectoryName(asmdefPath);
                 foreach (string file in Directory.GetFiles(assemblyDirectory, "*.cs", SearchOption.AllDirectories))
                 {
                     string code = File.ReadAllText(file);
                     importsAudioNamespace |= code.Contains("using Zephyr.Core.Audio");
                     importsCameraNamespace |= code.Contains("using Zephyr.Core.Camera");
-                    importsLegacyCoreNamespace |= code.Contains("using Zephyr.Core.Localization")
-                        || code.Contains("using Zephyr.Core.UI");
+                    importsLocalizationNamespace |= code.Contains("using Zephyr.Core.Localization");
+                    importsUiNamespace |= code.Contains("using Zephyr.Core.UI");
                 }
 
                 if (importsAudioNamespace)
                     StringAssert.Contains("\"Zephyr.Core.Audio\"", source, assemblyName);
                 if (importsCameraNamespace)
                     StringAssert.Contains("\"Zephyr.Core.Camera\"", source, assemblyName);
-                if (importsLegacyCoreNamespace)
-                    StringAssert.Contains("\"Zephyr.Core\"", source, assemblyName);
+                if (importsLocalizationNamespace)
+                    StringAssert.Contains("\"Zephyr.Core.Localization\"", source, assemblyName);
+                if (importsUiNamespace)
+                    StringAssert.Contains("\"Zephyr.Core.UI\"", source, assemblyName);
             }
+        }
+
+        [Test]
+        public void PhaseOneLegacyCoreHostHasNoImplementationReferences()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            Assert.That(File.Exists(Path.Combine(scriptsRoot, "Core", "Zephyr.Core.asmdef")), Is.False);
+
+            string localizationAsmdef = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Localization", "Zephyr.Core.Localization.asmdef"));
+            StringAssert.Contains("\"name\": \"Zephyr.Core.Localization\"", localizationAsmdef);
+            StringAssert.Contains("\"Zephyr.Core.Runtime\"", localizationAsmdef);
+            StringAssert.DoesNotContain("\"Zephyr.Core\"", localizationAsmdef);
+
+            string uiAsmdef = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "UI", "Zephyr.Core.UI.asmdef"));
+            StringAssert.Contains("\"name\": \"Zephyr.Core.UI\"", uiAsmdef);
+            StringAssert.Contains("\"references\": []", uiAsmdef);
+
+            string dialogueAsmdef = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "UI", "Dialogue", "Zephyr.Core.Dialogue.asmdef"));
+            StringAssert.Contains("\"name\": \"Zephyr.Core.Dialogue\"", dialogueAsmdef);
+            StringAssert.Contains("\"Zephyr.Core.Meta\"", dialogueAsmdef);
+            StringAssert.Contains("\"Zephyr.Core.Persistence\"", dialogueAsmdef);
+            StringAssert.Contains("\"Zephyr.Core.Localization\"", dialogueAsmdef);
+            StringAssert.Contains("\"Zephyr.Core.UI\"", dialogueAsmdef);
+            StringAssert.DoesNotContain("\"Zephyr.Core\"", dialogueAsmdef);
         }
 
         [Test]
@@ -732,9 +943,22 @@ namespace Zephyr.Architecture.Tests
             string[] matches = Directory.GetFiles(scriptsRoot, assemblyName + ".asmdef", SearchOption.AllDirectories);
             Assert.That(matches, Has.Length.EqualTo(1), "Expected exactly one asmdef for " + assemblyName);
 
-            string source = File.ReadAllText(matches[0]);
+            AssemblyDefinition definition = ArchitectureInspection.ParseDefinition(File.ReadAllText(matches[0]), matches[0]);
+            string[] references = definition.references.Select(ArchitectureInspection.ResolveReference).ToArray();
             foreach (string expectedReference in expectedReferences)
-                StringAssert.Contains("\"" + expectedReference + "\"", source, assemblyName + " must reference " + expectedReference);
+                CollectionAssert.Contains(references, expectedReference, assemblyName + " must reference " + expectedReference);
+        }
+
+        private static void AssertAssemblyDoesNotReference(string assemblyName, string forbiddenReference)
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string[] matches = Directory.GetFiles(scriptsRoot, assemblyName + ".asmdef", SearchOption.AllDirectories);
+            Assert.That(matches, Has.Length.EqualTo(1), "Expected exactly one asmdef for " + assemblyName);
+
+            AssemblyDefinition definition = ArchitectureInspection.ParseDefinition(File.ReadAllText(matches[0]), matches[0]);
+            string[] references = definition.references.Select(ArchitectureInspection.ResolveReference).ToArray();
+            CollectionAssert.DoesNotContain(references, forbiddenReference,
+                assemblyName + " must not reference " + forbiddenReference);
         }
 
         private static void AssertSourceTreeDoesNotContain(string root, string forbiddenText)
@@ -746,5 +970,43 @@ namespace Zephyr.Architecture.Tests
                 StringAssert.DoesNotContain(forbiddenText, source, "Unexpected dependency in " + file);
             }
         }
-    }
+
+
+
+        [Test]
+        public void SceneProgressionConsumersUseGatewayInsteadOfSingleton()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string exit = File.ReadAllText(Path.Combine(scriptsRoot, "Gameplay", "Levels", "SceneProgressionExit.cs"));
+            string tutorialExit = File.ReadAllText(Path.Combine(scriptsRoot, "Gameplay", "Levels", "TutorialObjectiveExit.cs"));
+            string controller = File.ReadAllText(Path.Combine(scriptsRoot, "Gameplay", "Levels", "SceneProgressionController.cs"));
+            string contract = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Contracts", "Interfaces", "ISceneProgressionGateway.cs"));
+
+            StringAssert.Contains("ISceneProgressionGatewayConsumer", exit);
+            StringAssert.Contains("ISceneProgressionGatewayConsumer", tutorialExit);
+            StringAssert.DoesNotContain("SceneProgressionController.Instance", exit);
+            StringAssert.DoesNotContain("SceneProgressionController.Instance", tutorialExit);
+            StringAssert.Contains("ISceneProgressionGateway", controller);
+            StringAssert.Contains("ISceneProgressionGatewayConsumer", contract);
+            StringAssert.Contains("SceneManager.sceneLoaded", controller);
+        }
+
+[Test]
+        public void EnemyDropsUseRoomGatewayAndSharedPoolContracts()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string enemyBrain = File.ReadAllText(Path.Combine(scriptsRoot, "Gameplay", "Enemies", "EnemyBrain.cs"));
+            string gateway = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Contracts", "Interfaces", "IDropSpawnGateway.cs"));
+            string poolRegistry = File.ReadAllText(Path.Combine(scriptsRoot, "Core", "Runtime", "ObjectPool", "PoolRegistry.cs"));
+
+            StringAssert.Contains("IDropSpawnGatewayConsumer", enemyBrain);
+            StringAssert.Contains("DropSystem.Roll", enemyBrain);
+            StringAssert.DoesNotContain("WeaponSO", enemyBrain);
+            StringAssert.Contains("SpawnCurrency", gateway);
+            StringAssert.Contains("SpawnWeapon", gateway);
+            StringAssert.Contains("_currencyPickupPrefab", poolRegistry);
+            StringAssert.Contains("_weaponPickupPrefab", poolRegistry);
+            Assert.That(File.Exists(Path.Combine(Application.dataPath, "ScriptableObjects", "DropTables", "BasicEnemyDrops.asset")), Is.True);
+        }
+}
 }

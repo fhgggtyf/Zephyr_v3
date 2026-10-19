@@ -45,7 +45,7 @@ ScriptableObject assets, input actions, and generated Unity project files.
 | 2 | Core Abstractions & Interface Contracts (full signatures) | 🟥 | ✅ |
 | 3 | Event System / Message Bus | 🟥 | ✅ |
 | 4 | Damage System (AD/AP/True + Armor/MR + Pen + Shield-Break) | 🟥 | ✅ |
-| 5 | Stats System (Four-Layer Additive Model + Category Multipliers) | 🟥 | ✅ |
+| 5 | Stats System (Five-Layer Model + Category Multipliers) | 🟥 | ✅ |
 | 6 | State Machine System (transitions + priority/interrupts) | 🟥 | ✅ |
 | 7 | Buff / Modifier System | 🟥 | ✅ |
 | 8 | Object Pool System | 🟥 | ✅ |
@@ -107,10 +107,10 @@ ScriptableObject assets, input actions, and generated Unity project files.
 
 1. **Four-layer additive stat system**: Base / RunGains / Modifiers / TempModifiers; Potential (max 10) gates RunGains gain efficiency only. See Ch.5.
 2. **LoL-style damage**: AD / AP / True + Armor/MR + flat/% penetration + Shield with Shield-Break coefficient. See Ch.4.
-3. **Down-and-respawn risk mechanic**: HP reaching 0 is a **down**, not run-over — the player respawns with an escalating potential deduction (each down costs more than the last). **Any potential ≤ 0 = true death** (run over). Potentials are **run-local**: at run entry the system **randomly allocates N−M points** of the budget across the 10 types (the random baseline — the source of dynamic difficulty), after which the player **allocates the remaining M points**; they erode on downs and reset each run. **No cross-run erosion** — each run is a clean slate. Monsters carry a "targeted potential" that directs the down-cost onto a specific stat. See Ch.5.6/5.7.
+3. **Down-and-respawn risk mechanic**: HP reaching 0 is a **down**, not run-over — the player respawns with an escalating potential deduction (each down costs more than the last). **Any potential ≤ 0 = true death** (run over). Potentials are **run-local**: at run entry the player freely allocates `N` of total `P`, while the system randomly allocates the remaining `M = P - N` across the 10 types; they erode on downs and reset each run. **No cross-run erosion** — each run is a clean slate. Monsters carry a "targeted potential" that directs the down-cost onto a specific stat. See Ch.5.6/5.7.
 4. **Dual-input weapon combat**: Two weapons are carried simultaneously. PrimaryAttack always requests Primary and SecondaryAttack always requests Secondary; an optional slot marker only identifies which slot a pickup will replace. Combos are weapon-inherent.
 5. **Energy/Stamina resources**: Two regenerating bars managed by `PlayerResourceController`. Stamina currently powers configured weapon attacks, sprinting, jumping, and double-jumping; Energy powers configured weapon attacks and is reserved for dash/roll/channeling/skills. Each bar starts regenerating only after its own post-use delay. Architecture supports both skill and skill-less modes.
-6. **Meta progression**: Hades-like permanent currency buys upgrades (base stat value / extra damage multiplier / small weapon-codex bonuses / **grow the run-entry potential budget N** / **grow the player-allocatable share M**); in-run weapons are Dead-Cells-like (drops / shops / boss rooms).
+6. **Meta progression**: Hades-like permanent currency buys upgrades (base stat value / extra damage multiplier / small weapon-codex bonuses / **grow the run-entry potential budget P** / **grow the player-allocatable Potential N**); in-run weapons are Dead-Cells-like (drops / shops / boss rooms).
 
 ### 0.4 Non-Goals (this phase)
 
@@ -507,7 +507,7 @@ public enum MetaStatType
 {
     CritChance, CritDamage, Piercing, MaxShield, ShieldCoeffBonus,
     MoveSpeed, PickupRange, VarianceReduction, LuckBonus,
-    DamageReduction, PotentialBudget, ShareMultiplier
+    DamageReduction
 }
 
 // Category-based multiplicative buffs (meta base + in-run addends).
@@ -817,7 +817,7 @@ float variedDamage = damage * variance;
 
 ---
 
-## Chapter 5 — Stats System (Four-Layer Additive Model + Category Multipliers)
+## Chapter 5 — Stats System (Five-Layer Model + Category Multipliers)
 
 ### 5.1 Core Stat Types (10 — these carry Potential)
 
@@ -854,35 +854,51 @@ public enum MetaStatType
     VarianceReduction, // reduces damage variance
     LuckBonus,         // luck bonus for drop quality
     DamageReduction,   // damage reduction %
-    PotentialBudget,   // additional run-entry Potential budget
-    ShareMultiplier    // player-allocatable share multiplier
 }
 ```
 
-> `MetaStatType` values are set once via `StatsCore.SetMetaStat()` and never reset — they are profile-lifetime. They are **not** Potential-gated and do not participate in the 4-layer stat calculation. They are read directly via `StatsCore.GetMetaStat()` by subsystems like `DamageCalculator` (crit, piercing, shield coefficient) and player controllers (move speed, pickup range).
+> `MetaStatType` values are set once via `StatsCore.SetMetaStat()` and never reset — they are profile-lifetime. They are **not** Potential-gated and do not participate in the five-layer core-stat calculation. They are read directly via `StatsCore.GetMetaStat()` by subsystems like `DamageCalculator` (crit, piercing, shield coefficient) and player controllers (move speed, pickup range). Scene rules such as Tutorial `UnboundedHealth` are not MetaStat values; they are stored in `SceneSO.RuleOverrides`.
 
-### 5.2 Four-Layer Additive Model
+Run-entry Potential resources are not `MetaStatType` values. `PotentialBudget` and `PotentialAllocatable` are `MetaUpgradeTarget` values backed by `MetaData.PotentialBudgetUpgrades` and `MetaData.PotentialAllocatableUpgrades`.
 
-Every **core** stat (the 10 `StatType` values) uses a four-layer additive model to compute its total value. The formula is:
+### 5.2 Five-Layer Stat Model
+
+Every **core** stat (the 10 `StatType` values) is calculated from five gameplay layers:
+
+1. `PlayerBaseStats`: the new player's permanent value before any Meta Upgrade.
+2. `MetaUpgrades`: permanent additions purchased outside a Run.
+3. `RunGains`: run-lifetime rewards and upgrades, cleared when the Run ends.
+4. `TimedModifiers`: timed buffs/debuffs that survive room and scene changes until expiry.
+5. `SceneModifiers`: scene-level effects owned by the current gameplay scene and removed when it is left.
+
+Scene configuration has three separate ownership categories:
+
+- **Scene Stat Modifiers**: `SceneSO.StatModifiers`; scene-wide Add/Multiply effects for `CoreStat`, `MetaStat`, or `CategoryMultiplier`. `Override` is not valid here.
+- **Scene Rule Overrides**: `SceneSO.RuleOverrides`; scene-wide gameplay rule overrides such as `UnboundedHealth`. These are not Meta upgrades and are not saved to the player profile.
+- **Room Modifiers**: `RoomController.Modifiers`; room-owned runtime effects that apply only while the player is in that room. They may use Add, Multiply, or the exclusive highest-priority `Override`.
+
+For ordinary Add and Multiply operations, all flat values are summed first and all percentage values are summed second:
 
 ```
-GetStatValue(stat) = Base + RunGains + Modifiers + TempModifiers
+additive = Base + MetaFlat + RunFlat + TimedFlat + SceneFlat
+final = additive * (1 + MetaPercent + RunPercent + TimedPercent + ScenePercent)
 ```
 
-Each layer has a different lifetime and gating rules:
+`StatModifierOperation.Override` is reserved for Room modifiers and is highest priority for that target. When present, `GetStatValue`, `GetMetaStat`, or `GetCategoryMultiplier` returns the override value directly; lower layers are not recalculated or mutated. Scene gameplay rules use `SceneRuleOverrideDefinition` instead of pretending to be numeric Meta stats. The active Room can expose at most one effective Override for a target.
 
 | Layer | Name | Lifetime | Potential-Gated? | Description |
 |-------|------|----------|-------------------|-------------|
-| 1 | **Base** | Profile (never reset) | No | Permanent meta-upgrade value. Set via `SetBase()`. Survives across runs. |
-| 2 | **RunGains** | Run (reset each run) | **Yes** | In-run acquired gains (relics, weapons, room rewards). Each gain is pre-scaled: `actual = raw × (Potential / PotentialMax)`. Applied via `ApplyPotentialScaledGain()`. |
-| 3 | **Modifiers** | Run (reset each run) | No | In-run non-Potential modifiers (room events, status effects). Added/removed via `AddModifier()`/`RemoveModifier()`. |
-| 4 | **TempModifiers** | Timer/Condition expiry | No | Short-lived buffs (e.g., potion: +20% attack speed for 30s). Managed by external timer/status systems. Added/removed via `AddTemporaryModifier()`/`RemoveTemporaryModifier()`. |
+| 1 | **PlayerBaseStats** | Profile (never reset) | No | New-player baseline stored by `SetBase()`. |
+| 2 | **MetaUpgrades** | Profile (never reset) | No | Permanent flat/percentage additions stored separately via `AddMetaBase()` and `AddMetaBasePercent()`. |
+| 3 | **RunGains** | Run (reset each run) | Only when explicitly marked | In-run acquired gains. Potential-scaled gains use `raw × (Potential / PotentialMax)`; other run gains use their authored value. |
+| 4 | **TimedModifiers** | Timer/condition expiry | No | Short-lived flat/percentage buffs and debuffs managed by timer/status systems. |
+| 5 | **SceneModifiers** | Current scene | No | Scene-owned Add/Multiply stat modifiers. Room Overrides and scene rule overrides are stored separately. |
 
 ```csharp
-// StatRecord holds Base (permanent) + Potential (per-run, 0–10)
+// StatRecord holds PlayerBaseStats (permanent) + Potential (per-run, 0–10)
 public struct StatRecord
 {
-    public float Base;        // Layer 1 — permanent meta value
+    public float Base;        // Layer 1 — PlayerBaseStats baseline
     public float Potential;   // 0..10 — gates Layer 2 gain scaling
 
     public float GetScaleMultiplier() => Potential / (float)GameConstants.Stats.PotentialMax;
@@ -890,7 +906,7 @@ public struct StatRecord
 }
 ```
 
-**Run lifecycle** (`StatsCore.ResetForRunStart()`): At run start, all run-lifetime layers (Potential, RunGains, Modifiers, TempModifiers, category in-run addends) are cleared. `Base` values and `MetaStatType` values survive the reset. After reset, `InitializeRunPotentials()` sets the run's per-stat Potential values from the player's total budget.
+**Run lifecycle** (`StatsCore.ResetForRunStart()`): At run start, Potential and all run/timed runtime values are cleared. `PlayerBaseStats`, Meta upgrades, `MetaStatType` values, and permanent category bases survive the reset. The Player instance is owned by GameManager during gameplay so RunGains and TimedModifiers survive gameplay scene transitions. After reset, `InitializeRunPotentials()` sets the run's per-stat Potential values from the Run-entry budget.
 
 ### 5.3 How Potential Gates Gains (binding)
 
@@ -900,8 +916,8 @@ Only **Layer 2 (RunGains)** is Potential-gated. When an in-run bonus is acquired
 actualGain = rawGain × (statPotential / PotentialMax)
 ```
 
-- **Meta upgrades (Layer 1 Base values) are NOT potential-scaled.** They are permanent, set outside runs.
-- **Layer 3 (Modifiers) and Layer 4 (TempModifiers) are NOT potential-scaled.** They apply at full value.
+- **Meta upgrades (Layer 2) are NOT potential-scaled.** They are permanent, set outside runs.
+- **Timed and scene modifiers are NOT potential-scaled.** They apply at their authored value.
 - Designers tune `rawGain` magnitudes for a readable damage curve across the run: **early-game ~2 digits**, **mid-game low 3 digits**, **late-game ~600**, and **~low 1k+** when everything goes perfectly for the player. Potential stays 0–10 (intuitive).
 
 ### 5.4 Category Multipliers (cross-category stacking)
@@ -1962,7 +1978,7 @@ public class MetaData
 {
     public int PermanentCurrency;                          // spent on meta upgrades (Hades-like)
     public Dictionary<StatType, float> BaseStatUpgrades;       // added to char intrinsic Base at run start
-    public int PotentialBudgetUpgrades;                    // grows N — total run-entry potential points (system randomly allocates N−M, player allocates M; Ch.5.2)
+    public int PotentialBudgetUpgrades;                    // grows P — total run-entry potential points (system allocates M = P - N; player allocates N; Ch.5.2)
     public int PotentialAllocatableUpgrades;               // grows M — # of those points the player manually allocates (M ≤ N)
     public List<MultiplierUnlock> UnlockedMultipliers;         // extra PercentMult damage tiers (Ch.5.4) — meta, NOT potential-scaled (base)
     public CombatAcquiredUpgrades Combat;                  // crit + pen — player-own meta upgrades, NOT potential-scaled (base, Ch.5.3)
@@ -1989,7 +2005,7 @@ public struct CombatAcquiredUpgrades                       // player-own combat 
 }
 ```
 
-- At run start, `RunData.Stats` **Base** values are seeded from character intrinsic + `BaseStatUpgrades` (both are base values, NOT potential-scaled, Ch.5.3). `RunData.Stats` **Potential** values are seeded from the run-entry allocation (Ch.5.2): the system randomly allocates N−M points across the 10 types (random baseline), after which the player allocates the remaining M points, where N = `GameSettings.Stats.PotentialBudgetBase + PotentialBudgetUpgrades` and M (player-allocatable) = `PotentialAllocatableBase + PotentialAllocatableUpgrades`. There is no meta-persistent potential baseline.
+- At run start, `RunData.Stats` **PlayerBaseStats** values are seeded from character intrinsic values, while `MetaUpgrades` are loaded as separate permanent flat/percentage additions (neither is Potential-scaled). `RunData.Stats` **Potential** values are seeded from the run-entry allocation (Ch.5.2): total Potential is `P`, the system randomly allocates `M = P - N`, and the player allocates the remaining `N` points. `PotentialBudget` determines `P`; `PotentialAllocatable` determines the player's `N` limit. There is no meta-persistent Potential baseline.
 - `CombatAcquiredUpgrades` are **meta upgrades** (base values, NOT potential-scaled, Ch.5.3): summed with weapon-inherent values at hit time (Ch.9.6 / 4.3). They are the **only** player-side source of pen and player-side crit.
 - `WeaponCodex` unlocks grant a small permanent stat bonus when a weapon type is first picked up (Q14).
 
@@ -2219,7 +2235,7 @@ namespace Zephyr.Core.Levels
 
 ## Chapter 14 — Scene & Game Flow
 
-> **Implemented snapshot:** `SceneSO` stores SceneId, editor scene reference, and cached name/path.
+> **Implemented snapshot:** `SceneSO` stores SceneId, editor scene reference, cached name/path, scene-wide stat modifiers, and separate scene rule overrides. Room-owned modifiers remain runtime room state.
 > Normal transitions raise SO load/unload events and are serialized by Persistent `SceneLoader`; the
 > Initializer's direct Persistent load is the boot exception. GameManager owns gameplay services and
 > spawns the player, then moves the player object into Tutorial/room scene ownership at the authored

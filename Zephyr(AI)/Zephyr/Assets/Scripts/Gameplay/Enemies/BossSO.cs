@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using Zephyr.Core;
 using Zephyr.Core.DamageSystem;
+using Zephyr.Contracts.Damage;
 
 namespace Zephyr.Gameplay.Enemies
 {

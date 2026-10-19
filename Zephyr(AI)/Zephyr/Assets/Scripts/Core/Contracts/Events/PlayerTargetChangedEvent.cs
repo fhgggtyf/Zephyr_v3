@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Zephyr.Core.Events
+namespace Zephyr.Contracts.Events
 {
     public readonly struct PlayerTargetChangedEvent
     {

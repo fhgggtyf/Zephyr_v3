@@ -56,13 +56,5 @@ namespace Zephyr.Core
         /// <summary>Damage reduction % (e.g., 0.05 = 5% less damage taken).</summary>
         DamageReduction,
 
-        /// <summary>Additional run-entry Potential budget (increases max Potential per run).</summary>
-        PotentialBudget,
-
-        /// <summary>Player-allocatable share multiplier for in-run stat gains.</summary>
-        ShareMultiplier,
-
-        /// <summary>When positive, health damage is still applied and reported, but HP cannot reach zero.</summary>
-        UnboundedHealth
     }
 }

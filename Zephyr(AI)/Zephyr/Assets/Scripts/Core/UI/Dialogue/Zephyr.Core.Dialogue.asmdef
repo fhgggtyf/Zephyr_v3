@@ -1,0 +1,25 @@
+{
+    "name": "Zephyr.Core.Dialogue",
+    "rootNamespace": "Zephyr.Core.UI.Dialogue",
+    "references": [
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Flow",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Localization",
+        "Zephyr.Core.UI",
+        "Zephyr.Inputs",
+        "Unity.InputSystem",
+        "Unity.Localization"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

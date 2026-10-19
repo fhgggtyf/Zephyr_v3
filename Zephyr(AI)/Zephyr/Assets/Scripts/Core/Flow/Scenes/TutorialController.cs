@@ -1,11 +1,19 @@
 using System;
-using UnityEngine;using Zephyr.Core.Save;
+using UnityEngine;
+using Zephyr.Contracts.Interfaces;
+using Zephyr.Core.Save;
 
 namespace Zephyr.Core.Flow.Scenes
 {
-public sealed class TutorialController : MonoBehaviour
+public sealed class TutorialController : MonoBehaviour, IGameManagerDependencyConsumer, ITutorialCompletionGateway
     {
         public event Action OnTutorialComplete;
+        private ISaveDataGateway _saveData;
+
+        public void Configure(IGameManagerServices services)
+        {
+            _saveData = services?.SaveData;
+        }
 
         public void CompleteTutorial()
         {
@@ -13,18 +21,17 @@ public sealed class TutorialController : MonoBehaviour
             OnTutorialComplete?.Invoke();
         }
 
-        public static void MarkCompleted()
+        public void MarkCompleted()
         {
-            var save = SaveSystem.Instance;
-            if (save?.Meta == null)
+            if (_saveData?.Meta == null)
             {
-                save?.LoadMeta();
+                _saveData?.LoadMeta();
             }
 
-            if (save?.Meta != null)
+            if (_saveData?.Meta != null)
             {
-                save.Meta.HasCompletedTutorial = true;
-                save.SaveMeta();
+                _saveData.Meta.HasCompletedTutorial = true;
+                _saveData.SaveMeta();
             }
         }
     }

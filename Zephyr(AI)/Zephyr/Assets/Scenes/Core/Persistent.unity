@@ -185,7 +185,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1000000000000000000000000000007, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Zephyr.Core.Flow::Zephyr.Core.Flow.PersistentBootstrap
 --- !u!1 &1010
 GameObject:
   m_ObjectHideFlags: 0
@@ -421,6 +421,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65d5120026d133646b3d5acfb9b48910, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _currencyPickupPrefab: {fileID: 7171360651449043175, guid: ec6f43df546b8094b98955b6a7664772, type: 3}
+  _weaponPickupPrefab: {fileID: 3020984478629037338, guid: 99f04c70cd802264b8e8e149e137c5d2, type: 3}
 --- !u!1 &1060
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,7 +12,7 @@
  * Scene:    GameManager (implemented by Door, Ladder, WeaponPickup, and other interactable prefabs).
  * Ch.Ref:   Ch.12 Pickup and Interaction System, Ch.15 Room Design.
  */
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Implemented by any GameObject the player can interact with (doors, ladders, weapon pickups).

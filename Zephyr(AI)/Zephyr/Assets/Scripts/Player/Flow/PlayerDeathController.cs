@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Zephyr.Core;
 using Zephyr.Core.DamageSystem;
+using Zephyr.Contracts.Damage;
 using Zephyr.Core.Flow;
 using Zephyr.Core.Health;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Flow;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Save;
 using Zephyr.Core.Stats;
 using Zephyr.Gameplay.Player.Core;
@@ -15,7 +17,7 @@ using Zephyr.Gameplay.Player.Visual;
 namespace Zephyr.Gameplay.Player.Flow
 {
     /// <summary>Unity facade for player down, death presentation, and respawn flow.</summary>
-    public sealed class PlayerDeathController : MonoBehaviour
+    public sealed class PlayerDeathController : MonoBehaviour, IGameManagerDependencyConsumer
     {
         [Header("Presentation")]
         [SerializeField] private DeathView _viewPrefab;
@@ -27,7 +29,7 @@ namespace Zephyr.Gameplay.Player.Flow
         private readonly PotentialLossService _potentialLoss = new PotentialLossService();
         private RespawnCoordinator _respawnCoordinator;
 
-        private PlayerSpawner _playerSpawner;
+        private IPlayerSpawnGateway _playerSpawner;
         private GameFlow _gameFlow;
         private ISaveDataGateway _saveGateway;
         private DeathPresentationController _presentation;
@@ -43,7 +45,6 @@ namespace Zephyr.Gameplay.Player.Flow
 
         private void Start()
         {
-            ResolveDependencies();
             if (_viewPrefab != null)
                 _presentation = new DeathPresentationController(_viewPrefab, _viewParent != null ? _viewParent : transform,
                     Respawn, GiveUp);
@@ -59,6 +60,11 @@ namespace Zephyr.Gameplay.Player.Flow
 
             if (_gameFlow != null)
                 _gameFlow.OnStateChanged += HandleGameStateChanged;
+        }
+
+        public void Configure(IGameManagerServices services)
+        {
+            ResolveDependencies(services);
         }
 
         private void OnDestroy()
@@ -221,12 +227,12 @@ namespace Zephyr.Gameplay.Player.Flow
                 _saveGateway.CurrentRun.DownCount = value;
         }
 
-        private void ResolveDependencies()
+        private void ResolveDependencies(IGameManagerServices services)
         {
-            _playerSpawner = PlayerSpawner.Instance;
-            _gameFlow = GameFlow.Instance;
-            _saveGateway = SaveSystem.Instance;
-            _respawnCoordinator = new RespawnCoordinator(_playerSpawner, _gameFlow);
+            _playerSpawner = services?.PlayerSpawn;
+            _gameFlow = services?.GameFlow as GameFlow;
+            _saveGateway = services?.SaveData;
+            _respawnCoordinator = new RespawnCoordinator(services?.PlayerSpawn, services?.GameFlow);
         }
 
         private static bool TryFindPotentialSource(GameObject sourceObject, out IPotentialAttackSource source)

@@ -11,7 +11,7 @@ using Zephyr.Core.UI;
 
 namespace Zephyr.Gameplay.Interaction
 {
-    /// <summary>Run-entry Potential UI. N-M is rolled immediately and M is edited by the player.</summary>
+    /// <summary>Run-entry Potential UI. M = P - N is rolled immediately and N is edited by the player.</summary>
     public sealed class PotentialAllocationPanel : LocalizedBehaviour
     {
         [SerializeField] private Text _title;

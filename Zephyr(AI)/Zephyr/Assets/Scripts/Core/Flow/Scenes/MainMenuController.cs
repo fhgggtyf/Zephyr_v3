@@ -1,36 +1,60 @@
 using System;
 using UnityEngine;
 using Zephyr.Core.Localization;
-using Zephyr.Core.Save;
 using Zephyr.Core.Flow;
-using Zephyr.Core.Interfaces;
-using Zephyr.Core.UI.Dialogs;
+using Zephyr.Core.Save;
+using Zephyr.Contracts.Flow;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Core.Flow.Scenes
 {
-    public sealed class MainMenuController : MonoBehaviour
+public sealed class MainMenuController : MonoBehaviour, IPersistentDependencyConsumer
     {
-        [SerializeField] private ConfirmationPopupView _confirmationPopupPrefab;
+        [SerializeField] private MainMenuView _view;
         private MainMenuUseCase _useCase;
-        private MainMenuView _view;
         private MainMenuTextPresenter _textPresenter;
         private SettingsPresenter _settingsPresenter;
         private ISaveSlotGateway _saveSlots;
         private ISaveDataGateway _saveData;
         private IGameFlowGateway _gameFlow;
         private MainMenuView.SlotPanelMode _slotMode;
+        private bool _started;
+        private bool _initialized;
+
+        public void Configure(IPersistentServices services)
+        {
+            _saveSlots = services?.SaveSlots;
+            _saveData = services?.SaveData;
+            _gameFlow = services?.GameFlow;
+            _settingsPresenter ??= services?.Localization != null
+                ? new SettingsPresenter(services.Localization)
+                : null;
+            if (_started) TryInitialize();
+        }
 
         private void Start()
         {
-            SaveSystem save = SaveSystem.Instance;
-            _saveSlots = save;
-            _saveData = save;
-            _gameFlow = GameFlow.Instance;
+            _started = true;
+            TryInitialize();
+        }
+
+        private void TryInitialize()
+        {
+            if (!_started || _initialized || _saveSlots == null || _saveData == null ||
+                _gameFlow == null || _settingsPresenter == null)
+                return;
+
+            _initialized = true;
             _useCase = new MainMenuUseCase(_saveSlots, _saveData);
-            _settingsPresenter = new SettingsPresenter(LocalizationManager.Instance);
             _textPresenter = new MainMenuTextPresenter(_settingsPresenter);
-            _view = new MainMenuView(ISaveSlotGateway.MaxSaveSlots);
-            _view.Build(transform, _confirmationPopupPrefab);
+            if (_view == null)
+            {
+                Debug.LogError("MainMenuController is missing its serialized MainMenuView reference.", this);
+                _initialized = false;
+                return;
+            }
+
+            _view.Initialize();
             SubscribeView();
             _settingsPresenter.LocaleChanged += HandleLocaleChanged;
             RefreshAll();
@@ -81,12 +105,12 @@ namespace Zephyr.Core.Flow.Scenes
             ShowConfirmation(T("menu.save.delete.title", "Delete Save"), F("menu.save.delete.message", "Delete save in Slot {0}? This cannot be undone.", slotIndex + 1), T("common.delete", "Delete"), T("common.cancel", "Cancel"), () => { _useCase.DeleteSlot(slotIndex); RefreshAll(); });
         }
         private void StartSelectedProfile() { _view?.CloseSavePanel(); _gameFlow?.RequestTransition(GameState.Tutorial); }
-        private void ContinueSelectedProfile() { _view?.CloseSavePanel(); if (_useCase != null && _gameFlow != null) _gameFlow.RequestTransition(_useCase.ResolveContinueDestination()); }
-        private void ShowConfirmation(string title, string message, string confirm, string cancel, Action action) => _view?.ShowConfirmation(title, message, confirm, cancel, action);
-        private void RefreshAll() { if (_view == null || _textPresenter == null) return; _view.SetContinueInteractable(_useCase?.HasAnyValidSave ?? false); _view.Refresh(_textPresenter.Build(_slotMode, _useCase?.GetSlotInfos())); }
+private void ContinueSelectedProfile() { _view?.CloseSavePanel(); if (_useCase != null && _gameFlow != null) _gameFlow.RequestTransition(_useCase.ResolveContinueDestination()); }
+private void RefreshAll() { if (_view == null) return; _view.SetContinueInteractable(_useCase?.HasAnyValidSave ?? false); _view.Refresh(_textPresenter.Build(_slotMode, _useCase?.GetSlotInfos())); }
         private void HandleLocaleChanged(LocaleId _) => RefreshAll();
         private string T(string key, string fallback) => _settingsPresenter?.Translate(key, fallback) ?? fallback;
         private string F(string key, string fallback, params object[] args) => _settingsPresenter?.Format(key, fallback, args) ?? string.Format(fallback, args);
+        private void ShowConfirmation(string title, string message, string accept, string cancel, Action accepted) => _view?.ShowConfirmation(title, message, accept, cancel, accepted);
         private static void ExitApplication()
         {
 #if UNITY_EDITOR

@@ -10,7 +10,7 @@
  * Scene:    GameManager (implemented by player HealthComponent).
  * Ch.Ref:   Ch.2.9 Healing System, Ch.9 Combat System.
  */
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Entity that can be healed. Implemented by HealthComponent on player only.

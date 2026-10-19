@@ -1,6 +1,6 @@
 using UnityEngine;
 using Zephyr.Core.Health;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core;
 using Zephyr.UI;
 

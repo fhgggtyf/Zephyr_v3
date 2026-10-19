@@ -7,7 +7,6 @@
         "Zephyr.Core.Combat",
         "Zephyr.Core.Persistence",
         "Zephyr.Core.Flow",
-        "Zephyr.Core",
         "Zephyr.Core.StateMachine"
     ],
     "includePlatforms": [

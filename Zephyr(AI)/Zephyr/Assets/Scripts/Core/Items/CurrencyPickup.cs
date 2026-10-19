@@ -1,12 +1,12 @@
 using UnityEngine;
+using Zephyr.Contracts.Events;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.ObjectPool;
-using Zephyr.Core.Save;
-using Zephyr.Core.Events;
 
 namespace Zephyr.Core.Items
 {
     [RequireComponent(typeof(PooledObject))]
-    public sealed class CurrencyPickup : MonoBehaviour
+    public sealed class CurrencyPickup : MonoBehaviour, IPickupRuntimeContextConsumer, ICurrencyPickup
     {
         [SerializeField] private int _amount = 1;
         [SerializeField] private float _magnetRange = 1.5f;
@@ -15,11 +15,16 @@ namespace Zephyr.Core.Items
         private bool _collected;
         private bool _subscribedToPlayerTarget;
         private PooledObject _pooledObject;
-        private ISaveDataGateway _saveData;
-        private void Awake()
+        private IPickupRuntimeContext _runtimeContext;
+        private void Awake() => _pooledObject = GetComponent<PooledObject>();
+
+        public void Configure(IPickupRuntimeContext context)
         {
-            _pooledObject = GetComponent<PooledObject>();
-            _saveData = SaveSystem.Instance;
+            if (_subscribedToPlayerTarget) _runtimeContext?.UnsubscribePlayerTarget(HandlePlayerTargetChanged);
+            _runtimeContext = context;
+            _subscribedToPlayerTarget = false;
+            _player = null;
+            if (isActiveAndEnabled) SubscribeToPlayerTarget();
         }
         private void OnEnable()
         {
@@ -31,24 +36,25 @@ namespace Zephyr.Core.Items
         }
         private void OnDisable()
         {
-            if (_subscribedToPlayerTarget && EventBus.Instance != null)
-                EventBus.Instance.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            if (_subscribedToPlayerTarget) _runtimeContext?.UnsubscribePlayerTarget(HandlePlayerTargetChanged);
             _subscribedToPlayerTarget = false;
             _player = null;
             ResetState();
         }
         private void SubscribeToPlayerTarget()
         {
-            if (EventBus.Instance == null) return;
-            EventBus.Instance.Subscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            if (_runtimeContext == null || _subscribedToPlayerTarget) return;
+            _runtimeContext.SubscribePlayerTarget(HandlePlayerTargetChanged);
             _subscribedToPlayerTarget = true;
-            if (EventBus.Instance.TryGetLatest(out PlayerTargetChangedEvent current))
+            if (_runtimeContext.TryGetLatestPlayerTarget(out PlayerTargetChangedEvent current))
                 HandlePlayerTargetChanged(current);
         }
         private void HandlePlayerTargetChanged(PlayerTargetChangedEvent change) => _player = change.Target;
-        public void ResetState() { _player = null; _collected = false; }
+        public void ResetState() { _collected = false; }
         public void Spawn(Vector2 position, int amount)
         { transform.position = position; _amount = Mathf.Max(0, amount); ResetState(); }
+        void ICurrencyPickup.Spawn(Vector3 position, int amount) => Spawn((Vector2)position, amount);
+
         private void Update()
         {
             if (_collected) return;
@@ -58,8 +64,8 @@ namespace Zephyr.Core.Items
         }
         private void Collect()
         {
+            if (_runtimeContext == null || !_runtimeContext.TryAddRunCurrency(_amount)) return;
             _collected = true;
-            if (_saveData?.CurrentRun != null) _saveData.CurrentRun.RunCurrency += _amount;
             _pooledObject.ReturnToPool();
         }
     }

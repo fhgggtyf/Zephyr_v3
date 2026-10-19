@@ -28,7 +28,6 @@ namespace Zephyr.Gameplay.Player.StateMachine
     public class SprintSpeedAction : StateAction
     {
         private MovementCore _movementCore;
-        private PlayerResourceController _resources;
         private readonly PlayerMovementSpeedDataSO _speedData;
 
         public SprintSpeedAction(PlayerMovementSpeedDataSO speedData)
@@ -39,7 +38,6 @@ namespace Zephyr.Gameplay.Player.StateMachine
         public override void Awake(CoreSM stateMachine)
         {
             _movementCore = stateMachine.GetCachedComponent<MovementCore>();
-            stateMachine.TryGetCachedComponent(out _resources);
         }
 
         public override void OnStateEnter()
@@ -49,7 +47,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
 
         public override void OnUpdate()
         {
-            _resources?.ConsumeSprintStamina(Time.deltaTime);
         }
+
     }
 }

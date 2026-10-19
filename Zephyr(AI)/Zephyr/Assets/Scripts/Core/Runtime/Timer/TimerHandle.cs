@@ -18,7 +18,7 @@ namespace Zephyr.Core.Timer
     /// <summary>
     /// Handle to a scheduled timer. Call Cancel() to abort before it fires.
     /// </summary>
-    public class TimerHandle
+    public sealed class TimerHandle : IDisposable
     {
         private TimerService _service;
 
@@ -33,5 +33,7 @@ namespace Zephyr.Core.Timer
         {
             IsCancelled = true;
         }
+
+        public void Dispose() => Cancel();
     }
 }

@@ -11,7 +11,7 @@
  * Scene:    GameManager (pooled entities spawned at runtime).
  * Ch.Ref:   Ch.8 Object Pooling System.
  */
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Entities that can be pooled (projectiles, pickups, VFX, audio sources).

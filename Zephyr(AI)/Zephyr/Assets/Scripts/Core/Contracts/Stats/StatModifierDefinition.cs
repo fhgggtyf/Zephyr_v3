@@ -33,6 +33,11 @@ namespace Zephyr.Core.Stats
         NonPlayer
     }
 
+    public enum SceneRuleOverrideKind
+    {
+        UnboundedHealth
+    }
+
     [System.Serializable]
     public sealed class StatModifierDefinition
     {
@@ -66,6 +71,31 @@ namespace Zephyr.Core.Stats
         }
     }
 
+    [System.Serializable]
+    public sealed class SceneRuleOverrideDefinition
+    {
+        [SerializeField] private SceneRuleOverrideKind _rule;
+        [SerializeField] private StatModifierScope _scope = StatModifierScope.Player;
+        [SerializeField] private float _value = 1f;
+
+        public SceneRuleOverrideKind Rule => _rule;
+        public StatModifierScope Scope => _scope;
+        public float Value => _value;
+
+        public bool AppliesTo(IStatModifierTarget target)
+        {
+            if (target == null) return false;
+            switch (_scope)
+            {
+                case StatModifierScope.All: return true;
+                case StatModifierScope.Player: return target.OwnerRole == StatsOwnerRole.Player;
+                case StatModifierScope.Enemy: return target.OwnerRole == StatsOwnerRole.Enemy;
+                case StatModifierScope.NonPlayer: return target.OwnerRole != StatsOwnerRole.Player;
+                default: return false;
+            }
+        }
+    }
+
     public interface IStatModifierTarget
     {
         StatsOwnerRole OwnerRole { get; }
@@ -75,5 +105,10 @@ namespace Zephyr.Core.Stats
     {
         IReadOnlyList<StatModifierDefinition> Modifiers { get; }
         bool AppliesTo(IStatModifierTarget target);
+    }
+
+    public interface ISceneRuleSource
+    {
+        IReadOnlyList<SceneRuleOverrideDefinition> RuleOverrides { get; }
     }
 }

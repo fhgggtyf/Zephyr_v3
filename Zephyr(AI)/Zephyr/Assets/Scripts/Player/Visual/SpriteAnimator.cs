@@ -12,7 +12,7 @@
  * Ch.Ref:   Ch.6.7 Owner Binding, Ch.6.10 Presentation Layer.
  */
 using UnityEngine;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Gameplay.Player.Core;
 
 namespace Zephyr.Gameplay.Player.Visual

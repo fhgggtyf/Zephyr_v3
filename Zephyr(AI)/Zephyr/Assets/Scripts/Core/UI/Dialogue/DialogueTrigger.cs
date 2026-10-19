@@ -1,12 +1,13 @@
 using UnityEngine;
 using Zephyr.Core.Meta;
 using Zephyr.Core.Save;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Core.UI.Dialogue
 {
     /// <summary>Starts a dialogue when the tagged player crosses this scene-local trigger.</summary>
     [RequireComponent(typeof(Collider2D))]
-    public sealed class DialogueTrigger : MonoBehaviour
+    public sealed class DialogueTrigger : MonoBehaviour, IDialogueTriggerConsumer
     {
         [SerializeField] private DialogueSO _dialogue;
         [SerializeField] private bool _triggerOnce = true;
@@ -20,12 +21,17 @@ namespace Zephyr.Core.UI.Dialogue
 
         private bool _triggered;
         private ISaveDataGateway _saveData;
+        private IStoryProgressionGateway _storyProgression;
+        private IDialogueGateway _dialogueGateway;
 
         public DialogueSO Dialogue => _dialogue;
 
-        private void Awake()
+        public void Configure(ISaveDataGateway saveData, IStoryProgressionGateway storyProgression,
+            IDialogueGateway dialogueGateway)
         {
-            _saveData = SaveSystem.Instance;
+            _saveData = saveData;
+            _storyProgression = storyProgression;
+            _dialogueGateway = dialogueGateway;
         }
 
         private void Reset()
@@ -43,10 +49,10 @@ namespace Zephyr.Core.UI.Dialogue
 
         public bool TryStart()
         {
-            if (_triggered || _dialogue == null || DialogueManager.Instance == null) return false;
+            if (_triggered || _dialogue == null || _dialogueGateway == null) return false;
             if (_triggerOnce && HasBeenRecorded()) return false;
             if (!IsProgressReached()) return false;
-            if (!DialogueManager.Instance.TryStart(_dialogue, MarkTriggered)) return false;
+            if (!_dialogueGateway.TryStart(_dialogue, MarkTriggered)) return false;
             _triggered = true;
             return true;
         }
@@ -55,14 +61,14 @@ namespace Zephyr.Core.UI.Dialogue
         {
             if (!_triggerOnce || _dialogue == null) return;
             if (_completionMilestone != null)
-                StoryProgressionService.Instance?.Complete(_completionMilestone);
+                _storyProgression?.Complete(_completionMilestone);
         }
 
         private bool HasBeenRecorded()
         {
             return _completionMilestone != null
-                && StoryProgressionService.Instance != null
-                && StoryProgressionService.Instance.IsCompleted(_completionMilestone);
+                && _storyProgression != null
+                && _storyProgression.IsCompleted(_completionMilestone);
         }
 
         private bool IsProgressReached()
@@ -74,10 +80,10 @@ namespace Zephyr.Core.UI.Dialogue
             if (_saveData?.Meta == null) return false;
             if (_requireCompletedTutorial && !_saveData.Meta.HasCompletedTutorial) return false;
             if (_requiredFact != null
-                && (StoryProgressionService.Instance == null || !_requiredFact.ValueType.Equals(StoryFactValueType.Bool)
-                    || !StoryProgressionService.Instance.GetBool(_requiredFact))) return false;
+                && (_storyProgression == null || !_requiredFact.ValueType.Equals(StoryFactValueType.Bool)
+                    || !_storyProgression.GetBool(_requiredFact))) return false;
             if (_requiredMilestone != null
-                && (StoryProgressionService.Instance == null || !StoryProgressionService.Instance.IsCompleted(_requiredMilestone))) return false;
+                && (_storyProgression == null || !_storyProgression.IsCompleted(_requiredMilestone))) return false;
             if (_minimumRunStage >= 0 && (_saveData.CurrentRun == null || _saveData.CurrentRun.CurrentStage < _minimumRunStage)) return false;
             return true;
         }

@@ -2,38 +2,48 @@ using System;
 using System.Collections;
 
 using UnityEngine;
+using Zephyr.Contracts.Flow;
 using Zephyr.Core.Save;
 using Zephyr.Core.Meta;
 using Zephyr.Core.Events;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Levels;
 
 namespace Zephyr.Core.Flow.Scenes
 {
-    public sealed class LoadingRunController : MonoBehaviour
+public sealed class LoadingRunController : MonoBehaviour, IGameManagerDependencyConsumer
     {
         [SerializeField] private bool _resumeInterruptSave = true;
         [SerializeField] private SceneSO _firstRoomScene;
         [SerializeField] private SceneSO _loadingRunScene;
+
         private ISaveDataGateway _saveData;
+        private IGameFlowGateway _gameFlow;
+        private IGameFlowSceneGateway _sceneFlow;
+        private IEventBusGateway _eventBus;
 
-        private void OnEnable() => EventBus.Instance?.Subscribe<RoomEnteredInfo>(HandleRoomEntered);
-        private void OnDisable() => EventBus.Instance?.Unsubscribe<RoomEnteredInfo>(HandleRoomEntered);
-
-private IEnumerator Start()
+        public void Configure(IGameManagerServices services)
         {
-            // Direct-open scenes start before ColdStartup has loaded Persistent
-            // and GameManager. Do not abandon the run-entry path in that window.
-            yield return new WaitUntil(() => SaveSystem.Instance != null &&
-                GameFlow.Instance != null && GameFlow.Instance.CurrentState != GameState.Boot &&
-                GameManagerBootstrap.IsReady);
+            _saveData = services?.SaveData;
+            _gameFlow = services?.GameFlow;
+            _sceneFlow = services?.SceneFlow;
+            _eventBus = services?.EventBus;
+            if (isActiveAndEnabled) SubscribeEvents();
+        }
 
-            EventBus.Instance?.Unsubscribe<RoomEnteredInfo>(HandleRoomEntered);
-            EventBus.Instance?.Subscribe<RoomEnteredInfo>(HandleRoomEntered);
+        private void OnEnable() => SubscribeEvents();
+        private void OnDisable() => _eventBus?.Unsubscribe<RoomEnteredInfo>(HandleRoomEntered);
+        private void SubscribeEvents() => _eventBus?.Subscribe<RoomEnteredInfo>(HandleRoomEntered);
 
-            _saveData = SaveSystem.Instance;
+        private IEnumerator Start()
+        {
+            yield return new WaitUntil(() => _saveData != null && _gameFlow != null &&
+                _gameFlow.CurrentState != GameState.Boot && GameManagerBootstrap.IsReady);
+
+            _eventBus?.Unsubscribe<RoomEnteredInfo>(HandleRoomEntered);
+            SubscribeEvents();
+
             ISaveDataGateway save = _saveData;
-            // A confirmed MetaHub allocation always starts a fresh run. Resume loading
-            // is retained only for the interrupt-save path that has no pending entry choice.
             var run = _resumeInterruptSave && !RunEntryPotentialService.HasPending ? save.LoadRun() : null;
             if (run == null)
             {
@@ -45,13 +55,14 @@ private IEnumerator Start()
                 }
                 save.SaveRun();
             }
-            GameFlow.Instance?.RequestSceneLoad(_firstRoomScene, _loadingRunScene);
+
+            _sceneFlow?.RequestSceneLoad(_firstRoomScene, _loadingRunScene);
         }
 
         public void NotifyFirstRoomReady()
         {
-            if (GameFlow.Instance?.CurrentState == GameState.LoadingRun)
-                GameFlow.Instance.RequestTransition(GameState.InRun);
+            if (_gameFlow?.CurrentState == GameState.LoadingRun)
+                _gameFlow.RequestTransition(GameState.InRun);
         }
 
         private void HandleRoomEntered(RoomEnteredInfo info) => NotifyFirstRoomReady();

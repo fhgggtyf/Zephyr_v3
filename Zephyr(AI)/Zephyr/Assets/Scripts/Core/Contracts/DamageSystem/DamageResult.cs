@@ -17,7 +17,7 @@
  * Ch.Ref:   Ch.2.7 Core Data Structures (DamageResult), Ch.4.6-4.7 Pipeline & Shield.
  */
 
-namespace Zephyr.Core.DamageSystem
+namespace Zephyr.Contracts.Damage
 {
     /// <summary>
     /// Final result of a damage calculation, split between shield and health.

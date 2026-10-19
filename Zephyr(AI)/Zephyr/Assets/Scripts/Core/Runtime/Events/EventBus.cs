@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Core.Events
@@ -24,7 +25,7 @@ namespace Zephyr.Core.Events
     /// </summary>
     [DefaultExecutionOrder(-900)]
     [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
-    public sealed class EventBus : MonoBehaviour
+    public sealed class EventBus : MonoBehaviour, IEventBusGateway
     {
         private static EventBus _instance;
         public static EventBus Instance => _instance;

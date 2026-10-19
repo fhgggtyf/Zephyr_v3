@@ -1,0 +1,603 @@
+{
+  "version": 1,
+  "diagnosticAssemblies": [],
+  "assemblies": [
+    {
+      "name": "Zephyr.Architecture.Tests",
+      "references": []
+    },
+    {
+      "name": "Zephyr.Core.Audio",
+      "references": [
+        "Zephyr.Core.Runtime"
+      ]
+    },
+    {
+      "name": "Zephyr.Core.Camera",
+      "references": []
+    },
+    {
+      "name": "Zephyr.Core.Combat",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime"
+      ]
+    },
+    {
+      "name": "Zephyr.Core.Contracts",
+      "references": []
+    },
+    {
+      "name": "Zephyr.Core.Dialogue",
+      "references": [
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Flow",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Localization",
+        "Zephyr.Core.UI",
+        "Zephyr.Inputs",
+        "Unity.InputSystem",
+        "Unity.Localization"
+      ]
+    },
+    {
+      "name": "Zephyr.Core.Flow",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Localization",
+        "Zephyr.Core.UI"
+      ]
+    },
+    {
+      "name": "Zephyr.Core.Localization",
+      "references": [
+        "Zephyr.Core.Runtime",
+        "Unity.Localization"
+      ]
+    },
+    {
+      "name": "Zephyr.Core.Meta",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Persistence",
+        "Unity.Localization"
+      ]
+    },
+    {
+      "name": "Zephyr.Core.Persistence",
+      "references": [
+        "Zephyr.Core.Runtime"
+      ]
+    },
+    {
+      "name": "Zephyr.Core.Runtime",
+      "references": [
+        "Zephyr.Core.Contracts"
+      ]
+    },
+    {
+      "name": "Zephyr.Core.StateMachine",
+      "references": []
+    },
+    {
+      "name": "Zephyr.Core.StateMachine.Editor",
+      "references": [
+        "Zephyr.Core.StateMachine"
+      ]
+    },
+    {
+      "name": "Zephyr.Core.UI",
+      "references": []
+    },
+    {
+      "name": "Zephyr.Core.Weapons.Editor",
+      "references": [
+        "Zephyr.Weapons"
+      ]
+    },
+    {
+      "name": "Zephyr.Enemies",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.StateMachine"
+      ]
+    },
+    {
+      "name": "Zephyr.Enemies.Editor",
+      "references": [
+        "Zephyr.Enemies"
+      ]
+    },
+    {
+      "name": "Zephyr.Gameplay.Interaction",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Flow",
+        "Zephyr.Core.Localization",
+        "Zephyr.Core.UI",
+        "Unity.InputSystem"
+      ]
+    },
+    {
+      "name": "Zephyr.Inputs",
+      "references": [
+        "Unity.InputSystem"
+      ]
+    },
+    {
+      "name": "Zephyr.Items",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.Persistence"
+      ]
+    },
+    {
+      "name": "Zephyr.Player",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Flow",
+        "Zephyr.Core.Camera",
+        "Zephyr.Core.StateMachine",
+        "Zephyr.Core.Localization",
+        "Zephyr.Core.UI",
+        "Zephyr.Core.Dialogue",
+        "Zephyr.Inputs",
+        "Zephyr.UI",
+        "Zephyr.Weapons",
+        "Unity.InputSystem"
+      ]
+    },
+    {
+      "name": "Zephyr.Player.Editor",
+      "references": []
+    },
+    {
+      "name": "Zephyr.Projectiles",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat"
+      ]
+    },
+    {
+      "name": "Zephyr.Rooms",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Flow"
+      ]
+    },
+    {
+      "name": "Zephyr.Testing",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Player"
+      ]
+    },
+    {
+      "name": "Zephyr.Testing.Editor",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Localization",
+        "Zephyr.Player",
+        "Zephyr.Weapons",
+        "Zephyr.Testing",
+        "Zephyr.Gameplay.Interaction"
+      ]
+    },
+    {
+      "name": "Zephyr.Tests.EditMode",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Flow",
+        "Zephyr.Core.StateMachine"
+      ]
+    },
+    {
+      "name": "Zephyr.Tests.PlayMode",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Flow",
+        "Zephyr.Core.Camera",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.StateMachine",
+        "Zephyr.Core.Dialogue",
+        "Zephyr.Gameplay.Interaction",
+        "Zephyr.Rooms",
+        "Zephyr.Player",
+        "Zephyr.Enemies",
+        "Zephyr.Weapons",
+        "Zephyr.Items",
+        "Zephyr.Projectiles"
+      ]
+    },
+    {
+      "name": "Zephyr.UI",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.Localization"
+      ]
+    },
+    {
+      "name": "Zephyr.Weapons",
+      "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.Persistence"
+      ]
+    }
+  ],
+  "calls": [
+    {
+      "caller": "Zephyr.Core.Flow.ColdStartupBootstrap::CompleteDirectOpen()",
+      "target": "Zephyr.Core.Flow.GameFlow::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 2,
+      "owner": "Zephyr.Core.Flow.ColdStartupBootstrap::CompleteDirectOpen()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.ColdStartupBootstrap::EnsureSceneLoaded(Zephyr.Core.Flow.SceneSO,System.String)",
+      "target": "UnityEngine.SceneManagement.SceneManager::LoadSceneAsync",
+      "rule": "SceneLoad",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.ColdStartupBootstrap::EnsureSceneLoaded(Zephyr.Core.Flow.SceneSO,System.String)",
+      "reason": "Reviewed boundary allowance for SceneLoad.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed SceneLoad remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.ColdStartupBootstrap::PrepareDirectOpenState(System.Nullable`1<Zephyr.Contracts.Flow.GameState>)",
+      "target": "Zephyr.Core.Save.SaveSystem::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.ColdStartupBootstrap::PrepareDirectOpenState(System.Nullable`1<Zephyr.Contracts.Flow.GameState>)",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.ColdStartupBootstrap::Start()",
+      "target": "Zephyr.Core.Flow.GameFlow::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.ColdStartupBootstrap::Start()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.ColdStartupBootstrap::Start()",
+      "target": "Zephyr.Core.Flow.SceneLoader::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.ColdStartupBootstrap::Start()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.ColdStartupBootstrap::Update()",
+      "target": "Zephyr.Core.Flow.GameFlow::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.ColdStartupBootstrap::Update()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.ColdStartupBootstrap::Update()",
+      "target": "Zephyr.Core.Flow.SceneLoader::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 2,
+      "owner": "Zephyr.Core.Flow.ColdStartupBootstrap::Update()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.ColdStartupBootstrap::Update()",
+      "target": "Zephyr.Core.Save.SaveSystem::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.ColdStartupBootstrap::Update()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameFlow::Awake()",
+      "target": "Zephyr.Core.Save.SaveSystem::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameFlow::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameFlow::OnDestroy()",
+      "target": "Zephyr.Core.Flow.SceneLoader::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 2,
+      "owner": "Zephyr.Core.Flow.GameFlow::OnDestroy()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameFlow::ResolveCurrentScene(Zephyr.Contracts.Flow.GameState)",
+      "target": "Zephyr.Core.Stats.SceneStatsModifierController::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameFlow::ResolveCurrentScene(Zephyr.Contracts.Flow.GameState)",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameFlow::Start()",
+      "target": "Zephyr.Core.Flow.SceneLoader::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 2,
+      "owner": "Zephyr.Core.Flow.GameFlow::Start()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "target": "Zephyr.Core.Events.EventBus::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "target": "Zephyr.Core.Flow.GameFlow::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "target": "Zephyr.Core.Localization.LocalizationManager::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "target": "Zephyr.Core.Meta.StoryProgressionService::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "target": "Zephyr.Core.ObjectPool.PoolRegistry::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "target": "Zephyr.Core.Save.SaveSystem::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "target": "Zephyr.Core.Timer.TimerService::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.InitializerBootstrap::Start()",
+      "target": "UnityEngine.SceneManagement.SceneManager::LoadSceneAsync",
+      "rule": "SceneLoad",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.InitializerBootstrap::Start()",
+      "reason": "Reviewed boundary allowance for SceneLoad.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed SceneLoad remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.InitializerBootstrap::Start()",
+      "target": "Zephyr.Core.Flow.GameFlow::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 2,
+      "owner": "Zephyr.Core.Flow.InitializerBootstrap::Start()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "target": "Zephyr.Core.Events.EventBus::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "target": "Zephyr.Core.ObjectPool.PoolRegistry::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "target": "Zephyr.Core.Save.SaveSystem::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.PersistentBootstrap::Start()",
+      "target": "Zephyr.Core.Events.EventBus::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.PersistentBootstrap::Start()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.PersistentBootstrap::Start()",
+      "target": "Zephyr.Core.Meta.StoryProgressionService::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.PersistentBootstrap::Start()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.PersistentBootstrap::Start()",
+      "target": "Zephyr.Core.Timer.TimerService::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.PersistentBootstrap::Start()",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.SceneLoader::LoadSceneAsync(Zephyr.Core.Flow.SceneSO,UnityEngine.SceneManagement.LoadSceneMode)",
+      "target": "UnityEngine.SceneManagement.SceneManager::LoadSceneAsync",
+      "rule": "SceneLoad",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.SceneLoader::LoadSceneAsync(Zephyr.Core.Flow.SceneSO,UnityEngine.SceneManagement.LoadSceneMode)",
+      "reason": "Reviewed boundary allowance for SceneLoad.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed SceneLoad remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.SceneLoader::UnloadSceneAsync(Zephyr.Core.Flow.SceneSO)",
+      "target": "UnityEngine.SceneManagement.SceneManager::UnloadSceneAsync",
+      "rule": "SceneLoad",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.SceneLoader::UnloadSceneAsync(Zephyr.Core.Flow.SceneSO)",
+      "reason": "Reviewed boundary allowance for SceneLoad.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed SceneLoad remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Localization.LocalizedBehaviour::BindLocalization(System.Action`1<Zephyr.Core.Localization.LocaleId>)",
+      "target": "Zephyr.Core.Localization.LocalizationManager::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Localization.LocalizedBehaviour::BindLocalization(System.Action`1<Zephyr.Core.Localization.LocaleId>)",
+      "reason": "Reviewed boundary allowance for Singleton.",
+      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
+      "risk": "The reviewed Singleton remains an explicit architectural boundary or infrastructure entry point.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+

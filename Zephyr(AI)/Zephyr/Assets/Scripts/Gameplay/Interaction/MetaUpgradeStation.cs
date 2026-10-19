@@ -1,12 +1,12 @@
 using UnityEngine;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
+using Zephyr.Core.Flow.Scenes;
 using Zephyr.Core.Meta;
-using Zephyr.Core.Save;
 
 namespace Zephyr.Gameplay.Interaction
 {
     /// <summary>MetaHub station that opens the permanent Potential upgrade panel.</summary>
-    public sealed class MetaUpgradeStation : MonoBehaviour, IInteractable
+    public sealed class MetaUpgradeStation : MonoBehaviour, IInteractable, IMetaHubDependencyConsumer
     {
         [SerializeField] private GameObject _panelPrefab;
         [SerializeField] private MetaUpgradeSO[] _upgrades;
@@ -16,10 +16,7 @@ namespace Zephyr.Gameplay.Interaction
         public MetaUpgradeSO[] Upgrades => _upgrades;
         public IMetaGateway MetaGateway => _metaGateway;
 
-        private void Awake()
-        {
-            _metaGateway = new MetaGateway(SaveSystem.Instance);
-        }
+        public void Configure(IMetaGateway metaGateway) => _metaGateway = metaGateway;
 
         public bool CanInteract() => isActiveAndEnabled && _panel == null && _metaGateway?.HasMeta == true;
 

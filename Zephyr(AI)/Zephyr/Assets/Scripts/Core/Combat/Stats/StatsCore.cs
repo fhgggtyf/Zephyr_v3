@@ -3,14 +3,16 @@
  * ------------
  * Module:  Core / Stats
  * Purpose: Central stat container MonoBehaviour implementing IStatSource. Manages stat values
- *          with FOUR lifetime layers:
+ *          with five gameplay layers: PlayerBaseStats, MetaUpgrades, RunGains,
+ *          TimedModifiers, and SceneModifiers.
  *
  *          ==== LIFETIME MODEL ====
  *
  *          [Profile Lifetime — permanent, never reset]
- *          Layer 1a — Permanent Base:
- *              SetBase() → meta upgrades set Base permanently. Never reset.
- *              Stored in StatRecord.Base.
+ *          Layer 1 — PlayerBaseStats:
+ *              SetBase() stores the new player's permanent value before Meta upgrades.
+ *          Layer 2 — MetaUpgrades:
+ *              AddMetaBase()/AddMetaBasePercent() stores purchased permanent additions.
  *          Layer 1b — MetaStatType values:
  *              SetMetaStat() / AddMetaStat() → non-Potential permanent stats
  *              (crit chance, piercing, max shield, etc.). Never reset.
@@ -18,14 +20,14 @@
  *          [Run Lifetime — reset at run start]
  *          Potential — per-stat Potential values:
  *              InitializeRunPotentials() sets each stat's Potential for this run.
- *              Derived from player's total Potential budget (MetaStatType.PotentialBudget)
+ *              Derived from the player's total Potential budget (MetaUpgradeTarget.PotentialBudget)
  *              — some chosen by player, rest randomized. Re-rolled every run.
- *          Layer 2 — In-Run Gains (Potential-gated):
+ *          Layer 3 — In-Run Gains (Potential-gated):
  *              ApplyPotentialScaledGain() → relics, weapons, room rewards.
  *              actualGain = rawGain × (Potential / PotentialMax).
- *          Layer 3 — In-Run Modifiers:
+ *          Layer 4 — Timed Modifiers:
  *              AddModifier() / RemoveModifier() → room events, status effects.
- *          Category Multipliers — per-category multiplicative buffs:
+ *          Scene modifiers are applied last. Category multipliers are separate:
  *              SetCategoryMultiplier() = meta base (permanent, Layer 1)
  *              AddCategoryMultiplier() = in-run addend (run lifetime, Layer 2)
  *
@@ -35,10 +37,11 @@
  *              Expiry managed by external systems (Timer, StatusEffectManager).
  *
  *          ==== FORMULA ====
- *          GetStatValue(stat) = Base + RunGains + Modifiers + TempModifiers
+ *          additive = Base + MetaFlat + RunFlat + TimedFlat + SceneFlat
+ *          final = additive * (1 + MetaPercent + RunPercent + TimedPercent + ScenePercent)
+ *          Scene Override returns its value directly without recalculating lower layers.
  *
- *          All run-lifetime layers (Potential, RunGains, Modifiers, category addends,
- *          TempModifiers) are cleared by ResetForRunStart() at the start of each run.
+ *          Run-local layers are cleared by ResetForRunStart() at the start of each run.
  *          After ResetForRunStart(), call InitializeRunPotentials() to set the run's
  *          per-stat Potential values from the player's total budget.
  * Dependencies: IStatSource (interface), StatRecord (value type), StatType, MetaStatType,
@@ -51,7 +54,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Zephyr.Core;
 using Zephyr.Core.DamageSystem;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Damage;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Runtime.Stats;
 
 namespace Zephyr.Core.Stats
@@ -65,7 +69,7 @@ namespace Zephyr.Core.Stats
     ///   Temp:     Temporary Modifiers (timer/condition expiry)
     ///
     /// Potential is a per-run value (re-rolled each run from total budget).
-    /// The total Potential budget is stored in MetaStatType.PotentialBudget (permanent).
+    /// The total Potential budget is stored in MetaData.PotentialBudgetUpgrades (permanent).
     /// Per-stat Potential values are set via InitializeRunPotentials() at run start.
     /// </summary>
     public class StatsCore : MonoBehaviour, IStatSource, IMetaStatSource, IStatModifierTarget
@@ -79,22 +83,25 @@ namespace Zephyr.Core.Stats
         {
             _ownerRole = role;
         }
-        // StatRecord holds Base (permanent) + Potential (run-level).
+        // StatRecord holds PlayerBaseStats Base plus Potential for the current run.
         private readonly Dictionary<StatType, StatRecord> _stats = new Dictionary<StatType, StatRecord>();
 
-        // Run-lifetime in-run gains (Potential-gated)
+        // Permanent Meta additions to core stats, separate from PlayerBaseStats.
+        private readonly Dictionary<StatType, float> _metaBaseAdds = new Dictionary<StatType, float>();
+        private readonly Dictionary<StatType, float> _metaBasePercents = new Dictionary<StatType, float>();
+
+        // Run-lifetime additive and percentage layers.
         private readonly Dictionary<StatType, float> _runGains = new Dictionary<StatType, float>();
-
-        // Run-lifetime in-run modifiers (no Potential gating)
+        private readonly Dictionary<StatType, float> _runGainPercents = new Dictionary<StatType, float>();
         private readonly Dictionary<StatType, float> _modifiers = new Dictionary<StatType, float>();
-
-        // Temporary modifiers (timer/condition expiry)
+        private readonly Dictionary<StatType, float> _modifierPercents = new Dictionary<StatType, float>();
         private readonly Dictionary<StatType, float> _tempModifiers = new Dictionary<StatType, float>();
+        private readonly Dictionary<StatType, float> _temporaryModifierPercents = new Dictionary<StatType, float>();
 
-        // Meta-only stats (profile lifetime, no Potential)
+        // Meta-only stats (profile lifetime, no Potential).
         private readonly Dictionary<MetaStatType, float> _metaStats = new Dictionary<MetaStatType, float>();
 
-        // Category multipliers: meta base (permanent) + in-run addends (run lifetime)
+        // Category multipliers: meta base (permanent) + in-run addends (run lifetime).
         private readonly Dictionary<string, float> _categoryMetaBases = new Dictionary<string, float>();
         private readonly Dictionary<string, float> _categoryInRunAddends = new Dictionary<string, float>();
         private bool _isInitialized;
@@ -126,18 +133,28 @@ namespace Zephyr.Core.Stats
         }
 
         /// <summary>
-        /// Total stat value = Permanent Base + In-Run Gains + In-Run Modifiers + Temporary Modifiers.
+        /// Total stat value = Base + Meta + Run + Timed, with flat values summed before
+        /// percentage values. Scene modifiers are applied last; an Override short-circuits.
         /// Single source of truth for damage calculation (Ch.2.8).
         /// </summary>
         public float GetStatValue(StatType statType)
         {
             if (!_stats.ContainsKey(statType)) return 0f;
-            float value = _stats[statType].Base
-                 + _runGains.GetValueOrDefault(statType, 0f)
-                 + _modifiers.GetValueOrDefault(statType, 0f)
-                 + _tempModifiers.GetValueOrDefault(statType, 0f);
-            StatModifierRegistry.Apply(this, ref value, StatModifierTargetKind.CoreStat, statType, default, null);
-            return value;
+            if (StatModifierRegistry.TryGetOverride(this, StatModifierTargetKind.CoreStat, statType, default, null, out float overrideValue))
+                return overrideValue;
+
+            float additive = _stats[statType].Base
+                + _metaBaseAdds.GetValueOrDefault(statType, 0f)
+                + _runGains.GetValueOrDefault(statType, 0f)
+                + _modifiers.GetValueOrDefault(statType, 0f)
+                + _tempModifiers.GetValueOrDefault(statType, 0f);
+            float percent = _metaBasePercents.GetValueOrDefault(statType, 0f)
+                + _runGainPercents.GetValueOrDefault(statType, 0f)
+                + _modifierPercents.GetValueOrDefault(statType, 0f)
+                + _temporaryModifierPercents.GetValueOrDefault(statType, 0f);
+            StatModifierRegistry.Collect(this, StatModifierTargetKind.CoreStat, statType, default, null,
+                out float sceneAdditive, out float scenePercent);
+            return (additive + sceneAdditive) * (1f + percent + scenePercent);
         }
 
         /// <summary>
@@ -170,20 +187,31 @@ namespace Zephyr.Core.Stats
         /// Get the permanent base value for a stat (excluding run-gains, modifiers, etc.).
         /// Useful for meta upgrade calculations that need to know the underlying value.
         /// </summary>
-        public float GetBase(StatType statType)
+        public float GetMetaBaseAdd(StatType statType) => _metaBaseAdds.GetValueOrDefault(statType, 0f);
+        public float GetMetaBasePercent(StatType statType) => _metaBasePercents.GetValueOrDefault(statType, 0f);
+
+        public void AddMetaBase(StatType statType, float value)
         {
-            if (!_stats.ContainsKey(statType)) return 0f;
-            return _stats[statType].Base;
+            _metaBaseAdds[statType] = _metaBaseAdds.GetValueOrDefault(statType, 0f) + value;
+        }
+
+        public void AddMetaBasePercent(StatType statType, float value)
+        {
+            _metaBasePercents[statType] = _metaBasePercents.GetValueOrDefault(statType, 0f) + value;
         }
 
         #endregion
+        public float GetBase(StatType statType)
+        {
+            return _stats.GetValueOrDefault(statType).Base;
+        }
 
         #region Run-Level Potential (reset + re-rolled each run)
 
         /// <summary>
         /// Initialize per-stat Potential values for a new run. Called at run start
         /// after ResetForRunStart(). The total Potential budget is read from
-        /// MetaStatType.PotentialBudget (permanent, set by meta upgrades).
+        /// MetaUpgradeSystem.GetPotentialBudget() (permanent, set by meta upgrades).
         /// Parameters:
         ///   playerChosen — stat→potential pairs the player explicitly allocated
         ///   remainingBudget — leftover budget after player choices (will be randomized)
@@ -272,11 +300,20 @@ namespace Zephyr.Core.Stats
         /// actualGain = rawGain × (Potential / PotentialMax).
         /// Persists for the run — cleared on ResetForRunStart().
         /// </summary>
+        public void AddRunGainPercent(StatType statType, float value)
+        {
+            _runGainPercents[statType] = _runGainPercents.GetValueOrDefault(statType, 0f) + value;
+        }
+
+        public void RemoveRunGainPercent(StatType statType, float value)
+        {
+            _runGainPercents[statType] = _runGainPercents.GetValueOrDefault(statType, 0f) - value;
+        }
+
         public void ApplyPotentialScaledGain(StatType statType, float rawGain)
         {
             if (!_stats.ContainsKey(statType)) return;
-            var record = _stats[statType];
-            float scaled = record.GetScaledGain(rawGain);
+            float scaled = _stats[statType].GetScaledGain(rawGain);
             _runGains[statType] = _runGains.GetValueOrDefault(statType, 0f) + scaled;
         }
 
@@ -299,6 +336,16 @@ namespace Zephyr.Core.Stats
             _modifiers[statType] = _modifiers.GetValueOrDefault(statType, 0f) + value;
         }
 
+        public void AddModifierPercent(StatType statType, float value)
+        {
+            _modifierPercents[statType] = _modifierPercents.GetValueOrDefault(statType, 0f) + value;
+        }
+
+        public void RemoveModifierPercent(StatType statType, float value)
+        {
+            _modifierPercents[statType] = _modifierPercents.GetValueOrDefault(statType, 0f) - value;
+        }
+
         public void RemoveModifier(StatType statType, float value)
         {
             _modifiers[statType] = _modifiers.GetValueOrDefault(statType, 0f) - value;
@@ -316,6 +363,16 @@ namespace Zephyr.Core.Stats
         public void AddTemporaryModifier(StatType statType, float value)
         {
             _tempModifiers[statType] = _tempModifiers.GetValueOrDefault(statType, 0f) + value;
+        }
+
+        public void AddTemporaryModifierPercent(StatType statType, float value)
+        {
+            _temporaryModifierPercents[statType] = _temporaryModifierPercents.GetValueOrDefault(statType, 0f) + value;
+        }
+
+        public void RemoveTemporaryModifierPercent(StatType statType, float value)
+        {
+            _temporaryModifierPercents[statType] = _temporaryModifierPercents.GetValueOrDefault(statType, 0f) - value;
         }
 
         public void RemoveTemporaryModifier(StatType statType, float value)
@@ -361,9 +418,13 @@ namespace Zephyr.Core.Stats
             foreach (StatType key in System.Enum.GetValues(typeof(StatType)))
                 _modifiers[key] = 0f;
 
-            // Clear temporary modifiers
             foreach (StatType key in System.Enum.GetValues(typeof(StatType)))
+            {
+                _runGainPercents[key] = 0f;
+                _modifierPercents[key] = 0f;
+                _temporaryModifierPercents[key] = 0f;
                 _tempModifiers[key] = 0f;
+            }
 
             // Clear category in-run addends (meta bases preserved in _categoryMetaBases)
             foreach (string key in new List<string>(_categoryInRunAddends.Keys))
@@ -376,6 +437,8 @@ namespace Zephyr.Core.Stats
 
         public float GetMetaStat(MetaStatType statType)
         {
+            if (StatModifierRegistry.TryGetOverride(this, StatModifierTargetKind.MetaStat, default, statType, null, out float overrideValue))
+                return overrideValue;
             float value = _metaStats.GetValueOrDefault(statType, 0f);
             StatModifierRegistry.Apply(this, ref value, StatModifierTargetKind.MetaStat, default, statType, null);
             return value;
@@ -408,9 +471,10 @@ namespace Zephyr.Core.Stats
         /// </summary>
         public float GetCategoryMultiplier(string category)
         {
-            float metaBase = _categoryMetaBases.GetValueOrDefault(category, 0f);
-            float inRunAddend = _categoryInRunAddends.GetValueOrDefault(category, 0f);
-            float value = metaBase + inRunAddend;
+            if (StatModifierRegistry.TryGetOverride(this, StatModifierTargetKind.CategoryMultiplier, default, default, category, out float overrideValue))
+                return overrideValue;
+            float value = _categoryMetaBases.GetValueOrDefault(category, 0f)
+                + _categoryInRunAddends.GetValueOrDefault(category, 0f);
             StatModifierRegistry.Apply(this, ref value, StatModifierTargetKind.CategoryMultiplier, default, default, category);
             return value;
         }

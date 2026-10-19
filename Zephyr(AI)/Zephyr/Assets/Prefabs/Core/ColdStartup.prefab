@@ -42,8 +42,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3000000000000000000000000000010, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Flow.ColdStartupBootstrap
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Core.Flow::Zephyr.Core.Flow.ColdStartupBootstrap
   _persistentScene: {fileID: 11400000, guid: f3000000000000000000000000000002, type: 2}
   _gameManagerScene: {fileID: 11400000, guid: f3000000000000000000000000000003, type: 2}
   _loadGameManager: 1

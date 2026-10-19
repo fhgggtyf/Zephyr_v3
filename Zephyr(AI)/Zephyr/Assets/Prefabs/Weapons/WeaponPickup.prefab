@@ -226,7 +226,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.64, y: 0.64}
+    oldSize: {x: 2, y: 2}
     newSize: {x: 0.64, y: 0.64}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -245,7 +245,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 214ef733900caee48bf9467dbf697445, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.ObjectPool.PooledObject
+  m_EditorClassIdentifier: Zephyr.Core.Runtime::Zephyr.Core.ObjectPool.PooledObject
 --- !u!114 &2127814254194383561
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,8 +257,11 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3d1958818e89dbe4fa40ad722dfb9d6c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Items.WeaponPickup
+  m_EditorClassIdentifier: Zephyr.Weapons::Zephyr.Core.Items.WeaponPickup
   _weapon: {fileID: 11400000, guid: 44e093bf053cc9c49aa9fb070f55aa2f, type: 2}
+  _weaponCatalog:
+  - {fileID: 11400000, guid: 44e093bf053cc9c49aa9fb070f55aa2f, type: 2}
+  - {fileID: 11400000, guid: 5f6fd47ed70b4ab48b626b55c13058dc, type: 2}
   _iconRenderer: {fileID: 494100208696442769}
   _glowRenderer: {fileID: 4493835753870659021}
   _visualRoot: {fileID: 8510151695222745626}

@@ -11,22 +11,20 @@ namespace Zephyr.Core.Meta
                 && meta.UnlockedMechanics.Contains(mechanicId);
         }
 
-        public static bool IsUnlocked(string mechanicId)
-            => IsUnlocked(mechanicId, new MetaGateway(SaveSystem.Instance));
-
-        public static bool CanPurchase(MechanicUnlockSO unlock, MetaData meta)
+        public static bool CanPurchase(MechanicUnlockSO unlock, MetaData meta,
+            IStoryProgressionGateway storyProgression)
         {
             if (unlock == null || meta == null || string.IsNullOrWhiteSpace(unlock.Id)) return false;
             if (meta.UnlockedMechanics.Contains(unlock.Id) || meta.MetaCurrency < unlock.Cost) return false;
             return string.IsNullOrWhiteSpace(unlock.RequiredFactId)
-                || (StoryProgressionService.Instance != null
-                    && StoryProgressionService.Instance.GetBool(unlock.RequiredFactId));
+                || storyProgression?.GetBool(unlock.RequiredFactId) == true;
         }
 
         public static bool Purchase(MechanicUnlockSO unlock, MetaData meta,
-            IMetaGateway metaGateway, bool saveImmediately = true)
+            IMetaGateway metaGateway, IStoryProgressionGateway storyProgression,
+            bool saveImmediately = true)
         {
-            if (!CanPurchase(unlock, meta)) return false;
+            if (!CanPurchase(unlock, meta, storyProgression)) return false;
             meta.MetaCurrency -= unlock.Cost;
             meta.UnlockedMechanics.Add(unlock.Id);
             if (saveImmediately && metaGateway?.Meta == meta)

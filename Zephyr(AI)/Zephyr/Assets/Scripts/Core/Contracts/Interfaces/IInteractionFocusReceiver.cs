@@ -1,4 +1,4 @@
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Optional visual focus contract for interactables selected by the player.

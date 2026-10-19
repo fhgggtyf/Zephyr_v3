@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Core.Weapons
 {
@@ -49,7 +49,7 @@ namespace Zephyr.Core.Weapons
             UpdateWeaponSpriteFacing();
         }
 
-        public void Equip(WeaponSO weapon, GameObject owner, IStatSource statSource)
+public void Equip(WeaponSO weapon, GameObject owner, IStatSource statSource)
         {
             CancelAttack();
             m_equippedWeapon = weapon;
@@ -70,8 +70,11 @@ namespace Zephyr.Core.Weapons
             {
                 m_animator.speed = 1f;
                 m_animator.runtimeAnimatorController = weapon != null ? weapon.AnimatorController : null;
-                m_animator.ResetTrigger(k_attackTriggerParameter);
-                m_animator.SetInteger(k_attackIndexParameter, 0);
+                if (m_animator.runtimeAnimatorController != null)
+                {
+                    m_animator.ResetTrigger(k_attackTriggerParameter);
+                    m_animator.SetInteger(k_attackIndexParameter, 0);
+                }
             }
         }
 

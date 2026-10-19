@@ -3,8 +3,9 @@ using UnityEngine;
 using Zephyr.Core;
 using Zephyr.Core.Combat;
 using Zephyr.Core.DamageSystem;
+using Zephyr.Contracts.Damage;
 using Zephyr.Core.Health;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Gameplay.Enemies
 {

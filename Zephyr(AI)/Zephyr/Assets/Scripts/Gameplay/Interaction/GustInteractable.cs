@@ -1,6 +1,7 @@
 using UnityEngine;
-using Zephyr.Core.Events;
-using Zephyr.Core.Interfaces;
+using System.Collections.Generic;
+using Zephyr.Contracts.Events;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Gameplay.Interaction
 {
@@ -8,14 +9,26 @@ namespace Zephyr.Gameplay.Interaction
     /// Interactable gust launcher. Destination is authored as a child Transform
     /// in the prefab so level designers can reposition it without code changes.
     /// </summary>
-    public sealed class GustInteractable : MonoBehaviour, IInteractable
+    public sealed class GustInteractable : MonoBehaviour, IInteractable, IPlayerTargetContextConsumer
     {
         [SerializeField] private Transform _destination;
         [SerializeField] private float _minimumDistance = 0.05f;
         private GameObject _player;
         private bool _subscribedToPlayerTarget;
+        private IPlayerTargetContext _playerTargetContext;
+        private readonly List<IGustJumpReceiver> _receivers = new List<IGustJumpReceiver>();
 
         public Transform Destination => _destination;
+
+        public void Configure(IPlayerTargetContext context)
+        {
+            if (_subscribedToPlayerTarget) _playerTargetContext?.UnsubscribePlayerTarget(HandlePlayerTargetChanged);
+            _playerTargetContext = context;
+            _subscribedToPlayerTarget = false;
+            _player = null;
+            _receivers.Clear();
+            if (isActiveAndEnabled) SubscribeToPlayerTarget();
+        }
 
         private void OnEnable()
         {
@@ -29,22 +42,29 @@ namespace Zephyr.Gameplay.Interaction
 
         private void OnDisable()
         {
-            if (_subscribedToPlayerTarget && EventBus.Instance != null)
-                EventBus.Instance.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            if (_subscribedToPlayerTarget) _playerTargetContext?.UnsubscribePlayerTarget(HandlePlayerTargetChanged);
             _subscribedToPlayerTarget = false;
             _player = null;
+            _receivers.Clear();
         }
 
         private void SubscribeToPlayerTarget()
         {
-            if (EventBus.Instance == null) return;
-            EventBus.Instance.Subscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            if (_playerTargetContext == null || _subscribedToPlayerTarget) return;
+            _playerTargetContext.SubscribePlayerTarget(HandlePlayerTargetChanged);
             _subscribedToPlayerTarget = true;
-            if (EventBus.Instance.TryGetLatest(out PlayerTargetChangedEvent current))
+            if (_playerTargetContext.TryGetLatestPlayerTarget(out PlayerTargetChangedEvent current))
                 HandlePlayerTargetChanged(current);
         }
 
-        private void HandlePlayerTargetChanged(PlayerTargetChangedEvent change) => _player = change.Player;
+        private void HandlePlayerTargetChanged(PlayerTargetChangedEvent change)
+        {
+            _player = change.Player;
+            _receivers.Clear();
+            if (_player == null) return;
+            foreach (MonoBehaviour behaviour in _player.GetComponentsInChildren<MonoBehaviour>(true))
+                if (behaviour is IGustJumpReceiver receiver) _receivers.Add(receiver);
+        }
 
         public bool CanInteract()
         {
@@ -55,20 +75,18 @@ namespace Zephyr.Gameplay.Interaction
         public void OnInteract()
         {
             if (_destination == null) return;
-            IGustJumpReceiver receiver = FindReceiver(_player);
+            IGustJumpReceiver receiver = FindReceiver();
             if (receiver == null || _player == null ||
                 Vector2.Distance(_player.transform.position, _destination.position) < _minimumDistance) return;
             receiver.RequestGustJump(_destination);
         }
 
-        private IGustJumpReceiver FindReceiver(GameObject player = null)
+        private IGustJumpReceiver FindReceiver()
         {
-            if (player == null) return null;
-
-            MonoBehaviour[] behaviours = player.GetComponentsInChildren<MonoBehaviour>(true);
-            foreach (MonoBehaviour behaviour in behaviours)
+            if (_player == null) return null;
+            foreach (IGustJumpReceiver receiver in _receivers)
             {
-                if (behaviour is IGustJumpReceiver receiver && receiver.CanRequestGustJump)
+                if (receiver is MonoBehaviour behaviour && behaviour != null && receiver.CanRequestGustJump)
                     return receiver;
             }
 

@@ -13,15 +13,15 @@
     .board-shell{position:relative;width:min(100%,2200px);min-height:0;flex:1;margin:0 auto;overflow:hidden;border:1px solid #cbd5e1;border-radius:16px;background:var(--canvas);box-shadow:0 18px 48px rgba(15,23,42,.14);cursor:grab;touch-action:none}.board-shell.panning{cursor:grabbing}.world{position:absolute;left:0;top:0;width:2300px;height:1430px;transform-origin:0 0;background-color:#f8fafc;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px}.world>svg{position:absolute;inset:0;width:2300px;height:1430px;overflow:visible;pointer-events:none}
     .lane{position:absolute;border:1px dashed #cbd5e1;border-radius:16px;background:rgba(255,255,255,.54);pointer-events:none}.lane-title{position:absolute;left:18px;top:12px;color:#475569;font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
     .node-card{position:absolute;width:216px;min-height:82px;padding:12px 13px 11px;border:2px solid;border-radius:12px;box-shadow:0 5px 11px rgba(15,23,42,.1);cursor:move;user-select:none;transition:opacity 140ms ease,border-color 140ms ease,box-shadow 140ms ease,transform 140ms ease}.node-card:hover,.node-card:focus-visible{border-color:var(--selected);box-shadow:0 9px 18px rgba(37,99,235,.2);outline:none}.node-card.active{border-color:var(--selected);box-shadow:0 11px 22px rgba(37,99,235,.26);transform:translateY(-2px)}.node-card.muted{opacity:.19}.node-title{margin-bottom:6px;font-size:14px;font-weight:800;line-height:1.1}.node-detail{color:currentColor;opacity:.8;font-size:11px;line-height:1.35}.external{color:#172033;background:#f1f5f9;border-color:#64748b}.lifecycle{color:#14532d;background:#dcfce7;border-color:#15803d}.service{color:#172554;background:#dbeafe;border-color:#2563eb}.gameplay{color:#134e4a;background:#ccfbf1;border-color:#0f766e}.contract{color:#3b0764;background:#ede9fe;border-color:#7c3aed;border-style:dashed}.config{color:#78350f;background:#fef3c7;border-color:#b45309}.risk{color:#7f1d1d;background:#fee2e2;border-color:#dc2626;border-style:dashed}.planned{color:#7c2d12;background:#ffedd5;border-color:#ea580c;border-style:dashed}.test{color:#134e4a;background:#ccfbf1;border-color:#0f766e}
-    .edge{pointer-events:auto;cursor:pointer}.edge path.visible{fill:none;stroke:var(--line);stroke-width:2.2;marker-end:url(#arrow);transition:opacity 140ms ease,stroke 140ms ease,stroke-width 140ms ease}.edge.dashed path.visible{stroke-dasharray:8 7}.edge path.hit{fill:none;stroke:transparent;stroke-width:18;pointer-events:stroke}.edge text{fill:#475569;font-size:10px;paint-order:stroke;stroke:#f8fafc;stroke-width:5px;stroke-linejoin:round;pointer-events:none}.edge:hover path.visible,.edge:focus path.visible{stroke:var(--selected);stroke-width:3.5}.edge.active path.visible{stroke:var(--selected);stroke-width:5}.edge.muted path.visible,.edge.muted text{opacity:.1}.footer{color:var(--muted);font-size:11px}@media(max-width:1100px){body{min-width:0}.app{padding:12px}.header{flex-direction:column}.status{width:100%;min-width:0}}
+    .edge{pointer-events:auto;cursor:pointer}.edge path.visible{fill:none;stroke:var(--line);stroke-width:2.2;marker-end:url(#arrow);pointer-events:stroke;transition:opacity 140ms ease,stroke 140ms ease,stroke-width 140ms ease}.edge.dashed path.visible{stroke-dasharray:8 7}.edge path.hit{fill:none;stroke:transparent;stroke-width:18;pointer-events:none}.edge text{fill:#475569;font-size:10px;paint-order:stroke;stroke:#f8fafc;stroke-width:5px;stroke-linejoin:round;pointer-events:none}.edge:hover path.visible,.edge:focus path.visible{stroke:var(--selected);stroke-width:3.5}.edge.active path.visible{stroke:var(--selected);stroke-width:5}.edge.muted path.visible,.edge.muted text{opacity:.1}.footer{color:var(--muted);font-size:11px}@media(max-width:1100px){body{min-width:0}.app{padding:12px}.header{flex-direction:column}.status{width:100%;min-width:0}}
   </style>
 </head>
 <body>
   <main class="app">
     <header class="header"><div><h1>Zephyr System Context Board</h1><p class="subtitle">A Miro-style architecture board with grouped lanes, orthogonal connectors, draggable cards, and relationship focus.</p></div><div class="status" aria-live="polite"><strong id="selection-title">No relationship selected</strong><span id="selection-detail">Click a connector to highlight its two linked components. Drag cards or empty space to inspect the board.</span></div></header>
-    <div class="toolbar"><div class="controls"><button id="reset-button" type="button">Reset Highlight</button><button id="reset-view" type="button">Reset View</button><button id="zoom-out" type="button" aria-label="Zoom out">−</button><button id="zoom-reset" type="button">82%</button><button id="zoom-in" type="button" aria-label="Zoom in">+</button></div><div class="legend" aria-label="Diagram legend"><span class="legend-item"><span class="legend-mark" style="color:#15803d"></span>Implemented</span><span class="legend-item"><span class="legend-mark" style="color:#2563eb"></span>Service</span><span class="legend-item"><span class="legend-mark contract"></span>Contract</span><span class="legend-item"><span class="legend-mark risk"></span>Legacy debt</span><span class="legend-item"><span class="legend-mark planned"></span>Planned / partial</span><span class="legend-item"><span class="legend-line"></span>Current</span><span class="legend-item"><span class="legend-line dashed"></span>Legacy / planned</span><span class="legend-item"><span class="legend-line active"></span>Selected</span></div></div>
-    <section class="board-shell" id="board-shell" aria-label="Interactive system context board"><div class="world" id="world"><svg id="edges-svg" viewBox="0 0 2300 1430" role="img" aria-labelledby="diagram-title diagram-description"><title id="diagram-title">Zephyr current system context</title><desc id="diagram-description">A board layout of Zephyr runtime lifecycle, services, gameplay modules, contracts, configuration and architecture risks.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"></path></marker></defs><g id="edges-layer"></g></svg><div id="lanes-layer"></div><div id="nodes-layer"></div></div></section>
-    <footer class="footer">Solid connectors are current relationships. Dashed connectors are legacy coupling, incomplete adapters, or planned replacement paths. Drag empty space to pan and cards to reposition them.</footer>
+    <div class="toolbar"><div class="controls"><button id="reset-button" type="button">Reset Highlight</button><button id="reset-view" type="button">Reset View</button><button id="zoom-out" type="button" aria-label="Zoom out">−</button><button id="zoom-reset" type="button">82%</button><button id="zoom-in" type="button" aria-label="Zoom in">+</button></div><div class="legend" aria-label="Diagram legend"><span class="legend-item"><span class="legend-mark" style="color:#15803d"></span>Implemented</span><span class="legend-item"><span class="legend-mark" style="color:#2563eb"></span>Service</span><span class="legend-item"><span class="legend-mark contract"></span>Contract</span><span class="legend-item"><span class="legend-mark risk"></span>Legacy debt / closed</span><span class="legend-item"><span class="legend-mark planned"></span>Governed / follow-up</span><span class="legend-item"><span class="legend-line"></span>Current</span><span class="legend-item"><span class="legend-line dashed"></span>Governed / planned</span><span class="legend-item"><span class="legend-line active"></span>Selected</span></div></div>
+    <section class="board-shell" id="board-shell" aria-label="Interactive system context board"><div class="world" id="world"><svg id="edges-svg" viewBox="0 0 2300 1430" role="img" aria-labelledby="diagram-title diagram-description"><title id="diagram-title">Zephyr current system context</title><desc id="diagram-description">A board layout of Zephyr runtime lifecycle, services, gameplay modules, contracts, configuration, governed boundaries and architecture follow-up work.</desc><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"></path></marker></defs><g id="edges-layer"></g></svg><div id="lanes-layer"></div><div id="nodes-layer"></div></div></section>
+    <footer class="footer">Solid connectors are current relationships. Dashed connectors are governed boundaries or planned follow-up paths. Drag empty space to pan and cards to reposition them.</footer>
   </main>
   <script>
     const board=document.getElementById('board-shell'),world=document.getElementById('world'),nodesLayer=document.getElementById('nodes-layer'),lanesLayer=document.getElementById('lanes-layer'),edgesLayer=document.getElementById('edges-layer'),selectionTitle=document.getElementById('selection-title'),selectionDetail=document.getElementById('selection-detail');
@@ -32,7 +32,7 @@
       {x:28,y:350,w:2244,h:166,title:'Runtime Services'},
       {x:28,y:540,w:2244,h:176,title:'Gameplay Modules'},
       {x:28,y:740,w:2244,h:176,title:'Contracts and Configuration'},
-      {x:28,y:940,w:2244,h:176,title:'Known Gaps and Architecture Risks'}
+      {x:28,y:940,w:2244,h:176,title:'Governed Boundaries and Follow-up'}
     ];
     const nodes=[
       {id:'player',x:62,y:70,kind:'external',title:'Player',detail:'External actor'},
@@ -42,7 +42,7 @@
       {id:'localizationPackage',x:1110,y:70,kind:'external',title:'Localization Package',detail:'Unity Localization'},
       {id:'fileStorage',x:1372,y:70,kind:'external',title:'Local Save Storage',detail:'Persistent files'},
       {id:'sceneRuntime',x:1634,y:70,kind:'external',title:'Unity SceneManager',detail:'Scene runtime'},
-      {id:'testRunner',x:1896,y:70,kind:'external',title:'Unity Test Runner',detail:'Discovery / execution unstable'},
+      {id:'testRunner',x:1896,y:70,kind:'external',title:'Unity Test Runner',detail:'59 architecture/EditMode + 1 PlayMode passed'},
       {id:'initializer',x:80,y:232,kind:'lifecycle',title:'Initializer',detail:'Single-load authority'},
       {id:'persistent',x:510,y:232,kind:'lifecycle',title:'Persistent Scene',detail:'Session lifetime'},
       {id:'mainMenu',x:940,y:232,kind:'lifecycle',title:'Main Menu',detail:'Menu lifetime'},
@@ -56,31 +56,34 @@
       {id:'gameFlow',x:1350,y:410,kind:'service',title:'GameFlow',detail:'GameState / transitions'},
       {id:'cameraController',x:1620,y:410,kind:'service',title:'CameraController',detail:'Cinemachine / bounds / shake'},
       {id:'combatServices',x:1890,y:410,kind:'service',title:'Combat Services',detail:'Damage / hit processing'},
-      {id:'playerModule',x:80,y:600,kind:'gameplay',title:'Player Module',detail:'Spawner / Runtime / Death / Respawn'},
-      {id:'enemyModule',x:410,y:600,kind:'gameplay',title:'Enemies Module',detail:'EnemyBrain / StateMachine / Boss'},
-      {id:'weaponModule',x:740,y:600,kind:'gameplay',title:'Weapons Module',detail:'WeaponSO / Runtime / Components'},
-      {id:'itemModule',x:1070,y:600,kind:'gameplay',title:'Items and Drops',detail:'DropTables / Pickups'},
-      {id:'roomModule',x:1400,y:600,kind:'gameplay',title:'Rooms and Levels',detail:'SceneSO / Objectives / Interactables'},
-      {id:'uiModule',x:1730,y:600,kind:'gameplay',title:'UI and Presentation',detail:'Menu / HUD / Death / Stats'},
+      {id:'playerModule',x:62,y:600,kind:'gameplay',title:'Player Module',detail:'15 assembly references · runtime facade'},
+      {id:'enemyModule',x:332,y:600,kind:'gameplay',title:'Enemies Module',detail:'EnemyBrain / StateMachine / Boss / drops'},
+      {id:'weaponModule',x:602,y:600,kind:'gameplay',title:'Weapons Module',detail:'WeaponSO / Runtime / Components'},
+      {id:'itemModule',x:872,y:600,kind:'gameplay',title:'Items and Drops',detail:'DropTables / pooled Pickups / Context'},
+      {id:'roomModule',x:1142,y:600,kind:'gameplay',title:'Rooms and Levels',detail:'SceneSO / Objectives / Camera zones'},
+      {id:'interactionModule',x:1412,y:600,kind:'gameplay',title:'Interaction Module',detail:'World interaction / Meta / Run UI'},
+      {id:'dialogueModule',x:1682,y:600,kind:'gameplay',title:'Dialogue Module',detail:'Data / Session / View / Input bridge'},
+      {id:'uiModule',x:1952,y:600,kind:'gameplay',title:'UI and Presentation',detail:'Menu / HUD / Stats / Localization'},
       {id:'gatewayContracts',x:80,y:800,kind:'contract',title:'Gateway Contracts',detail:'GameFlow / Respawn / Save / Localization'},
       {id:'domainContracts',x:410,y:800,kind:'contract',title:'Domain Contracts',detail:'Level objectives / gust jump receiver'},
       {id:'runtimeEvents',x:740,y:800,kind:'contract',title:'Runtime Events',detail:'Player target changes / scene requests'},
       {id:'stateMachine',x:1070,y:800,kind:'contract',title:'StateMachine',detail:'Locked shared infrastructure'},
       {id:'scriptableObjects',x:1400,y:800,kind:'config',title:'ScriptableObject Config',detail:'Scene / Weapon / Enemy / Drop / Player'},
       {id:'localizationAssets',x:1730,y:800,kind:'config',title:'Localization Assets',detail:'English and Chinese tables / locales'},
-      {id:'migrationBridges',x:80,y:1000,kind:'risk',title:'Migration Bridges',detail:'Enemies -> Items / Weapons · Items -> Weapons'},
-      {id:'singletonDebt',x:410,y:1000,kind:'risk',title:'Legacy Singleton Access',detail:'Remaining in UI / Meta / Pickup paths'},
-      {id:'partialContracts',x:740,y:1000,kind:'planned',title:'Partial Contracts',detail:'Some interfaces lack complete adapters'},
-      {id:'coreSplit',x:1070,y:1000,kind:'planned',title:'Planned Core Split',detail:'Contracts / Flow / Persistence / Combat'},
-      {id:'architectureGates',x:1400,y:1000,kind:'test',title:'Architecture Gates',detail:'Static checks present'},
-      {id:'testExecutionGap',x:1730,y:1000,kind:'planned',title:'Test Execution Gap',detail:'Independent runner evidence unstable'},
-      {id:'rewardContract',x:1730,y:1100,kind:'planned',title:'Reward / Drop Contract',detail:'Planned; no complete implementation'}
+      {id:'migrationBridges',x:80,y:1000,kind:'test',title:'Legacy Core Bridge (Closed)',detail:'0 runtime consumers · policy enforced'},
+      {id:'singletonDebt',x:410,y:1000,kind:'planned',title:'Governed Composition Roots',detail:'Startup roots + localization adapter are policy-reviewed'},
+      {id:'partialContracts',x:740,y:1000,kind:'planned',title:'Architecture Optimization Backlog',detail:'Player 15 · Dialogue 10 · Interaction 8 references'},
+      {id:'coreSplit',x:1070,y:1000,kind:'planned',title:'Next Architecture Work',detail:'Localization injection / Dialogue split / Player facade'},
+      {id:'architectureGates',x:1400,y:1000,kind:'test',title:'Architecture Gates',detail:'59 + 1 tests · 0 Console errors'},
+      {id:'testExecutionGap',x:1730,y:1000,kind:'planned',title:'Scene Validation Follow-up',detail:'Confirm Audio Listener owner in vertical slice'},
+      {id:'rewardContract',x:1730,y:1100,kind:'test',title:'Independent Score',detail:'9.2 / 10 · 22 runtime assemblies'}
     ];
     const initialNodePositions=Object.fromEntries(nodes.map(node=>[node.id,{x:node.x,y:node.y}]));
     const edges=[
       {id:'designer-initializer',from:'designer',to:'initializer',label:'configures',fromPort:'bottom',toPort:'top'},
       {id:'runtime-initializer',from:'unityRuntime',to:'initializer',label:'runs',fromPort:'bottom',toPort:'top'},
       {id:'input-player',from:'inputSystem',to:'playerModule',label:'input',fromPort:'bottom',toPort:'top'},
+      {id:'input-dialogue',from:'inputSystem',to:'dialogueModule',label:'dialogue input',fromPort:'bottom',toPort:'top'},
       {id:'localization-provider',from:'localizationPackage',to:'localizationManager',label:'provider',fromPort:'bottom',toPort:'top'},
       {id:'storage-save',from:'fileStorage',to:'saveSystem',label:'read / write',fromPort:'bottom',toPort:'top'},
       {id:'scene-runtime-loader',from:'sceneRuntime',to:'sceneLoader',label:'executes',fromPort:'bottom',toPort:'top'},
@@ -101,11 +104,14 @@
       {id:'loader-scenes',from:'sceneLoader',to:'gameplayScenes',label:'additive load',fromPort:'top',toPort:'bottom'},
       {id:'events-player',from:'eventBus',to:'playerModule',label:'lifecycle events',fromPort:'bottom',toPort:'top'},
       {id:'events-ui',from:'eventBus',to:'uiModule',label:'presentation events',fromPort:'right',toPort:'top'},
+      {id:'events-interaction',from:'eventBus',to:'interactionModule',label:'world events',fromPort:'bottom',toPort:'top'},
+      {id:'events-dialogue',from:'eventBus',to:'dialogueModule',label:'dialogue events',fromPort:'right',toPort:'top'},
       {id:'events-items',from:'eventBus',to:'itemModule',label:'target events',fromPort:'bottom',toPort:'top'},
       {id:'save-player',from:'saveSystem',to:'playerModule',label:'run state',fromPort:'bottom',toPort:'top'},
       {id:'save-items',from:'saveSystem',to:'itemModule',label:'rewards',fromPort:'bottom',toPort:'top'},
       {id:'save-ui',from:'saveSystem',to:'uiModule',label:'slot / run data',fromPort:'right',toPort:'top'},
       {id:'localization-ui',from:'localizationManager',to:'uiModule',label:'localized text',fromPort:'right',toPort:'top'},
+      {id:'localization-dialogue',from:'localizationManager',to:'dialogueModule',label:'localized lines',fromPort:'right',toPort:'top'},
       {id:'camera-player',from:'cameraController',to:'playerModule',label:'follow / framing',fromPort:'bottom',toPort:'top'},
       {id:'combat-player',from:'combatServices',to:'playerModule',label:'damage / hit',fromPort:'bottom',toPort:'top'},
       {id:'combat-enemies',from:'combatServices',to:'enemyModule',label:'damage / hit',fromPort:'bottom',toPort:'top'},
@@ -115,6 +121,10 @@
       {id:'enemies-state-machine',from:'enemyModule',to:'stateMachine',label:'uses',fromPort:'bottom',toPort:'top'},
       {id:'rooms-loader',from:'roomModule',to:'sceneLoader',label:'scene requests',fromPort:'top',toPort:'right'},
       {id:'rooms-player',from:'roomModule',to:'playerModule',label:'objectives',fromPort:'left',toPort:'right'},
+      {id:'rooms-interaction',from:'roomModule',to:'interactionModule',label:'room context',fromPort:'right',toPort:'left'},
+      {id:'interaction-flow',from:'interactionModule',to:'gameFlow',label:'requests',fromPort:'top',toPort:'bottom'},
+      {id:'interaction-contracts',from:'interactionModule',to:'gatewayContracts',label:'uses',fromPort:'bottom',toPort:'top'},
+      {id:'dialogue-contracts',from:'dialogueModule',to:'gatewayContracts',label:'uses',fromPort:'bottom',toPort:'top'},
       {id:'ui-contracts',from:'uiModule',to:'gatewayContracts',label:'uses',fromPort:'bottom',toPort:'right'},
       {id:'ui-events',from:'uiModule',to:'runtimeEvents',label:'subscribes',fromPort:'bottom',toPort:'top'},
       {id:'config-player',from:'scriptableObjects',to:'playerModule',label:'configures',fromPort:'top',toPort:'bottom'},
@@ -129,19 +139,17 @@
       {id:'flow-gateway',from:'gameFlow',to:'gatewayContracts',label:'implements',fromPort:'bottom',toPort:'top'},
       {id:'save-gateway',from:'saveSystem',to:'gatewayContracts',label:'implements',fromPort:'bottom',toPort:'top'},
       {id:'localization-gateway',from:'localizationManager',to:'gatewayContracts',label:'implements',fromPort:'bottom',toPort:'top'},
-      {id:'enemies-bridge',from:'enemyModule',to:'migrationBridges',label:'legacy dependency',fromPort:'bottom',toPort:'top',dashed:true},
-      {id:'items-bridge',from:'itemModule',to:'migrationBridges',label:'legacy dependency',fromPort:'bottom',toPort:'top',dashed:true},
-      {id:'bridge-weapons',from:'migrationBridges',to:'weaponModule',label:'temporary coupling',fromPort:'top',toPort:'bottom',dashed:true},
-      {id:'singleton-ui',from:'singletonDebt',to:'uiModule',label:'remaining paths',fromPort:'top',toPort:'bottom',dashed:true},
-      {id:'singleton-player',from:'singletonDebt',to:'playerModule',label:'remaining paths',fromPort:'top',toPort:'bottom',dashed:true},
-      {id:'partial-gateways',from:'partialContracts',to:'gatewayContracts',label:'incomplete adapters',fromPort:'top',toPort:'bottom',dashed:true},
-      {id:'core-split-services',from:'coreSplit',to:'persistent',label:'future split',fromPort:'top',toPort:'bottom',dashed:true},
-      {id:'core-split-game',from:'coreSplit',to:'gameManager',label:'future split',fromPort:'top',toPort:'bottom',dashed:true},
-      {id:'gates-migration',from:'architectureGates',to:'migrationBridges',label:'guards',fromPort:'left',toPort:'right'},
-      {id:'gates-singletons',from:'architectureGates',to:'singletonDebt',label:'guards',fromPort:'left',toPort:'right'},
+      {id:'singleton-ui',from:'singletonDebt',to:'uiModule',label:'governed adapter',fromPort:'top',toPort:'bottom',dashed:true},
+      {id:'singleton-player',from:'singletonDebt',to:'playerModule',label:'composition boundary',fromPort:'top',toPort:'bottom',dashed:true},
+      {id:'fanout-gates',from:'partialContracts',to:'architectureGates',label:'tracked by',fromPort:'right',toPort:'left',dashed:true},
+      {id:'next-dialogue',from:'coreSplit',to:'dialogueModule',label:'next step',fromPort:'top',toPort:'bottom',dashed:true},
+      {id:'next-player',from:'coreSplit',to:'playerModule',label:'next step',fromPort:'top',toPort:'bottom',dashed:true},
+      {id:'next-localization',from:'coreSplit',to:'localizationManager',label:'next step',fromPort:'top',toPort:'bottom',dashed:true},
+      {id:'gates-migration',from:'architectureGates',to:'migrationBridges',label:'verifies closed',fromPort:'left',toPort:'right'},
+      {id:'gates-singletons',from:'architectureGates',to:'singletonDebt',label:'policy-reviewed',fromPort:'left',toPort:'right'},
       {id:'gates-state-machine',from:'architectureGates',to:'stateMachine',label:'guards',fromPort:'top',toPort:'bottom'},
-      {id:'reward-contract-items',from:'rewardContract',to:'itemModule',label:'planned replacement',fromPort:'top',toPort:'top',dashed:true},
-      {id:'reward-contract-enemies',from:'rewardContract',to:'enemyModule',label:'planned replacement',fromPort:'top',toPort:'top',dashed:true}
+      {id:'score-risk',from:'rewardContract',to:'testExecutionGap',label:'records residual risk',fromPort:'top',toPort:'bottom',dashed:true},
+      {id:'score-gates',from:'rewardContract',to:'architectureGates',label:'based on evidence',fromPort:'top',toPort:'bottom'}
     ];
     const nodeMap=Object.fromEntries(nodes.map(node=>[node.id,node])),edgeMap=Object.fromEntries(edges.map(edge=>[edge.id,edge]));
     function renderLanes(){lanesLayer.innerHTML=lanes.map(lane=>`<div class="lane" style="left:${lane.x}px;top:${lane.y}px;width:${lane.w}px;height:${lane.h}px"><div class="lane-title">${lane.title}</div></div>`).join('')}

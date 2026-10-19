@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEngine.Events;
 using Zephyr.Core.Events;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Core.Meta
 {
-    public sealed class StoryProgressionGate : MonoBehaviour
+    public sealed class StoryProgressionGate : MonoBehaviour, IStoryProgressionContextConsumer
     {
         [SerializeField] private MilestoneConditionSO _condition;
         [SerializeField] private bool _disableGameObjectWhenUnlocked;
@@ -12,6 +13,19 @@ namespace Zephyr.Core.Meta
 
         public bool IsUnlocked { get; private set; }
         public MilestoneConditionSO Condition => _condition;
+        private IStoryProgressionGateway _storyProgression;
+        private IEventBusGateway _eventBus;
+
+        public void Configure(IStoryProgressionGateway storyProgression, IEventBusGateway eventBus)
+        {
+            if (_eventBus != null)
+                _eventBus.Unsubscribe<MilestoneCompletedEvent>(HandleMilestoneCompleted);
+            _storyProgression = storyProgression;
+            _eventBus = eventBus;
+            if (isActiveAndEnabled)
+                _eventBus?.Subscribe<MilestoneCompletedEvent>(HandleMilestoneCompleted);
+            Refresh();
+        }
 
         private void Start()
         {
@@ -20,20 +34,17 @@ namespace Zephyr.Core.Meta
 
         private void OnEnable()
         {
-            if (EventBus.Instance != null)
-                EventBus.Instance.Subscribe<MilestoneCompletedEvent>(HandleMilestoneCompleted);
+            _eventBus?.Subscribe<MilestoneCompletedEvent>(HandleMilestoneCompleted);
         }
 
         private void OnDisable()
         {
-            if (EventBus.Instance != null)
-                EventBus.Instance.Unsubscribe<MilestoneCompletedEvent>(HandleMilestoneCompleted);
+            _eventBus?.Unsubscribe<MilestoneCompletedEvent>(HandleMilestoneCompleted);
         }
 
         public void Refresh()
         {
-            StoryProgressionService service = StoryProgressionService.Instance;
-            bool unlocked = service != null && _condition != null && _condition.Evaluate(service);
+            bool unlocked = _storyProgression != null && _condition != null && _condition.Evaluate(_storyProgression);
             if (unlocked == IsUnlocked) return;
 
             IsUnlocked = unlocked;

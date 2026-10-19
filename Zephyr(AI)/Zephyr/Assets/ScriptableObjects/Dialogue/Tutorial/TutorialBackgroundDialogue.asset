@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c100000000000000000000000000002, type: 3}
   m_Name: TutorialBackgroundDialogue
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.UI.Dialogue.DialogueSO
+  m_EditorClassIdentifier: Zephyr.Core.Dialogue::Zephyr.Core.UI.Dialogue.DialogueSO
   _dialogueId: example_dialogue
   _leftParticipant:
     _name:

@@ -11,7 +11,7 @@
  * Ch.Ref:   Ch.2.8 Damage Calculation Pipeline, Ch.9 Combat System, Ch.11 Loot System.
  */
 
-namespace Zephyr.Core.DamageSystem
+namespace Zephyr.Contracts.Damage
 {
     /// <summary>
     /// Rarity tier of a weapon. Higher rarities have stronger base stats and can

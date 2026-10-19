@@ -12,7 +12,7 @@
  * Scene:    N/A (compilation-only; used at runtime by SceneLoader).
  * Ch.Ref:   Ch.14.2 Scene Architecture, Ch.14.4 Scene Loading Lifecycle.
  */
-namespace Zephyr.Core.Flow
+namespace Zephyr.Contracts.Flow
 {
     /// <summary>
     /// Scene identifiers. Maps to scene files in Assets/Scenes/.

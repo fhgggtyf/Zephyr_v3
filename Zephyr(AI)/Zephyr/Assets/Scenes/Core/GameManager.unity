@@ -173,7 +173,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2d5e2c6b7d5f4b8890a1c2d3e4f50617, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Zephyr.Core.Flow::Zephyr.Core.Flow.SceneContext
   _scene: {fileID: 11400000, guid: f3000000000000000000000000000003, type: 2}
 --- !u!1 &1010
 GameObject:
@@ -218,7 +218,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4f704e8d9f715daaa2c3d4e5f6072839, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Zephyr.Core.Flow::Zephyr.Core.Flow.GameManagerBootstrap
 --- !u!1 &1020
 GameObject:
   m_ObjectHideFlags: 0
@@ -423,7 +423,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1000000000000000000000000000004, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Zephyr.Core.UI::Zephyr.Core.UI.UIManager
 --- !u!1 &1040
 GameObject:
   m_ObjectHideFlags: 0
@@ -467,7 +467,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1000000000000000000000000000005, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Zephyr.Projectiles::Zephyr.Core.Projectiles.ProjectileSystem
 --- !u!1 &1050
 GameObject:
   m_ObjectHideFlags: 0
@@ -511,7 +511,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1000000000000000000000000000006, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Zephyr.Core.Combat::Zephyr.Core.Combat.CombatSystem
 --- !u!1 &1060
 GameObject:
   m_ObjectHideFlags: 0
@@ -555,7 +555,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6000000000000000000000000000002, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.Flow.PlayerSpawner
   _playerPrefab: {fileID: 5745911219366126701, guid: c8794fe9612e32549985f2f551a4c0ba, type: 3}
   _playerScenes:
   - {fileID: 11400000, guid: 280241ae5ee8a434bb8763cd936cba9d, type: 2}
@@ -593,7 +593,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 76558700}
   m_Father: {fileID: 1001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1072
@@ -607,7 +608,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6000000000000000000000000000004, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.UI.GameplayHudController
 --- !u!1 &1080
 GameObject:
   m_ObjectHideFlags: 0
@@ -651,7 +652,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c100000000000000000000000000004, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.UI.Dialogue.DialogueManager
+  m_EditorClassIdentifier: Zephyr.Core.Dialogue::Zephyr.Core.UI.Dialogue.DialogueManager
   _viewPrefab: {fileID: 1005, guid: 7c100000000000000000000000000021, type: 3}
   _viewParent: {fileID: 0}
 --- !u!1 &1090
@@ -702,6 +703,108 @@ MonoBehaviour:
   _viewParent: {fileID: 0}
   _deathAnimationName: Death
   _deathAnimationFallbackDuration: 1.2
+--- !u!1001 &76558699
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1071}
+    m_Modifications:
+    - target: {fileID: 6880600478297990968, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_Name
+      value: PlayerStatusPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+--- !u!224 &76558700 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 6923677427077991683, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+  m_PrefabInstance: {fileID: 76558699}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &698412092
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,7 +882,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1b3b8d1463bd62441a32a6cf6facc1d9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Zephyr.Gameplay.Levels.SceneProgressionController
+  m_EditorClassIdentifier: Zephyr.Rooms::Zephyr.Gameplay.Levels.SceneProgressionController
   _tutorialPhase1: {fileID: 11400000, guid: 280241ae5ee8a434bb8763cd936cba9d, type: 2}
   _tutorialPhase2: {fileID: 11400000, guid: f5d71cb797ad5c244bdf25ee22a313a9, type: 2}
   _metaHub: {fileID: 11400000, guid: f3000000000000000000000000000006, type: 2}
@@ -898,7 +1001,7 @@ MonoBehaviour:
     m_Value: 10
   OutputChannel: 1
   StandbyUpdate: 2
-  m_StreamingVersion: 0
+  m_StreamingVersion: 20241001
   m_LegacyPriority: 0
   Target:
     TrackingTarget: {fileID: 0}
@@ -938,6 +1041,85 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 698412093}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1826604297
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1826604300}
+  - component: {fileID: 1826604299}
+  - component: {fileID: 1826604298}
+  m_Layer: 0
+  m_Name: EventSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1826604298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1826604297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
+  m_SendPointerHoverToParent: 1
+  m_MoveRepeatDelay: 0.5
+  m_MoveRepeatRate: 0.1
+  m_XRTrackingOrigin: {fileID: 0}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_SubmitAction: {fileID: 392368643174621059, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_CancelAction: {fileID: 7727032971491509709, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
+  m_ScrollDeltaPerTick: 6
+--- !u!114 &1826604299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1826604297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventSystem
+  m_FirstSelected: {fileID: 0}
+  m_sendNavigationEvents: 1
+  m_DragThreshold: 10
+--- !u!4 &1826604300
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1826604297}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1981550426
 GameObject:
@@ -1036,7 +1218,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a1000000000000000000000000000003, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier: Zephyr.Core.Camera::Zephyr.Core.Camera.CameraController
   _camera: {fileID: 1023}
   _virtualCamera: {fileID: 1309173548}
   _positionComposer: {fileID: 1309173547}
@@ -1104,6 +1286,10 @@ PrefabInstance:
       value: SceneStatsModifierController
       objectReference: {fileID: 0}
     - target: {fileID: 5842543643900358229, guid: 6d1a5a7ff2c45f949a6be3b6dc58761b, type: 3}
+      propertyPath: m_EditorClassIdentifier
+      value: Zephyr.Core.Flow::Zephyr.Core.Stats.SceneStatsModifierController
+      objectReference: {fileID: 0}
+    - target: {fileID: 5842543643900358229, guid: 6d1a5a7ff2c45f949a6be3b6dc58761b, type: 3}
       propertyPath: _sceneCatalog.Array.size
       value: 11
       objectReference: {fileID: 0}
@@ -1166,3 +1352,4 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1001}
+  - {fileID: 1826604300}

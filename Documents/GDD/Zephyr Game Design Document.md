@@ -352,26 +352,42 @@ Shield 是独立于 HP 的防御层。武器通过 ShieldCoeff 决定对护盾�
 
 暴击率、暴击倍率、穿透、最大护盾、ShieldCoeff 增益、移动速度、拾取范围、方差减少、伤害减免、Potential 预算等属于 Meta/永久属性，不参与十项 Potential 缩放。
 
-### 6.3 四层属性模型
+### 6.3 五层属性模型
 
-同一核心属性由四层相加：
+玩家核心属性的实际值按以下顺序结算：
 
-1. Base：永久角色基础值和局外升级。
-2. RunGains：本局取得、受 Potential 缩放的增益。
-3. Modifiers：本局的非 Potential 状态和房间效果。
-4. TempModifiers：短时药剂、Buff 或限时效果。
+1. `PlayerBaseStats`：新号、没有任何 Meta Upgrade 时的永久基础值。
+2. `MetaUpgrades`：购买后永久生效的额外值，每次 Run 都携带。
+3. `RunGains`：本局通过房间、奖励或道具获得的强化，贯穿整局 Run，离开 Run 时清除。
+4. `TimedModifiers`：具有现实时间限制的 Buff/Debuff，跨房间和场景保留，计时结束后移除。
+5. `SceneModifiers`：当前游戏场景独占的场景级数值效果，离开该场景立即失效。
 
-只有 RunGains 使用：
+场景配置分为三类：
 
-`实际增益 = 原始增益 × 当前属性 Potential / PotentialMax`
+- `Scene Stat Modifiers`：放在 `SceneSO`，只描述整个 Scene 的核心属性、Meta 数值或 CategoryMultiplier 的 Add/Multiply 效果；不允许配置 `Override`。
+- `Scene Rule Overrides`：放在 `SceneSO`，描述场景规则覆盖，例如 Tutorial 的 `UnboundedHealth`。它们不是 Meta 属性，也不写入玩家存档。
+- `Room Modifiers`：由 `RoomController` 持有，属于当前 Room 的运行时效果，只在进入该房间时生效；可以使用 Add、Multiply 和最高优先级的 `Override`，不能因为房间效果而修改 `SceneSO` 的全场景列表。
 
-这样可以让玩家在一局中获得“这件奖励很强，但我当前该属性的 Potential 不适合它”的判断，而不是所有奖励都无条件等价。
+普通 `Add` 和百分比 `Multiply` 的结算为：
+
+```text
+additive = PlayerBaseStats + MetaFlat + RunFlat + TimedFlat + SceneFlat
+final = additive * (1 + MetaPercent + RunPercent + TimedPercent + ScenePercent)
+```
+
+同一种百分比增益相加，所有数字增加先于百分比增加。例如基础生命 100、Meta 数字增加 50、Run 数字增加 30、Meta 百分比增加 30%、Timed 百分比增加 20% 时，结果为 `(100 + 50 + 30) * (1 + 0.30 + 0.20) = 270`。
+
+`RunGains` 中标记为 Potential-scaled 的强化，只有强化本身受 Potential 影响：
+
+`实际强化 = 原始强化 × 当前属性 Potential / PotentialMax`
+
+PlayerBaseStats、MetaUpgrades、TimedModifiers 和 SceneModifiers 不会因为 Potential 自动缩放。场景规则 `Override` 是最高优先级，只返回覆盖值，不重新计算或修改其他层；同一个目标在当前场景只能有一个有效 Override。
 
 ### 6.4 Potential 的局内生命周期
 
-- 每局开始时，系统将预算中的 **N−M 点随机分配**到十项属性，构成本局的随机基底——每局起点潜能分布不同，是动态难度的来源。
-- 随后剩余的 **M 点由玩家自行分配**，M 不得超过 N（M ≤ N）。
-- 当前 Vertical Slice 的初始值为 **N=20、M=5**。Potential 预算升级每次使 N 增加 2，玩家可分配份额升级每次使 M 增加 1；N 的上限为 100，M 的上限为 20，且始终保持 M ≤ N。
+- 每局开始时拥有总 Potential `P`。玩家可自由分配 `N` 点，系统先将剩余的 `M = P - N` 点随机分配到属性上，玩家再完成 `N` 点的分配。
+- `PotentialBudget` 决定 `P`，`PotentialAllocatable` 决定玩家可自由分配的 `N` 上限；两者是 Run-entry 资源，不直接增加核心属性。
+- 当前 Vertical Slice 的具体 `P`、`N` 上限和升级价格仍属于可调配置，不能把它们误写成核心属性或永久属性加成。
 - 本阶段两个 Potential 升级的购买价格暂定为 0，仅用于测试购买与分配流程。
 - N−M 的随机分配在打开 MetaHub 的进入 Run 面板时即时生成，不复用 Run seed，也不要求均衡性；每个实际获得随机点的属性从 1 点起分配。玩家分配完成后，十项最终 Potential 均不得为 0。
 - Potential 上限为10。
@@ -432,6 +448,7 @@ HP 降至 0 时：
 
 - Facing 玩家且进入 AggroRange 时快速进入交战。
 - 背向玩家但进入 DetectionRange 时先 Alert，停下、转身，再交战。
+- Patrol 使用敌人所在 Ground Tilemap 的碰撞体判断平台边界；前方无地面或地面高度发生变化时转向，不依赖固定巡逻点。
 - Telegraph 默认不能转向，给玩家明确的侧移和绕后窗口。
 - 只有显式挂载 TelegraphTurn 组件的敌人才能在预警期间转向。
 - Attack 必须是可重复循环，不能一次攻击后永久停在攻击状态。
@@ -789,6 +806,10 @@ Gameplay 阶段由 GameManager 提供唯一的真实输出 Camera 与 Cinemachin
 
 **当前实现（简述）：** CameraBounds、CameraZone 和 CameraController 外部契约已迁移到 Cinemachine 适配模式；GameManager 运行时提供 Brain/Gameplay VCam/Position Composer/Confiner/Impulse，场景 CameraBounds 会生成或绑定 PolygonCollider2D 边界形状。仍需在 Unity Editor 中完成持久化层级清理，并在实际房间和不同分辨率下继续调参。
 
+### 13.5 背景视差
+
+Gameplay 场景的背景由场景自有 Background Prefab 管理，不改变 CameraController、CameraBounds 或 CameraZone 的职责。Prefab 根节点通过实际输出 Camera 的最终渲染位姿锚定到画面；静止远景使用相机跟随比例 `1` 且不循环，因此始终保持屏幕位置。其他视差层由多个独立 SpriteRenderer 子对象组成，按各层相机跟随比例移动，并在离开正交相机可见范围后循环到另一侧。每层保留作者摆放的 Sprite 间距；循环宽度由整层 Sprite 边界与末尾循环间距计算。场景加载、相机切换和首次渲染时重新建立锚点，背景逻辑不读取玩家位置，也不参与相机边界或状态计算。
+
 ---
 
 ## 14. 音频与表现反馈
@@ -1028,7 +1049,7 @@ Gameplay 阶段由 GameManager 提供唯一的真实输出 Camera 与 Cinemachin
 
 - 最终首发阶段数和每阶段 Boss 数量。
 - Run 的目标时长、每阶段房间深度和 Boss 间隔。
-- Potential 初始预算与可分配份额已定为 N=20、M=5；升级增量为 N+2/M+1，上限为 N=100/M=20。
+- Potential 的初始预算、玩家可分配上限和升级价格仍属于可调配置；规则固定为总量 `P`、玩家分配 `N`、系统随机分配 `M = P - N`。
 - 机制解锁的顺序，以及 Tutorial 是否展示全部未解锁动作。
 - 远程武器是否在首个 Vertical Slice 中完成。
 - MetaHub 的具体空间布局、商店刷新规则和永久货币名称。

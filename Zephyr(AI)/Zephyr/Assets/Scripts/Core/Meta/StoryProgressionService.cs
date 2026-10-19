@@ -4,12 +4,13 @@ using UnityEngine;
 using Zephyr.Core.Events;
 using Zephyr.Core.Save;
 using Zephyr.Core.Runtime.Lifecycle;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Core.Meta
 {
     [DefaultExecutionOrder(-450)]
     [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
-    public sealed class StoryProgressionService : MonoBehaviour
+    public sealed class StoryProgressionService : MonoBehaviour, IStoryProgressionGateway
     {
         private static StoryProgressionService _instance;
         public static StoryProgressionService Instance => _instance;
@@ -22,12 +23,14 @@ namespace Zephyr.Core.Meta
         private readonly HashSet<string> _completedMilestones = new HashSet<string>(StringComparer.Ordinal);
         private string _boundProfileId;
         private IMetaGateway _metaGateway;
+        private IEventBusGateway _eventBus;
 
         public StoryProgressionDatabaseSO Database => _database;
 
-        public void Configure(IMetaGateway metaGateway)
+        public void Configure(IMetaGateway metaGateway, IEventBusGateway eventBus)
         {
             _metaGateway = metaGateway;
+            _eventBus = eventBus;
             _boundProfileId = null;
             BindToCurrentSave();
         }
@@ -136,7 +139,7 @@ namespace Zephyr.Core.Meta
                     effects[i]?.Apply(this);
             }
 
-            EventBus.Instance?.Publish(new MilestoneCompletedEvent(milestoneId, definition));
+            _eventBus?.Publish(new MilestoneCompletedEvent(milestoneId, definition));
             return true;
         }
 
@@ -207,8 +210,8 @@ namespace Zephyr.Core.Meta
             if (_saveImmediately) _metaGateway?.Save();
         }
 
-        private static void PublishFactChanged(string factId)
-            => EventBus.Instance?.Publish(new StoryFactChangedEvent(factId));
+        private void PublishFactChanged(string factId)
+            => _eventBus?.Publish(new StoryFactChangedEvent(factId));
     }
 
     public readonly struct StoryFactChangedEvent

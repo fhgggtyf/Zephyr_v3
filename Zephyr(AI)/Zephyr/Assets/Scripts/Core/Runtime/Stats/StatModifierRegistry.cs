@@ -17,8 +17,9 @@ namespace Zephyr.Core.Runtime.Stats
             if (source != null) Sources.Remove(source);
         }
 
-        public static void Apply(IStatModifierTarget target, ref float value,
-            StatModifierTargetKind targetKind, StatType statType, MetaStatType metaStatType, string category)
+        public static bool TryGetOverride(IStatModifierTarget target,
+            StatModifierTargetKind targetKind, StatType statType, MetaStatType metaStatType,
+            string category, out float value)
         {
             for (int i = Sources.Count - 1; i >= 0; i--)
             {
@@ -29,33 +30,95 @@ namespace Zephyr.Core.Runtime.Stats
                     continue;
                 }
 
-                if (!source.AppliesTo(target)) continue;
-                ApplyDefinitions(source.Modifiers, target, ref value, targetKind, statType, metaStatType, category);
+                if (!source.AppliesTo(target) || source.Modifiers == null) continue;
+                for (int j = 0; j < source.Modifiers.Count; j++)
+                {
+                    StatModifierDefinition definition = source.Modifiers[j];
+                    if (definition == null || definition.Operation != StatModifierOperation.Override ||
+                        definition.TargetKind != targetKind || !definition.AppliesTo(target)) continue;
+                    if (targetKind == StatModifierTargetKind.CoreStat && definition.StatType != statType) continue;
+                    if (targetKind == StatModifierTargetKind.MetaStat && definition.MetaStatType != metaStatType) continue;
+                    if (targetKind == StatModifierTargetKind.CategoryMultiplier &&
+                        !string.Equals(definition.Category, category, System.StringComparison.Ordinal)) continue;
+                    value = definition.Value;
+                    return true;
+                }
             }
+
+            value = 0f;
+            return false;
         }
 
-        private static void ApplyDefinitions(IReadOnlyList<StatModifierDefinition> definitions,
-            IStatModifierTarget target, ref float value, StatModifierTargetKind targetKind,
-            StatType statType, MetaStatType metaStatType, string category)
+        public static bool TryGetSceneRuleOverride(IStatModifierTarget target,
+            SceneRuleOverrideKind rule, out float value)
         {
-            if (definitions == null) return;
-
-            for (int i = 0; i < definitions.Count; i++)
+            for (int i = Sources.Count - 1; i >= 0; i--)
             {
-                StatModifierDefinition definition = definitions[i];
-                if (definition == null || definition.TargetKind != targetKind || !definition.AppliesTo(target)) continue;
-                if (targetKind == StatModifierTargetKind.CoreStat && definition.StatType != statType) continue;
-                if (targetKind == StatModifierTargetKind.MetaStat && definition.MetaStatType != metaStatType) continue;
-                if (targetKind == StatModifierTargetKind.CategoryMultiplier &&
-                    !string.Equals(definition.Category, category, System.StringComparison.Ordinal)) continue;
-
-                switch (definition.Operation)
+                IStatModifierSource source = Sources[i];
+                if (source == null)
                 {
-                    case StatModifierOperation.Add: value += definition.Value; break;
-                    case StatModifierOperation.Multiply: value *= definition.Value; break;
-                    case StatModifierOperation.Override: value = definition.Value; break;
+                    Sources.RemoveAt(i);
+                    continue;
+                }
+
+                if (!(source is ISceneRuleSource ruleSource) || !source.AppliesTo(target) ||
+                    ruleSource.RuleOverrides == null) continue;
+                for (int j = 0; j < ruleSource.RuleOverrides.Count; j++)
+                {
+                    SceneRuleOverrideDefinition definition = ruleSource.RuleOverrides[j];
+                    if (definition != null && definition.Rule == rule && definition.AppliesTo(target))
+                    {
+                        value = definition.Value;
+                        return true;
+                    }
+                }
+            }
+
+            value = 0f;
+            return false;
+        }
+
+
+        public static void Apply(IStatModifierTarget target, ref float value,
+            StatModifierTargetKind targetKind, StatType statType, MetaStatType metaStatType, string category)
+        {
+            Collect(target, targetKind, statType, metaStatType, category, out float additive, out float percent);
+            value += additive;
+            value *= 1f + percent;
+        }
+
+        public static void Collect(IStatModifierTarget target,
+            StatModifierTargetKind targetKind, StatType statType, MetaStatType metaStatType,
+            string category, out float additive, out float percent)
+        {
+            additive = 0f;
+            percent = 0f;
+            for (int i = Sources.Count - 1; i >= 0; i--)
+            {
+                IStatModifierSource source = Sources[i];
+                if (source == null)
+                {
+                    Sources.RemoveAt(i);
+                    continue;
+                }
+
+                if (!source.AppliesTo(target) || source.Modifiers == null) continue;
+                for (int j = 0; j < source.Modifiers.Count; j++)
+                {
+                    StatModifierDefinition definition = source.Modifiers[j];
+                    if (definition == null || definition.Operation == StatModifierOperation.Override ||
+                        definition.TargetKind != targetKind || !definition.AppliesTo(target)) continue;
+                    if (targetKind == StatModifierTargetKind.CoreStat && definition.StatType != statType) continue;
+                    if (targetKind == StatModifierTargetKind.MetaStat && definition.MetaStatType != metaStatType) continue;
+                    if (targetKind == StatModifierTargetKind.CategoryMultiplier &&
+                        !string.Equals(definition.Category, category, System.StringComparison.Ordinal)) continue;
+
+                    if (definition.Operation == StatModifierOperation.Add) additive += definition.Value;
+                    else percent += definition.Value;
                 }
             }
         }
+
+
     }
 }

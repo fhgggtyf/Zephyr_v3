@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9010bd9712a3fa84ca03c8950fb76cba, type: 3}
   m_Name: LightningBolt
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Weapons.WeaponSO
+  m_EditorClassIdentifier: Zephyr.Weapons::Zephyr.Core.Weapons.WeaponSO
   m_weaponId: LightningBolt
   m_displayName: LightningBolt
   m_displayNameLocalizationKey: weapon.lightning_bolt.name

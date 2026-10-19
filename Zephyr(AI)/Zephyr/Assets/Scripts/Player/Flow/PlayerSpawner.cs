@@ -2,22 +2,27 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Zephyr.Contracts.Events;
 using Zephyr.Core.Camera;
 using Zephyr.Core.Events;
 using Zephyr.Core.Flow;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Flow;
+using Zephyr.Contracts.Interfaces;
+using Zephyr.Core.Save;
 using Zephyr.Core.Weapons;
 using Zephyr.Core.Runtime.Lifecycle;
+using Zephyr.Gameplay.Player.Core;
 
 namespace Zephyr.Gameplay.Player.Flow
 {
     /// <summary>
-    /// Spawns one player into the active scene listed in Player Scenes. The
-    /// player is scene-owned so unloading a tutorial or room also unloads it.
+    /// Spawns one persistent player instance for the active gameplay scene. The
+    /// instance is owned by GameManager so run gains and timed modifiers survive
+    /// gameplay scene transitions; it is destroyed when leaving gameplay state.
     /// </summary>
     [DefaultExecutionOrder(-150)]
     [SingletonLifetime(SingletonLifetime.GameManager, "GameManager")]
-    public sealed class PlayerSpawner : MonoBehaviour, IPlayerRespawnGateway
+    public sealed class PlayerSpawner : MonoBehaviour, IPlayerSpawnGateway, IGameManagerDependencyConsumer
     {
         private static PlayerSpawner _instance;
         public static PlayerSpawner Instance => _instance;
@@ -37,6 +42,9 @@ namespace Zephyr.Gameplay.Player.Flow
         private Vector3 _pendingRespawnPosition;
         private bool _hasPendingRespawnPosition;
         private IGameFlowGateway _gameFlow;
+        private ISaveDataGateway _saveData;
+        private IEventBusGateway _eventBus;
+        private IGameManagerServices _gameManagerServices;
 
         private void Awake()
         {
@@ -57,10 +65,17 @@ namespace Zephyr.Gameplay.Player.Flow
 
         private void Start()
         {
-            _gameFlow = GameFlow.Instance;
             if (_gameFlow != null)
                 _gameFlow.OnStateChanged += HandleGameStateChanged;
             EvaluateLoadedScenes();
+        }
+
+        public void Configure(IGameManagerServices services)
+        {
+            _gameManagerServices = services;
+            _gameFlow = services?.GameFlow;
+            _saveData = services?.SaveData;
+            _eventBus = services?.EventBus;
         }
 
         private void OnDisable()
@@ -116,12 +131,10 @@ namespace Zephyr.Gameplay.Player.Flow
             {
                 _playerScene = default;
                 _respawnPoint = null;
-                CurrentPlayer = null;
-                PublishPlayerTargetChanged();
-                PlayerDespawned?.Invoke();
             }
 
-            if (!HasLoadedPlayerScene() && !ShouldKeepCurrentPlayer()) DespawnPlayer();
+            if (!HasLoadedPlayerScene() && !ShouldKeepCurrentPlayer())
+                DespawnPlayer();
         }
 
         private void HandleGameStateChanged(GameState previous, GameState current)
@@ -152,13 +165,23 @@ namespace Zephyr.Gameplay.Player.Flow
 
         private void SpawnIfNeeded(Scene gameplayScene)
         {
-            // A player belongs to the scene that requested the spawn. If a new
-            // gameplay scene is loaded, discard an old scene-owned instance so
-            // it cannot survive as a hidden object in GameManager.
+            Transform sceneSpawnPoint = _respawnPoint != null &&
+                                        _respawnPoint.gameObject.scene == gameplayScene
+                ? _respawnPoint
+                : FindSceneSpawnPoint(gameplayScene);
+            _respawnPoint = sceneSpawnPoint != null ? sceneSpawnPoint : _spawnPoint;
+
             if (CurrentPlayer != null)
             {
-                if (CurrentPlayer.scene == gameplayScene) return;
-                DespawnPlayer();
+                Vector3 position = _hasPendingRespawnPosition
+                    ? _pendingRespawnPosition
+                    : _respawnPoint != null ? _respawnPoint.position : CurrentPlayer.transform.position;
+                Quaternion rotation = _respawnPoint != null ? _respawnPoint.rotation : CurrentPlayer.transform.rotation;
+                CurrentPlayer.transform.SetPositionAndRotation(position, rotation);
+                _playerScene = gameplayScene;
+                CameraController.FindForGameplay(gameplayScene)?.SetFollow(CurrentPlayer.transform);
+                _hasPendingRespawnPosition = false;
+                return;
             }
 
             if (_playerPrefab == null)
@@ -167,25 +190,34 @@ namespace Zephyr.Gameplay.Player.Flow
                 return;
             }
 
-            Transform sceneSpawnPoint = _respawnPoint != null &&
-                                        _respawnPoint.gameObject.scene == gameplayScene
-                ? _respawnPoint
-                : FindSceneSpawnPoint(gameplayScene);
-            _respawnPoint = sceneSpawnPoint != null ? sceneSpawnPoint : _spawnPoint;
-            Transform spawnPoint = _respawnPoint;
-            Vector3 position = _hasPendingRespawnPosition
+            Vector3 spawnPosition = _hasPendingRespawnPosition
                 ? _pendingRespawnPosition
-                : spawnPoint != null ? spawnPoint.position : Vector3.zero;
-            Quaternion rotation = spawnPoint != null ? spawnPoint.rotation : Quaternion.identity;
-            CurrentPlayer = Instantiate(_playerPrefab, position, rotation);
-            SceneManager.MoveGameObjectToScene(CurrentPlayer, gameplayScene);
+                : _respawnPoint != null ? _respawnPoint.position : Vector3.zero;
+            Quaternion spawnRotation = _respawnPoint != null ? _respawnPoint.rotation : Quaternion.identity;
+            CurrentPlayer = Instantiate(_playerPrefab, spawnPosition, spawnRotation);
+            SceneManager.MoveGameObjectToScene(CurrentPlayer, gameObject.scene);
+            ConfigurePlayerConsumers(CurrentPlayer);
             _playerScene = gameplayScene;
+            PlayerStatsInitializer statsInitializer = CurrentPlayer.GetComponent<PlayerStatsInitializer>();
+            statsInitializer?.Configure(_saveData);
+            statsInitializer?.InitializeNow();
             ApplyPendingRespawnLoadout();
 
             CameraController camera = CameraController.FindForGameplay(gameplayScene);
             camera?.SetFollow(CurrentPlayer.transform);
             PlayerSpawned?.Invoke(CurrentPlayer);
             PublishPlayerTargetChanged();
+        }
+
+        private void ConfigurePlayerConsumers(GameObject player)
+        {
+            if (player == null || _gameManagerServices == null) return;
+            MonoBehaviour[] consumers = player.GetComponentsInChildren<MonoBehaviour>(true);
+            for (int i = 0; i < consumers.Length; i++)
+            {
+                if (consumers[i] is IGameManagerDependencyConsumer consumer)
+                    consumer.Configure(_gameManagerServices);
+            }
         }
 
         /// <summary>Updates the checkpoint used by the next down respawn.</summary>
@@ -276,7 +308,7 @@ namespace Zephyr.Gameplay.Player.Flow
 
         private void PublishPlayerTargetChanged()
         {
-            EventBus.Instance?.Publish(new PlayerTargetChangedEvent(CurrentPlayer));
+            _eventBus?.Publish(new PlayerTargetChangedEvent(CurrentPlayer));
         }
 
         private bool HasLoadedPlayerScene()

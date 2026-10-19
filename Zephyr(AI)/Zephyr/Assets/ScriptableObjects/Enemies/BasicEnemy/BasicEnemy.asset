@@ -17,7 +17,7 @@ MonoBehaviour:
   - Melee
   - Ground
   _behaviourTable: {fileID: 11400000, guid: e1240000000000000000000000000001, type: 2}
-  _drops: {fileID: 0}
+  _drops: {fileID: 11400000, guid: 54852873c0deec9429eb7e25546fa68d, type: 2}
   _maxHp: 60
   _attack: 12
   _magicAttack: 0

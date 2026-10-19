@@ -1,5 +1,6 @@
 using UnityEngine;
 using Zephyr.Core.Meta;
+using Zephyr.Gameplay.Player.Core;
 using Zephyr.Core.StateMachine;
 using Zephyr.Core.StateMachine.ScriptableObjects;
 using CoreStateMachine = Zephyr.Core.StateMachine.StateMachine;
@@ -17,7 +18,22 @@ namespace Zephyr.Gameplay.Player.StateMachine
     public sealed class MechanicUnlockedCondition : Condition
     {
         private readonly string _mechanicId;
+        private IMetaGateway _metaGateway;
+        private PlayerStatsInitializer _statsInitializer;
         public MechanicUnlockedCondition(string mechanicId) => _mechanicId = mechanicId;
-        protected override bool Statement() => MechanicUnlockSystem.IsUnlocked(_mechanicId);
+
+        public override void Awake(CoreStateMachine stateMachine)
+        {
+            _statsInitializer = stateMachine != null
+                ? stateMachine.GetComponentInParent<PlayerStatsInitializer>()
+                : null;
+            _metaGateway = _statsInitializer?.MetaGateway;
+        }
+
+        protected override bool Statement()
+        {
+            _metaGateway ??= _statsInitializer?.MetaGateway;
+            return MechanicUnlockSystem.IsUnlocked(_mechanicId, _metaGateway);
+        }
     }
 }

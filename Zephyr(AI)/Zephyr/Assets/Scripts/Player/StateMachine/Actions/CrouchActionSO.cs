@@ -14,6 +14,7 @@ using CoreSM = Zephyr.Core.StateMachine.StateMachine;
 using Zephyr.Core.StateMachine.ScriptableObjects;
 using Zephyr.Gameplay.Player.Core;
 using Zephyr.Gameplay.Player.Data;
+using Zephyr.Gameplay.Player.Input;
 
 namespace Zephyr.Gameplay.Player.StateMachine
 {
@@ -30,6 +31,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
     {
         private MovementCore _movementCore;
         private PlayerColliderController _colliderController;
+        private PlayerInputReader _inputReader;
         private readonly PlayerMovementSpeedDataSO _speedData;
 
         public CrouchAction(PlayerMovementSpeedDataSO speedData)
@@ -41,6 +43,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
         {
             _movementCore = stateMachine.GetCachedComponent<MovementCore>();
             stateMachine.TryGetCachedComponent(out _colliderController);
+            _inputReader = stateMachine.GetCachedComponent<PlayerInputReader>();
         }
 
         public override void OnStateEnter()
@@ -60,6 +63,10 @@ namespace Zephyr.Gameplay.Player.StateMachine
             _colliderController?.RequestCrouch(false);
         }
 
-        public override void OnUpdate() { }
+        public override void OnUpdate()
+        {
+            if (_colliderController != null && _colliderController.MustRemainCrouched)
+                _inputReader?.ClearJumpAndAttackInputs();
+        }
     }
 }

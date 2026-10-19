@@ -127,7 +127,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7000000000000000000000000000001, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Camera.CameraBounds
+  m_EditorClassIdentifier: Zephyr.Core.Camera::Zephyr.Core.Camera.CameraBounds
   _bounds:
     serializedVersion: 2
     x: -12

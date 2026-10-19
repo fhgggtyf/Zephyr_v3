@@ -1,5 +1,6 @@
 using UnityEngine;
 using Zephyr.Core.DamageSystem;
+using Zephyr.Contracts.Damage;
 using Zephyr.Core.Health;
 
 namespace Zephyr.Testing

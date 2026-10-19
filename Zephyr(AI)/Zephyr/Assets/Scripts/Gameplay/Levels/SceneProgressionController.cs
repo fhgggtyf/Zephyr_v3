@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Zephyr.Contracts.Flow;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Flow;
 using Zephyr.Core.Runtime.Lifecycle;
 
@@ -12,7 +14,7 @@ namespace Zephyr.Gameplay.Levels
     /// </summary>
     [DefaultExecutionOrder(-120)]
     [SingletonLifetime(SingletonLifetime.GameManager, "GameManager")]
-    public sealed class SceneProgressionController : MonoBehaviour
+    public sealed class SceneProgressionController : MonoBehaviour, ISceneProgressionGateway, IGameManagerDependencyConsumer
     {
         private static SceneProgressionController _instance;
         public static SceneProgressionController Instance => _instance;
@@ -28,6 +30,12 @@ namespace Zephyr.Gameplay.Levels
         [SerializeField] private SceneSO _lv3;
 
         public event Action<SceneSO, SceneSO> ProgressionRequested;
+        private IGameFlowSceneGateway _gameFlow;
+
+    public void Configure(IGameManagerServices services)
+    {
+        _gameFlow = services?.SceneFlow;
+    }
 
         private void Awake()
         {
@@ -38,11 +46,35 @@ namespace Zephyr.Gameplay.Levels
                 return;
             }
 
+            SceneManager.sceneLoaded += HandleSceneLoaded;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+                ConfigureSceneConsumers(SceneManager.GetSceneAt(i));
         }
 
         private void OnDestroy()
         {
+            SceneManager.sceneLoaded -= HandleSceneLoaded;
             SingletonLifecycle.Release(this, ref _instance);
+        }
+
+        private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            ConfigureSceneConsumers(scene);
+        }
+
+        private void ConfigureSceneConsumers(Scene scene)
+        {
+            if (!scene.IsValid() || !scene.isLoaded) return;
+            GameObject[] roots = scene.GetRootGameObjects();
+            for (int i = 0; i < roots.Length; i++)
+            {
+                MonoBehaviour[] consumers = roots[i].GetComponentsInChildren<MonoBehaviour>(true);
+                for (int j = 0; j < consumers.Length; j++)
+                {
+                    if (consumers[j] is ISceneProgressionGatewayConsumer consumer)
+                        consumer.Configure(this);
+                }
+            }
         }
 
         public bool AdvanceFromCurrentScene()
@@ -63,7 +95,7 @@ namespace Zephyr.Gameplay.Levels
 
             GameState nextState = GetLogicalState(next);
             ProgressionRequested?.Invoke(current, next);
-            GameFlow.Instance?.RequestProgressionSceneTransition(next, current, nextState);
+            _gameFlow?.RequestProgressionSceneTransition(next, current, nextState);
             return true;
         }
 

@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Zephyr.Core.DamageSystem;
+using Zephyr.Contracts.Damage;
 using Zephyr.Core.Health;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Stats;
-using Zephyr.Core.Timer;
+using Zephyr.Core;
 
 namespace Zephyr.Core.Buff
 {
@@ -17,10 +18,12 @@ namespace Zephyr.Core.Buff
     {
         [SerializeField] private StatType _stat;
         [SerializeField] private float _value;
+        [SerializeField] private StatModifierOperation _operation;
         [SerializeField] private BuffStatLayer _layer;
 
         public StatType Stat => _stat;
         public float Value => _value;
+        public StatModifierOperation Operation => _operation;
         public BuffStatLayer Layer => _layer;
     }
 
@@ -86,7 +89,7 @@ namespace Zephyr.Core.Buff
     }
 
     [DisallowMultipleComponent]
-    public sealed class BuffController : MonoBehaviour, IBuffable
+    public sealed class BuffController : MonoBehaviour, IBuffable, ITimerGatewayConsumer
     {
         private sealed class ActiveBuff
         {
@@ -94,17 +97,20 @@ namespace Zephyr.Core.Buff
             public BuffConfigSO Config;
             public GameObject Source;
             public int Stacks;
-            public TimerHandle Expiry;
-            public TimerHandle Tick;
+            public IDisposable Expiry;
+            public IDisposable Tick;
         }
 
         [SerializeField] private StatsCore _stats;
         [SerializeField] private HealthComponent _health;
         private readonly Dictionary<BuffInstanceId, ActiveBuff> _active = new();
         private int _nextId = 1;
+        private ITimerGateway _timer;
 
         public event Action<BuffInstanceId, BuffConfigSO> BuffAdded;
         public event Action<BuffInstanceId, BuffConfigSO> BuffRemoved;
+
+        public void Configure(ITimerGateway timer) => _timer = timer;
 
         private void Awake()
         {
@@ -148,8 +154,8 @@ namespace Zephyr.Core.Buff
         public bool RemoveBuff(BuffInstanceId id)
         {
             if (!_active.Remove(id, out ActiveBuff buff)) return false;
-            buff.Expiry?.Cancel();
-            buff.Tick?.Cancel();
+            buff.Expiry?.Dispose();
+            buff.Tick?.Dispose();
             ApplyModifiers(buff.Config, -buff.Stacks);
             BuffRemoved?.Invoke(id, buff.Config);
             return true;
@@ -186,9 +192,9 @@ namespace Zephyr.Core.Buff
 
         private void RestartTimers(ActiveBuff buff)
         {
-            buff.Expiry?.Cancel();
-            buff.Tick?.Cancel();
-            TimerService timer = TimerService.Instance;
+            buff.Expiry?.Dispose();
+            buff.Tick?.Dispose();
+            ITimerGateway timer = _timer;
             if (timer == null) return;
             if (buff.Config.Duration > 0f)
                 buff.Expiry = timer.SetTimeout(buff.Config.Duration, () => RemoveBuff(buff.Id));
@@ -210,20 +216,38 @@ namespace Zephyr.Core.Buff
             if (_stats == null) return;
             foreach (BuffStatModifier modifier in config.StatModifiers)
             {
-                float value = modifier.Value * stackDelta;
+                bool add = modifier.Value * stackDelta >= 0f;
+                float amount = Mathf.Abs(modifier.Value * stackDelta);
                 switch (modifier.Layer)
                 {
                     case BuffStatLayer.PotentialScaledGain:
-                        if (stackDelta > 0f) _stats.ApplyPotentialScaledGain(modifier.Stat, value);
-                        else _stats.RemoveRunGain(modifier.Stat, -value);
+                        float scale = _stats.GetPotential(modifier.Stat) / StatConstants.PotentialMax;
+                        if (modifier.Operation == StatModifierOperation.Multiply)
+                        {
+                            float scaledPercent = amount * scale;
+                            if (add) _stats.AddRunGainPercent(modifier.Stat, scaledPercent);
+                            else _stats.RemoveRunGainPercent(modifier.Stat, scaledPercent);
+                        }
+                        else if (add) _stats.ApplyPotentialScaledGain(modifier.Stat, amount);
+                        else _stats.RemoveRunGain(modifier.Stat, amount * scale);
                         break;
                     case BuffStatLayer.RunModifier:
-                        if (value >= 0f) _stats.AddModifier(modifier.Stat, value);
-                        else _stats.RemoveModifier(modifier.Stat, -value);
+                        if (modifier.Operation == StatModifierOperation.Multiply)
+                        {
+                            if (add) _stats.AddModifierPercent(modifier.Stat, amount);
+                            else _stats.RemoveModifierPercent(modifier.Stat, amount);
+                        }
+                        else if (add) _stats.AddModifier(modifier.Stat, amount);
+                        else _stats.RemoveModifier(modifier.Stat, amount);
                         break;
                     default:
-                        if (value >= 0f) _stats.AddTemporaryModifier(modifier.Stat, value);
-                        else _stats.RemoveTemporaryModifier(modifier.Stat, -value);
+                        if (modifier.Operation == StatModifierOperation.Multiply)
+                        {
+                            if (add) _stats.AddTemporaryModifierPercent(modifier.Stat, amount);
+                            else _stats.RemoveTemporaryModifierPercent(modifier.Stat, amount);
+                        }
+                        else if (add) _stats.AddTemporaryModifier(modifier.Stat, amount);
+                        else _stats.RemoveTemporaryModifier(modifier.Stat, amount);
                         break;
                 }
             }

@@ -19,7 +19,7 @@
  * Ch.Ref:   Ch.6.7 Owner Binding, Ch.6.8 Physics / FixedUpdate, Ch.11 Enemy AI.
  */
 using UnityEngine;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Gameplay.Player.Core
 {

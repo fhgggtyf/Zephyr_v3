@@ -1,0 +1,34 @@
+{
+    "name": "Zephyr.Tests.PlayMode",
+    "rootNamespace": "Zephyr.Tests.PlayMode",
+    "references": [
+        "Zephyr.Core.Contracts",
+        "Zephyr.Core.Runtime",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Flow",
+        "Zephyr.Core.Camera",
+        "Zephyr.Core.Combat",
+        "Zephyr.Core.StateMachine",
+        "Zephyr.Core.Dialogue",
+        "Zephyr.Gameplay.Interaction",
+        "Zephyr.Rooms",
+        "Zephyr.Player",
+        "Zephyr.Enemies",
+        "Zephyr.Weapons",
+        "Zephyr.Items",
+        "Zephyr.Projectiles"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

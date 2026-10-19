@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,6 +14,7 @@ namespace Zephyr.Core.Camera
     [DefaultExecutionOrder(1000)]
     public sealed class CameraController : MonoBehaviour
     {
+        private static readonly List<CameraController> Controllers = new List<CameraController>();
         private const string CinemachineNamespace = "Unity.Cinemachine.";
         private const string VirtualCameraTypeName = "CinemachineCamera";
         private const string BrainTypeName = "CinemachineBrain";
@@ -50,6 +52,24 @@ namespace Zephyr.Core.Camera
         private CameraMode _activeMode = (CameraMode)(-1);
         private Vector2 _activeOffset;
         private float _activeLookAheadMultiplier = 1f;
+        private bool _guidanceActive;
+        private bool _guidanceAtTarget;
+        private bool _guidanceReturning;
+        private Vector2 _guidanceStart;
+        private Vector2 _guidanceEnd;
+        private Vector2 _guidanceReturnPosition;
+        private float _guidanceElapsed;
+        private float _guidanceDuration;
+        private Action _guidanceCompleted;
+
+        internal UnityEngine.Camera OutputCamera
+        {
+            get
+            {
+                EnsureSetup();
+                return _camera;
+            }
+        }
 
         /// <summary>
         /// Resolves the gameplay camera deterministically. GameManager owns the
@@ -62,8 +82,14 @@ namespace Zephyr.Core.Camera
             CameraController preferred = null;
             CameraController gameManager = null;
 
-            foreach (CameraController candidate in UnityEngine.Object.FindObjectsByType<CameraController>(FindObjectsInactive.Include))
+            for (int i = Controllers.Count - 1; i >= 0; i--)
             {
+                CameraController candidate = Controllers[i];
+                if (candidate == null)
+                {
+                    Controllers.RemoveAt(i);
+                    continue;
+                }
                 if (candidate == null || !candidate.gameObject.activeInHierarchy) continue;
                 fallback ??= candidate;
                 if (candidate.gameObject.scene == preferredScene) preferred ??= candidate;
@@ -148,6 +174,24 @@ namespace Zephyr.Core.Camera
             ApplyCurrentBehavior(force: true);
         }
 
+        public void ResetToSceneStart()
+        {
+            EnsureSetup();
+
+            Vector2 resetPosition = _follow != null ? _follow.position : transform.position;
+            if (_roomConfiguration != null)
+            {
+                CameraBehavior behavior = _roomConfiguration.GetBehavior(resetPosition);
+                if (_follow == null || behavior.Mode == CameraMode.FullLock)
+                    resetPosition = behavior.Anchor;
+            }
+
+            _activeZone = null;
+            _activeMode = (CameraMode)(-1);
+            _activeRoomRegionIndex = int.MinValue;
+            SnapTo(resetPosition);
+        }
+
         public void ApplyCameraZone(Vector2 followOffset)
         {
             _activeOffset = followOffset;
@@ -166,10 +210,54 @@ namespace Zephyr.Core.Camera
             if (_lockTarget != null) _lockTarget.position = new Vector3(worldPosition.x, worldPosition.y, _lockTarget.position.z);
         }
 
+        public bool IsGuidanceAtTarget => _guidanceAtTarget;
+
+        public bool BeginGuidance(Vector2 worldPosition, float duration)
+        {
+            EnsureSetup();
+            if (!_isPrimary || _virtualCamera == null) return false;
+
+            EnsureLockTarget();
+            _guidanceStart = _camera != null
+                ? _camera.transform.position
+                : _virtualCamera.transform.position;
+            _guidanceReturnPosition = _guidanceStart;
+            _guidanceEnd = worldPosition;
+            _guidanceElapsed = 0f;
+            _guidanceDuration = Mathf.Max(0f, duration);
+            _guidanceReturning = false;
+            _guidanceAtTarget = false;
+            _guidanceCompleted = null;
+            _guidanceActive = true;
+            ApplyComposerSettings(CameraMode.FullLock, Vector2.zero, 0f, _guidanceStart);
+            SetGuidanceTarget(_guidanceStart);
+            return true;
+        }
+
+        public void EndGuidance(float duration, Action completed = null)
+        {
+            if (!_guidanceActive)
+            {
+                completed?.Invoke();
+                return;
+            }
+
+            _guidanceStart = _camera != null
+                ? _camera.transform.position
+                : (_lockTarget != null ? _lockTarget.position : _virtualCamera.transform.position);
+            _guidanceEnd = _guidanceReturnPosition;
+            _guidanceElapsed = 0f;
+            _guidanceDuration = Mathf.Max(0f, duration);
+            _guidanceReturning = true;
+            _guidanceAtTarget = false;
+            _guidanceCompleted = completed;
+        }
+
         private void Awake() => EnsureSetup();
 
         private void OnEnable()
         {
+            if (!Controllers.Contains(this)) Controllers.Add(this);
             SceneManager.sceneLoaded += HandleSceneLoaded;
             SceneManager.sceneUnloaded += HandleSceneUnloaded;
             SceneManager.activeSceneChanged += HandleActiveSceneChanged;
@@ -177,6 +265,7 @@ namespace Zephyr.Core.Camera
 
         private void OnDisable()
         {
+            Controllers.Remove(this);
             SceneManager.sceneLoaded -= HandleSceneLoaded;
             SceneManager.sceneUnloaded -= HandleSceneUnloaded;
             SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
@@ -194,6 +283,7 @@ namespace Zephyr.Core.Camera
         private void HandleActiveSceneChanged(Scene previous, Scene current)
         {
             RebindSceneCameraBounds(current);
+            ResetToSceneStart();
             ApplyCurrentBehavior(force: true);
         }
 
@@ -211,9 +301,60 @@ namespace Zephyr.Core.Camera
         {
             if (!_setupComplete) EnsureSetup();
             if (!_isPrimary) return;
+            if (_guidanceActive)
+            {
+                UpdateGuidance();
+                return;
+            }
             // PlayerSpawner binds the follow target after the player is spawned.
             if (_follow == null) return;
             ApplyCurrentBehavior(force: false);
+        }
+
+        private void UpdateGuidance()
+        {
+            _guidanceElapsed += Time.unscaledDeltaTime;
+            float progress = _guidanceDuration <= 0f
+                ? 1f
+                : Mathf.Clamp01(_guidanceElapsed / _guidanceDuration);
+            float easedProgress = Mathf.SmoothStep(0f, 1f, progress);
+            SetGuidanceTarget(Vector2.Lerp(_guidanceStart, _guidanceEnd, easedProgress));
+
+            if (progress < 1f) return;
+            if (!_guidanceReturning)
+            {
+                _guidanceAtTarget = true;
+                return;
+            }
+
+            _guidanceActive = false;
+            _guidanceReturning = false;
+            _guidanceAtTarget = false;
+            _activeMode = (CameraMode)(-1);
+            ApplyCurrentBehavior(force: true);
+            Action completed = _guidanceCompleted;
+            _guidanceCompleted = null;
+            completed?.Invoke();
+        }
+
+        private void SetGuidanceTarget(Vector2 worldPosition)
+        {
+            EnsureLockTarget();
+            _lockTarget.position = new Vector3(worldPosition.x, worldPosition.y, _lockTarget.position.z);
+
+            if (_camera != null)
+            {
+                Vector3 cameraPosition = _camera.transform.position;
+                _camera.transform.position = new Vector3(worldPosition.x, worldPosition.y, cameraPosition.z);
+            }
+
+            if (_virtualCamera != null)
+            {
+                Vector3 virtualCameraPosition = _virtualCamera.transform.position;
+                _virtualCamera.transform.position = new Vector3(
+                    worldPosition.x, worldPosition.y, virtualCameraPosition.z);
+                InvokeMember(_virtualCamera, "ForceCameraPosition", _virtualCamera.transform.position, Quaternion.identity);
+            }
         }
 
         private void ApplyCurrentBehavior(bool force)
@@ -419,20 +560,7 @@ namespace Zephyr.Core.Camera
             if (_virtualCamera != null) _virtualCamera.gameObject.SetActive(_isPrimary);
             if (_isPrimary)
             {
-                TryBindSceneOwnedPlayer();
                 RebindSceneCameraBounds(SceneManager.GetActiveScene());
-            }
-        }
-
-        private void TryBindSceneOwnedPlayer()
-        {
-            if (_follow != null) return;
-
-            foreach (Transform candidate in UnityEngine.Object.FindObjectsByType<Transform>(FindObjectsInactive.Exclude))
-            {
-                if (!candidate.CompareTag("Player")) continue;
-                SetFollow(candidate);
-                return;
             }
         }
 
@@ -445,8 +573,14 @@ namespace Zephyr.Core.Camera
             CameraBounds fallbackBounds = null;
             Scene activeScene = SceneManager.GetActiveScene();
 
-            foreach (CameraBounds candidate in UnityEngine.Object.FindObjectsByType<CameraBounds>(FindObjectsInactive.Exclude))
+            for (int i = CameraBounds.Active.Count - 1; i >= 0; i--)
             {
+                CameraBounds candidate = CameraBounds.Active[i];
+                if (candidate == null)
+                {
+                    CameraBounds.Active.RemoveAt(i);
+                    continue;
+                }
                 if (candidate == null || !candidate.isActiveAndEnabled) continue;
                 Scene candidateScene = candidate.gameObject.scene;
                 if (!candidateScene.IsValid() || !candidateScene.isLoaded) continue;

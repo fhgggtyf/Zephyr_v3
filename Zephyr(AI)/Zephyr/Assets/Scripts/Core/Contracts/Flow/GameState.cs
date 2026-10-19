@@ -11,7 +11,7 @@
  * Scene:    N/A (compilation-only; runtime value stored in GameFlow).
  * Ch.Ref:   Ch.14.3 State Transition Flow.
  */
-namespace Zephyr.Core.Flow
+namespace Zephyr.Contracts.Flow
 {
     /// <summary>
     /// Game states. Boot = initial (before MainMenu), MainMenu = menu, Tutorial = one-time tutorial,

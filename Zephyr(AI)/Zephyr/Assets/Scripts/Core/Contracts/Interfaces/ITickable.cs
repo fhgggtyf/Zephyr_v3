@@ -11,7 +11,7 @@
  * Scene:    Persistent (TickService) + GameManager (implementors like ProjectileSystem).
  * Ch.Ref:   Ch.24.1 Centralized Update Loop.
  */
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Marker interface for MonoBehaviours that tick through the centralized update loop

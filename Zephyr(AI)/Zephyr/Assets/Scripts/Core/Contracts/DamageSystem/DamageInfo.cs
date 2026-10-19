@@ -28,7 +28,7 @@
  */
 using UnityEngine;
 
-namespace Zephyr.Core.DamageSystem
+namespace Zephyr.Contracts.Damage
 {
     /// <summary>
     /// Immutable damage info. Should be a readonly struct in production to prevent leaks.

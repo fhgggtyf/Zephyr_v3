@@ -21,7 +21,6 @@ namespace Zephyr.Gameplay.Enemies
         private EnemyBrain _brain;
         private EnemyAnimation _animation;
         private EnemyAttackController _attackController;
-        private Vector2 _patrolOrigin;
         private float _patrolDirection = 1f;
         public EnemyAction(EnemyActionKind kind) => _kind = kind;
         public override void Awake(CoreStateMachine stateMachine)
@@ -46,7 +45,7 @@ namespace Zephyr.Gameplay.Enemies
             if (_kind != EnemyActionKind.Chase) _brain.Motor.Stop();
             if (_kind == EnemyActionKind.Patrol)
             {
-                _patrolOrigin = _brain.transform.position;
+                _patrolDirection = _brain.Motor.Facing.x >= 0f ? 1f : -1f;
             }
             else if (_kind == EnemyActionKind.Alert)
             {
@@ -118,10 +117,16 @@ namespace Zephyr.Gameplay.Enemies
 
         private void UpdatePatrol()
         {
-            float distance = _brain.Stats.PatrolDistance;
-            float offset = _brain.transform.position.x - _patrolOrigin.x;
-            if (offset >= distance) _patrolDirection = -1f;
-            else if (offset <= -distance) _patrolDirection = 1f;
+            if (!_brain.Motor.CanPatrolInDirection(_patrolDirection))
+            {
+                _patrolDirection *= -1f;
+                if (!_brain.Motor.CanPatrolInDirection(_patrolDirection))
+                {
+                    _brain.Motor.Stop();
+                    return;
+                }
+            }
+
             _brain.Motor.SetMoveDirection(new Vector2(_patrolDirection, 0f), _brain.Stats.PatrolSpeed);
         }
 

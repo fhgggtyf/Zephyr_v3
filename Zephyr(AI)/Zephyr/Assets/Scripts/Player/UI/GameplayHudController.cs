@@ -1,12 +1,14 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using Zephyr.Contracts.Events;
 using Zephyr.Core.Events;
 using Zephyr.Core.Flow;
 using Zephyr.Core.Health;
 using Zephyr.Core.Localization;
 using Zephyr.Core.Save;
 using Zephyr.Core.UI;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Weapons;
 using Zephyr.Gameplay.Player.Core;
 
@@ -16,7 +18,7 @@ namespace Zephyr.Gameplay.Player.UI
     /// Gameplay HUD hosted by GameManager. It is visible only while a player scene
     /// is loaded, which keeps tutorial/run presentation out of the menu and hubs.
     /// </summary>
-    public sealed class GameplayHudController : LocalizedBehaviour
+    public sealed class GameplayHudController : LocalizedBehaviour, IGameManagerDependencyConsumer
     {
         private Canvas _canvas;
         private HealthComponent _health;
@@ -31,28 +33,34 @@ namespace Zephyr.Gameplay.Player.UI
         private bool _built;
         private bool _subscribedToPlayerTarget;
         private ISaveDataGateway _saveData;
+        private IEventBusGateway _eventBus;
 
         private void Start()
         {
             BuildInterface();
-            _saveData = SaveSystem.Instance;
             BindLocalization(HandleLocaleChanged);
 
-            if (EventBus.Instance != null)
+            if (_eventBus != null)
             {
-                EventBus.Instance.Subscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+                _eventBus.Subscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
                 _subscribedToPlayerTarget = true;
-                if (EventBus.Instance.TryGetLatest(out PlayerTargetChangedEvent current))
+                if (_eventBus.TryGetLatest(out PlayerTargetChangedEvent current))
                     HandlePlayerTargetChanged(current);
             }
+        }
+
+        public void Configure(IGameManagerServices services)
+        {
+            _saveData = services?.SaveData;
+            _eventBus = services?.EventBus;
         }
 
         private void OnDestroy()
         {
             UnbindLocalization();
 
-            if (_subscribedToPlayerTarget && EventBus.Instance != null)
-                EventBus.Instance.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            if (_subscribedToPlayerTarget && _eventBus != null)
+                _eventBus.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
             _subscribedToPlayerTarget = false;
 
             UnsubscribeWeapons();
@@ -62,17 +70,21 @@ namespace Zephyr.Gameplay.Player.UI
         {
             if (!_built || _health == null) return;
 
-            if (_health.IsHealthUnbounded)
-                _healthBar.SetUnbounded();
-            else
-                _healthBar.Set(_health.CurrentHp, _health.MaxHp);
-            _staminaBar.Set(_resources != null ? _resources.CurrentStamina : 0f,
+            if (_healthBar != null)
+            {
+                if (_health.IsHealthUnbounded)
+                    _healthBar.SetUnbounded();
+                else
+                    _healthBar.Set(_health.CurrentHp, _health.MaxHp);
+            }
+            _staminaBar?.Set(_resources != null ? _resources.CurrentStamina : 0f,
                 _resources != null ? _resources.MaxStamina : 1f);
-            _energyBar.Set(_resources != null ? _resources.CurrentEnergy : 0f,
+            _energyBar?.Set(_resources != null ? _resources.CurrentEnergy : 0f,
                 _resources != null ? _resources.MaxEnergy : 1f);
 
             long coins = _saveData?.CurrentRun?.RunCurrency ?? 0L;
-            _coinsText.text = Format("hud.coins", "Coins: {0}", coins);
+            if (_coinsText != null)
+                _coinsText.text = Format("hud.coins", "Coins: {0}", coins);
             RefreshWeapons();
         }
 

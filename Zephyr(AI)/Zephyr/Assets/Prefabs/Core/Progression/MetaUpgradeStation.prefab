@@ -153,7 +153,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 979f32c56c6786b49a0637930bbba61b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Zephyr.Gameplay.Interaction.MetaUpgradeStation
+  m_EditorClassIdentifier: Zephyr.Gameplay.Interaction::Zephyr.Gameplay.Interaction.MetaUpgradeStation
   _panelPrefab: {fileID: 5599133687139016810, guid: caf90b1f37d13a14388a2ac96b05be53, type: 3}
   _upgrades:
   - {fileID: 11400000, guid: b481e9bbb8a44604a96145f07f77e36f, type: 2}
@@ -169,7 +169,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2fa92f60b5ea5c7438a900efae81108a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Zephyr.Gameplay.Interaction.InteractableFocusVisual
+  m_EditorClassIdentifier: Zephyr.Gameplay.Interaction::Zephyr.Gameplay.Interaction.InteractableFocusVisual
   _targetRenderer: {fileID: 8194105949918294738}
   _highlightColor: {r: 1, g: 1, b: 1, a: 1}
   _highlightScale: 1.04
@@ -185,7 +185,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 837bdef358f4372439fc9e01a910b01e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Levels.GridAligner
+  m_EditorClassIdentifier: Zephyr.Rooms::Zephyr.Gameplay.Levels.GridAligner
   _grid: {fileID: 0}
   _alignmentCollider: {fileID: 8103618745922708477}
   _alignmentRenderer: {fileID: 8194105949918294738}

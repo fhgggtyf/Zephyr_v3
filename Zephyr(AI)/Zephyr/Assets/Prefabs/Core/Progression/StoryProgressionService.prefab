@@ -43,6 +43,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72a3fd3ba6a3e7e408cf98870a7dbb9a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Meta.StoryProgressionService
+  m_EditorClassIdentifier: Zephyr.Core.Meta::Zephyr.Core.Meta.StoryProgressionService
   _database: {fileID: 11400000, guid: 8bdc4f8e20208504d9c3559b06531a3d, type: 2}
   _saveImmediately: 1

@@ -6,7 +6,8 @@
         "Zephyr.Core.Runtime",
         "Zephyr.Core.Persistence",
         "Zephyr.Core.Meta",
-        "Zephyr.Core"
+        "Zephyr.Core.Localization",
+        "Zephyr.Core.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

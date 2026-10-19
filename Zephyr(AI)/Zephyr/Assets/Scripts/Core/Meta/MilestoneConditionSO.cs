@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Core.Meta
 {
@@ -13,7 +14,7 @@ namespace Zephyr.Core.Meta
 
     public abstract class MilestoneConditionSO : ScriptableObject
     {
-        public abstract bool Evaluate(StoryProgressionService service);
+        public abstract bool Evaluate(IStoryProgressionGateway service);
     }
 
     [CreateAssetMenu(fileName = "FactCondition", menuName = "Zephyr/Progression/Conditions/Fact Condition")]
@@ -26,7 +27,7 @@ namespace Zephyr.Core.Meta
 
         public StoryFactSO Fact => _fact;
 
-        public override bool Evaluate(StoryProgressionService service)
+        public override bool Evaluate(IStoryProgressionGateway service)
         {
             if (service == null || _fact == null) return false;
             if (_fact.ValueType == StoryFactValueType.Bool)
@@ -72,7 +73,7 @@ namespace Zephyr.Core.Meta
     [CreateAssetMenu(fileName = "AllConditions", menuName = "Zephyr/Progression/Conditions/All Conditions")]
     public sealed class AllConditionsSO : CompositeMilestoneConditionSO
     {
-        public override bool Evaluate(StoryProgressionService service)
+        public override bool Evaluate(IStoryProgressionGateway service)
         {
             if (Conditions.Count == 0) return false;
             for (int i = 0; i < Conditions.Count; i++)
@@ -87,7 +88,7 @@ namespace Zephyr.Core.Meta
     [CreateAssetMenu(fileName = "AnyCondition", menuName = "Zephyr/Progression/Conditions/Any Condition")]
     public sealed class AnyConditionSO : CompositeMilestoneConditionSO
     {
-        public override bool Evaluate(StoryProgressionService service)
+        public override bool Evaluate(IStoryProgressionGateway service)
         {
             for (int i = 0; i < Conditions.Count; i++)
             {
@@ -103,7 +104,7 @@ namespace Zephyr.Core.Meta
     {
         [SerializeField] private MilestoneConditionSO _condition;
 
-        public override bool Evaluate(StoryProgressionService service)
+        public override bool Evaluate(IStoryProgressionGateway service)
             => _condition != null && !_condition.Evaluate(service);
     }
 
@@ -112,7 +113,7 @@ namespace Zephyr.Core.Meta
     {
         [SerializeField] private MilestoneSO _milestone;
 
-        public override bool Evaluate(StoryProgressionService service)
+        public override bool Evaluate(IStoryProgressionGateway service)
             => service != null && _milestone != null && service.IsCompleted(_milestone);
     }
 }

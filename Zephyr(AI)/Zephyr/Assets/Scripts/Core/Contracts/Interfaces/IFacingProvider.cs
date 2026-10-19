@@ -11,7 +11,7 @@
  * Scene:    GameManager (implemented by player and enemy controller components).
  * Ch.Ref:   Ch.11 Enemy AI System, Ch.9 Backstab Mechanic.
  */
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Provides the facing direction (used for detection, backstab, aggro).

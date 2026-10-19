@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Zephyr.Core;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Save;
 
 namespace Zephyr.Gameplay.Player.Flow

@@ -3,6 +3,7 @@ using UnityEngine;
 using Zephyr.Core;
 using Zephyr.Core.Camera;
 using Zephyr.Core.DamageSystem;
+using Zephyr.Contracts.Damage;
 using Zephyr.Core.Health;
 using Zephyr.Core.Stats;
 using Zephyr.Gameplay.Player.Visual;

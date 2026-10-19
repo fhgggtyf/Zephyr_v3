@@ -5,7 +5,7 @@
         "Zephyr.Core.Contracts",
         "Zephyr.Core.Runtime",
         "Zephyr.Core.Meta",
-        "Zephyr.Core",
+        "Zephyr.Core.Localization",
         "Zephyr.Player",
         "Zephyr.Weapons",
         "Zephyr.Testing",
@@ -18,7 +18,7 @@
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": true,
+    "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

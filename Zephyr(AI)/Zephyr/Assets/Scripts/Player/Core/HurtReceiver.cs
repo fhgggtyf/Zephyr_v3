@@ -10,7 +10,8 @@
  */
 using UnityEngine;
 using Zephyr.Core.DamageSystem;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Damage;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Gameplay.Player.Core
 {

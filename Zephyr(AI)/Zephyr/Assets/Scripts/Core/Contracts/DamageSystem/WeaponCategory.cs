@@ -11,7 +11,7 @@
  * Ch.Ref:   Ch.2.8 Damage Calculation Pipeline, Ch.9 Combat System.
  */
 
-namespace Zephyr.Core.DamageSystem
+namespace Zephyr.Contracts.Damage
 {
     /// <summary>
     /// Physical category of a weapon or attack source.

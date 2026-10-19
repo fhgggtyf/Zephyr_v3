@@ -2,6 +2,7 @@ using UnityEngine;
 using Zephyr.Core;
 using Zephyr.Core.Stats;
 using Zephyr.Core.Weapons;
+using Zephyr.Gameplay.Player.Input;
 
 namespace Zephyr.Gameplay.Player.Core
 {
@@ -27,10 +28,13 @@ namespace Zephyr.Gameplay.Player.Core
         [SerializeField] private bool _logConsumption;
 
         private StatsCore _statsCore;
+        [SerializeField] private PlayerInputReader _inputReader;
         private float _currentStamina;
         private float _currentEnergy;
         private float _staminaRegenDelayRemaining;
         private float _energyRegenDelayRemaining;
+        private bool _sprintConsumptionActive;
+        private bool _sprintRecoveryLockout;
 
         public float CurrentStamina => _currentStamina;
         public float CurrentEnergy => _currentEnergy;
@@ -64,7 +68,29 @@ namespace Zephyr.Gameplay.Player.Core
 
         private void Update()
         {
+            UpdateSprintConsumptionState();
+            if (_sprintConsumptionActive)
+                ConsumeSprintStamina(Time.deltaTime);
             Regenerate();
+        }
+
+        private bool IsSprintInputActive => _inputReader != null &&
+            _inputReader.HasSprintInput && _inputReader.HasHorizontalInput;
+
+        private void UpdateSprintConsumptionState()
+        {
+            if (!IsSprintInputActive)
+            {
+                _sprintConsumptionActive = false;
+                _sprintRecoveryLockout = false;
+                return;
+            }
+
+            if (_sprintConsumptionActive || _currentStamina <= 0f)
+                return;
+
+            if (!_sprintRecoveryLockout || _currentStamina >= _sprintRestartStaminaThreshold)
+                _sprintConsumptionActive = true;
         }
 
         private void Regenerate()
@@ -117,11 +143,17 @@ namespace Zephyr.Gameplay.Player.Core
 
         public void ConsumeSprintStamina(float deltaTime)
         {
-            if (deltaTime <= 0f || _sprintStaminaPerSecond <= 0f || _currentStamina <= 0f) return;
-
+            if (deltaTime <= 0f || _sprintStaminaPerSecond <= 0f) return;
+            _staminaRegenDelayRemaining = _regenDelayAfterUse;
+            if (_currentStamina <= 0f) return;
             _currentStamina = Mathf.Max(0f,
                 _currentStamina - _sprintStaminaPerSecond * deltaTime);
-            _staminaRegenDelayRemaining = _regenDelayAfterUse;
+
+            if (_currentStamina <= 0f)
+            {
+                _sprintConsumptionActive = false;
+                _sprintRecoveryLockout = true;
+            }
         }
 
         public bool TryConsumeJumpStamina()
@@ -167,6 +199,8 @@ namespace Zephyr.Gameplay.Player.Core
             _currentEnergy = MaxEnergy;
             _staminaRegenDelayRemaining = 0f;
             _energyRegenDelayRemaining = 0f;
+            _sprintConsumptionActive = false;
+            _sprintRecoveryLockout = false;
         }
 
         private void OnValidate()

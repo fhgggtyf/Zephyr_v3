@@ -14,6 +14,7 @@
  */
 using System;
 using UnityEngine;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Core.Timer
@@ -25,7 +26,7 @@ namespace Zephyr.Core.Timer
     /// </summary>
     [DefaultExecutionOrder(-400)]
     [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
-    public sealed class TimerService : MonoBehaviour
+    public sealed class TimerService : MonoBehaviour, ITimerGateway
     {
         public enum Clock { Gameplay, UI }
         private static TimerService _instance;
@@ -58,6 +59,9 @@ namespace Zephyr.Core.Timer
             return SetTimeout(duration, callback, Clock.Gameplay);
         }
 
+        IDisposable ITimerGateway.SetTimeout(float duration, Action callback)
+            => SetTimeout(duration, callback);
+
         public TimerHandle SetTimeout(float duration, Action callback, Clock clock)
         {
             var handle = new TimerHandle(this);
@@ -73,6 +77,9 @@ namespace Zephyr.Core.Timer
         {
             return SetInterval(interval, callback, Clock.Gameplay);
         }
+
+        IDisposable ITimerGateway.SetInterval(float interval, Action callback)
+            => SetInterval(interval, callback);
 
         public TimerHandle SetInterval(float interval, Action callback, Clock clock)
         {

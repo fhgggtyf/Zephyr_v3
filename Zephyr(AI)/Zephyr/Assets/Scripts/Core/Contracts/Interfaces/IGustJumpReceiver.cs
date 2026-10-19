@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     public interface IGustJumpReceiver
     {

@@ -1,6 +1,7 @@
 using Zephyr.Core;
 using Zephyr.Core.Flow;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Flow;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Gameplay.Player.Flow
 {

@@ -13,6 +13,7 @@
  */
 using System.Collections.Generic;
 using UnityEngine;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Core.ObjectPool
 {
@@ -28,12 +29,51 @@ namespace Zephyr.Core.ObjectPool
 
         private readonly Queue<PooledObject> _available = new Queue<PooledObject>();
         private readonly HashSet<PooledObject> _active = new HashSet<PooledObject>();
+        private IPickupRuntimeContext _pickupContext;
+        private ITimerGateway _timerGateway;
+        private bool _initialized;
+        private Transform _creationRoot;
 
         private void Awake()
         {
+            if (_prefab != null) InitializePool();
+        }
+
+        public void Initialize(PooledObject prefab, IPickupRuntimeContext pickupContext,
+            int initialSize = 4, bool canGrow = true)
+        {
+            if (_initialized) return;
+            _prefab = prefab;
+            _pickupContext = pickupContext;
+            _initialSize = Mathf.Max(0, initialSize);
+            _canGrow = canGrow;
+            InitializePool();
+        }
+
+        public void Configure(IPickupRuntimeContext pickupContext)
+        {
+            _pickupContext = pickupContext;
+
+            foreach (PooledObject obj in _available)
+                obj.Configure(_pickupContext);
+            foreach (PooledObject obj in _active)
+                obj.Configure(_pickupContext);
+        }
+
+        public void ConfigureTimer(ITimerGateway timerGateway)
+        {
+            _timerGateway = timerGateway;
+            foreach (PooledObject obj in _available) obj.ConfigureTimer(_timerGateway);
+            foreach (PooledObject obj in _active) obj.ConfigureTimer(_timerGateway);
+        }
+
+        private void InitializePool()
+        {
+            if (_initialized || _prefab == null) return;
+            _initialized = true;
             for (int i = 0; i < _initialSize; i++)
             {
-                var obj = CreateNew();
+                PooledObject obj = CreateNew();
                 obj.OnDespawn();
                 _available.Enqueue(obj);
             }
@@ -41,6 +81,9 @@ namespace Zephyr.Core.ObjectPool
 
         public PooledObject Spawn(Vector3 position, Quaternion rotation)
         {
+            if (!_initialized) InitializePool();
+            if (!_initialized) return null;
+
             PooledObject obj;
 
             if (_available.Count > 0)
@@ -58,8 +101,8 @@ namespace Zephyr.Core.ObjectPool
             }
 
             obj.transform.SetPositionAndRotation(position, rotation);
-            obj.OnSpawn();
             _active.Add(obj);
+            obj.OnSpawn();
             return obj;
         }
 
@@ -72,12 +115,24 @@ namespace Zephyr.Core.ObjectPool
 
         private PooledObject CreateNew()
         {
-            var obj = Instantiate(_prefab, transform);
+            if (_creationRoot == null)
+            {
+                GameObject creationObject = new GameObject("InactiveCreationRoot");
+                creationObject.SetActive(false);
+                creationObject.transform.SetParent(transform, false);
+                _creationRoot = creationObject.transform;
+            }
+            PooledObject obj = Instantiate(_prefab, _creationRoot);
+            obj.gameObject.SetActive(false);
             obj.Initialize(this);
+            obj.Configure(_pickupContext);
+            obj.ConfigureTimer(_timerGateway);
+            obj.transform.SetParent(transform, false);
             return obj;
         }
 
         public int ActiveCount => _active.Count;
         public int AvailableCount => _available.Count;
+        public PooledObject Prefab => _prefab;
     }
 }

@@ -12,9 +12,9 @@
  * Scene:    GameManager (implemented by HealthComponent on entity prefabs).
  * Ch.Ref:   Ch.2.8 Damage Calculation Pipeline, Ch.9 Combat System.
  */
-using Zephyr.Core.DamageSystem;
+using Zephyr.Contracts.Damage;
 
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Entity that can receive damage. Implemented by HealthComponent on player/enemy.

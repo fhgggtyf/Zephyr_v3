@@ -1,26 +1,32 @@
 using UnityEngine;
+using Zephyr.Contracts.Events;
 using Zephyr.Core.DamageSystem;
-using Zephyr.Core.Events;
+using Zephyr.Contracts.Damage;
 using Zephyr.Core.Health;
 using Zephyr.Core.Combat;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
+
+using Zephyr.Core.Items;
 
 namespace Zephyr.Gameplay.Enemies
 {
-    public sealed class EnemyBrain : MonoBehaviour, ILevelObjective
+    public sealed class EnemyBrain : MonoBehaviour, ILevelObjective, IDropSpawnGatewayConsumer, IPlayerTargetContextConsumer
     {
         [SerializeField] private EnemyStats _stats;
         [SerializeField] private EnemyMotor _motor;
         [SerializeField] private HealthComponent _health;
         private EnemyAttackController _attackController;
+        private IDropSpawnGateway _dropSpawnGateway;
         private Transform _target;
         private float _lastDamageTime = -100f;
         private float _lastAttackTime = -100f;
         private bool _dead;
+        private bool _dropsEmitted;
         private bool _attackFinished = true;
         private bool _isTelegraphing;
         private float _phaseEndsAt;
         private bool _subscribedToPlayerTarget;
+        private IPlayerTargetContext _playerTargetContext;
 
         public EnemyStats Stats => _stats;
         public EnemyMotor Motor => _motor;
@@ -41,6 +47,22 @@ namespace Zephyr.Gameplay.Enemies
             : _attackFinished;
         public bool IsTelegraphing => _isTelegraphing;
         public bool PhaseFinished => Time.time >= _phaseEndsAt;
+
+        public void Configure(IPlayerTargetContext context)
+        {
+            if (_subscribedToPlayerTarget)
+                _playerTargetContext?.UnsubscribePlayerTarget(HandlePlayerTargetChanged);
+
+            _playerTargetContext = context;
+            _subscribedToPlayerTarget = false;
+            SubscribeToPlayerTarget();
+        }
+
+        public void Configure(IDropSpawnGateway gateway)
+        {
+            _dropSpawnGateway = gateway;
+            if (_dead) TryEmitDrops();
+        }
 
         private void Awake()
         {
@@ -68,17 +90,17 @@ namespace Zephyr.Gameplay.Enemies
 
         private void OnDisable()
         {
-            if (_subscribedToPlayerTarget && EventBus.Instance != null)
-                EventBus.Instance.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            if (_subscribedToPlayerTarget)
+                _playerTargetContext?.UnsubscribePlayerTarget(HandlePlayerTargetChanged);
             _subscribedToPlayerTarget = false;
         }
 
         private void SubscribeToPlayerTarget()
         {
-            if (_subscribedToPlayerTarget || EventBus.Instance == null) return;
-            EventBus.Instance.Subscribe<PlayerTargetChangedEvent>(HandlePlayerTargetChanged);
+            if (_subscribedToPlayerTarget || _playerTargetContext == null) return;
+            _playerTargetContext.SubscribePlayerTarget(HandlePlayerTargetChanged);
             _subscribedToPlayerTarget = true;
-            if (EventBus.Instance.TryGetLatest(out PlayerTargetChangedEvent current))
+            if (_playerTargetContext.TryGetLatestPlayerTarget(out PlayerTargetChangedEvent current))
                 HandlePlayerTargetChanged(current);
         }
 
@@ -140,7 +162,31 @@ namespace Zephyr.Gameplay.Enemies
             _dead = true;
             _isTelegraphing = false;
             _motor?.Stop();
+            TryEmitDrops();
         }
+
+        private void TryEmitDrops()
+        {
+            if (_dropsEmitted || _dropSpawnGateway == null || _stats == null || _stats.Config == null)
+                return;
+
+            DropResult[] results = DropSystem.Roll(
+                _stats.Config.Drops,
+                new DropContext(_dropSpawnGateway.Seed, GetEntityId().GetHashCode(), _dropSpawnGateway.RoomDepth),
+                _stats.Luck);
+            Vector3 spawnPosition = transform.position + Vector3.up * 0.25f;
+            for (int i = 0; i < results.Length; i++)
+            {
+                DropResult result = results[i];
+                Vector3 position = spawnPosition + Vector3.right * (i * 0.2f);
+                if (result.Kind == DropKind.Currency)
+                    _dropSpawnGateway.SpawnCurrency(position, result.CurrencyAmount);
+                else if (result.Kind == DropKind.Weapon)
+                    _dropSpawnGateway.SpawnWeapon(position, result.WeaponId);
+            }
+            _dropsEmitted = true;
+        }
+
         private static bool IsTargetValid(Transform target)
         {
             if (target == null || !target.gameObject.activeInHierarchy) return false;

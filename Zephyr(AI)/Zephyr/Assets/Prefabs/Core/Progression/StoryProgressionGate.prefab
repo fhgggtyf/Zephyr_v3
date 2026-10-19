@@ -43,7 +43,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9c2412feddbd0044e97024223f53348e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Meta.StoryProgressionGate
+  m_EditorClassIdentifier: Zephyr.Core.Meta::Zephyr.Core.Meta.StoryProgressionGate
   _condition: {fileID: 0}
   _disableGameObjectWhenUnlocked: 0
   _onUnlocked:

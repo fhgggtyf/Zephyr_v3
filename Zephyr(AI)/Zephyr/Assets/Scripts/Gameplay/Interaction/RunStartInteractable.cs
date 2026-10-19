@@ -1,27 +1,31 @@
 using UnityEngine;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Flow.Scenes;
-using Zephyr.Core.Interfaces;
 using Zephyr.Core.Meta;
-using Zephyr.Core.Save;
 
 namespace Zephyr.Gameplay.Interaction
 {
     /// <summary>Explicit MetaHub run-entry interaction replacing the old far-right trigger.</summary>
-    public sealed class RunStartInteractable : MonoBehaviour, IInteractable
+    public sealed class RunStartInteractable : MonoBehaviour, IInteractable, IMetaHubDependencyConsumer
     {
         [SerializeField] private GameObject _panelPrefab;
+        [SerializeField] private MonoBehaviour _runEntryGatewaySource;
         private PotentialAllocationPanel _panel;
         private IMetaGateway _metaGateway;
-        private ISaveDataGateway _saveData;
+        private IRunEntryGateway _runEntryGateway;
 
         public IMetaGateway MetaGateway => _metaGateway;
-        public ISaveDataGateway SaveData => _saveData;
 
         private void Awake()
         {
-            _saveData = SaveSystem.Instance;
-            _metaGateway = new MetaGateway(_saveData);
+            _runEntryGateway = _runEntryGatewaySource as IRunEntryGateway;
+            if (_runEntryGatewaySource == null)
+                Debug.LogError("RunStartInteractable requires an explicit IRunEntryGateway reference.", this);
+            else if (_runEntryGateway == null)
+                Debug.LogError("RunStartInteractable gateway source does not implement IRunEntryGateway.", this);
         }
+
+        public void Configure(IMetaGateway metaGateway) => _metaGateway = metaGateway;
 
         public bool CanInteract() => isActiveAndEnabled && _panel == null && _metaGateway?.HasMeta == true;
 
@@ -47,7 +51,7 @@ namespace Zephyr.Gameplay.Interaction
                 _panel = null;
                 panel.CloseWithoutDestroyingOwner();
             }
-            FindAnyObjectByType<MetaHubController>()?.StartRun();
+            _runEntryGateway?.StartRun();
         }
 
         public void ClosePanel()

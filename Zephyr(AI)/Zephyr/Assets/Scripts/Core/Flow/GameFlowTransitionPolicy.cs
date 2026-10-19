@@ -1,3 +1,5 @@
+using Zephyr.Contracts.Flow;
+
 namespace Zephyr.Core.Flow
 {
     public static class GameFlowTransitionPolicy

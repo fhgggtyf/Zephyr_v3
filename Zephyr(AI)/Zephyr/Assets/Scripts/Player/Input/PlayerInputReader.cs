@@ -14,7 +14,8 @@
  */
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Zephyr.Core.UI.Dialogue;
+using Zephyr.Core.Flow;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Gameplay.Player.Input
 {
@@ -24,9 +25,11 @@ namespace Zephyr.Gameplay.Player.Input
     /// <see cref="MoveInput"/> to determine movement direction.
     /// Lifecycle: Enable/Disable the GamePlay action map OnEnable/OnDisable.
     /// </summary>
-    public class PlayerInputReader : MonoBehaviour, ZephyrInputActions.IGamePlayActions
+    public class PlayerInputReader : MonoBehaviour, ZephyrInputActions.IGamePlayActions, IGameManagerDependencyConsumer
     {
         private ZephyrInputActions _actions;
+        private IDialogueInputGateway _dialogueInput;
+        private bool _ignoreJumpUntilReleased;
 
         /// <summary>
         /// Current move direction from WASD. X = horizontal (A/D), Y = vertical (W/S).
@@ -128,6 +131,13 @@ namespace Zephyr.Gameplay.Player.Input
             return true;
         }
 
+        public void ClearJumpAndAttackInputs()
+        {
+            HasJumpInput = false;
+            HasPrimaryAttackInput = false;
+            HasSecondaryAttackInput = false;
+        }
+
         private void Awake()
         {
             _actions = new ZephyrInputActions();
@@ -137,10 +147,9 @@ private void OnEnable()
         {
             _actions ??= new ZephyrInputActions();
             _actions.GamePlay.AddCallbacks(this);
-            DialogueManager.GameplayInputSuspended += DisableGameplayInput;
-            DialogueManager.GameplayInputRestored += EnableGameplayInput;
+            SubscribeDialogueInput();
 
-            if (DialogueManager.Instance != null && DialogueManager.Instance.IsOpen)
+            if (_dialogueInput != null && _dialogueInput.IsOpen)
                 DisableGameplayInput();
             else
                 EnableGameplayInput();
@@ -148,12 +157,40 @@ private void OnEnable()
 
 private void OnDisable()
         {
-            DialogueManager.GameplayInputSuspended -= DisableGameplayInput;
-            DialogueManager.GameplayInputRestored -= EnableGameplayInput;
+            UnsubscribeDialogueInput();
             if (_actions == null) return;
             _actions.GamePlay.Disable();
             _actions.GamePlay.RemoveCallbacks(this);
             ClearInputState();
+        }
+
+        private void Update()
+        {
+            if (_ignoreJumpUntilReleased && !IsJumpControlPressed())
+                _ignoreJumpUntilReleased = false;
+        }
+
+        public void Configure(IGameManagerServices services)
+        {
+            UnsubscribeDialogueInput();
+            _dialogueInput = services?.DialogueInput;
+            SubscribeDialogueInput();
+            if (_dialogueInput != null && _dialogueInput.IsOpen) DisableGameplayInput();
+            else EnableGameplayInput();
+        }
+
+        private void SubscribeDialogueInput()
+        {
+            if (_dialogueInput == null) return;
+            _dialogueInput.InputSuspended += DisableGameplayInput;
+            _dialogueInput.InputRestored += RestoreGameplayInput;
+        }
+
+        private void UnsubscribeDialogueInput()
+        {
+            if (_dialogueInput == null) return;
+            _dialogueInput.InputSuspended -= DisableGameplayInput;
+            _dialogueInput.InputRestored -= RestoreGameplayInput;
         }
 
         private void DisableGameplayInput()
@@ -165,6 +202,25 @@ private void OnDisable()
         private void EnableGameplayInput()
         {
             if (isActiveAndEnabled) _actions?.GamePlay.Enable();
+        }
+
+        private void RestoreGameplayInput()
+        {
+            _ignoreJumpUntilReleased = IsJumpControlPressed();
+            EnableGameplayInput();
+        }
+
+        private bool IsJumpControlPressed()
+        {
+            if (_actions == null) return false;
+
+            var controls = _actions.GamePlay.Jump.controls;
+            for (int i = 0; i < controls.Count; i++)
+            {
+                if (controls[i].IsPressed()) return true;
+            }
+
+            return false;
         }
 
         private void ClearInputState()
@@ -252,7 +308,7 @@ private void OnDisable()
         /// </summary>
         public void OnJump(InputAction.CallbackContext context)
         {
-            if (context.started)
+            if (context.started && !_ignoreJumpUntilReleased)
                 HasJumpInput = true;
         }
     }

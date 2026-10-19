@@ -1,7 +1,7 @@
 using System;
-using Zephyr.Core.Flow;
+using Zephyr.Contracts.Flow;
 
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     public interface IGameFlowGateway
     {

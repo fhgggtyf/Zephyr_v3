@@ -11,6 +11,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a78e51f2038507e4590162954076983d, type: 3}
   m_Name: StoryProgressionDatabase
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Meta.StoryProgressionDatabaseSO
+  m_EditorClassIdentifier: Zephyr.Core.Meta::Zephyr.Core.Meta.StoryProgressionDatabaseSO
   _facts: []
   _milestones: []

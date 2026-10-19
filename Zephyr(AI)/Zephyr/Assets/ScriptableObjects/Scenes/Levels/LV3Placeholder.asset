@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d3000000000000000000000000000001, type: 3}
   m_Name: LV3Placeholder
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Flow.SceneSO
+  m_EditorClassIdentifier: Zephyr.Core.Flow::Zephyr.Core.Flow.SceneSO
   _id: 13
   _sceneAsset: {fileID: 102900000, guid: 72de702c472986f45aa8fe0608acdcc6, type: 3}
   _sceneName: LV3Placeholder

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Zephyr.Core;
 using Zephyr.Core.DamageSystem;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Damage;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Stats;
+using Zephyr.Core.Runtime.Stats;
 
 namespace Zephyr.Core.Health
 {
@@ -27,7 +29,9 @@ namespace Zephyr.Core.Health
         public float CurrentHp { get; private set; }
         public float MaxHp => _statsCore != null ? _statsCore.GetStatValue(StatType.MaxHp) : 100f;
         public bool IsHealthUnbounded => _statsCore != null &&
-                                          _statsCore.GetMetaStat(MetaStatType.UnboundedHealth) > 0.5f;
+                                          StatModifierRegistry.TryGetSceneRuleOverride(
+                                              _statsCore, SceneRuleOverrideKind.UnboundedHealth, out float value) &&
+                                          value > 0.5f;
         public float CurrentShield { get; private set; }
         public float MaxShield { get; private set; }
 

@@ -1,6 +1,6 @@
-using Zephyr.Core.DamageSystem;
+using Zephyr.Contracts.Damage;
 
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     public interface IDamageFilter
     {

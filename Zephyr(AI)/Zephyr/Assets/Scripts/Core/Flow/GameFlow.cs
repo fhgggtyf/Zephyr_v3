@@ -6,14 +6,15 @@ using Zephyr.Core.Meta;
 using Zephyr.Core.Save;
 using Zephyr.Core.Stats;
 using Zephyr.Core.UI;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Flow;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Runtime.Lifecycle;
 
 namespace Zephyr.Core.Flow
 {
     [DefaultExecutionOrder(-500)]
     [SingletonLifetime(SingletonLifetime.Persistent, "Persistent")]
-    public sealed class GameFlow : MonoBehaviour, IGameFlowGateway
+    public sealed class GameFlow : MonoBehaviour, IGameFlowSceneGateway
     {
         private static GameFlow _instance;
         public static GameFlow Instance => _instance;

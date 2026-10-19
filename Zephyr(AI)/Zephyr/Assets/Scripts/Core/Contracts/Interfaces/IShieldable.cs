@@ -13,7 +13,7 @@
  * Ch.Ref:   Ch.2.8 Damage Calculation Pipeline, Ch.9 Combat System, Ch.12 Shield System.
  */
 
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Entity that has a shield layer that absorbs damage before health.

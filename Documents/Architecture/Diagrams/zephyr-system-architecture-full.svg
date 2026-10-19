@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1420" viewBox="0 0 1900 1420" role="img" aria-labelledby="title desc">
+  <title id="title">Zephyr 全模块软件架构图</title>
+  <desc id="desc">Zephyr 基于领域边界的分层组件化架构单图，包含生命周期、内容与表现、领域运行时、稳定基础、资产管线、测试与 Editor 模块，并附带图例。</desc>
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8fafc"/><stop offset="1" stop-color="#e2e8f0"/></linearGradient>
+    <linearGradient id="foundation" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ede9fe"/><stop offset="1" stop-color="#e0e7ff"/></linearGradient>
+    <linearGradient id="runtime" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#dbeafe"/><stop offset="1" stop-color="#ccfbf1"/></linearGradient>
+    <linearGradient id="content" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fef3c7"/><stop offset="1" stop-color="#ffedd5"/></linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-color="#0f172a" flood-opacity=".14"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker>
+    <style>
+      .title{font:700 32px "Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#0f172a}
+      .subtitle{font:400 16px "Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#475569}
+      .lane{font:700 19px "Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#0f172a}
+      .node{font:700 14px "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#0f172a}
+      .detail{font:400 12px "Segoe UI","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#334155}
+      .small{font:400 13px "Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#475569}
+      .legend{font:400 13px "Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#334155}
+      .callout{font:700 14px "Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#7f1d1d}
+    </style>
+  </defs>
+  <rect width="1900" height="1420" fill="url(#canvas)"/>
+  <rect x="28" y="24" width="1844" height="1372" rx="24" fill="#fff" stroke="#cbd5e1"/>
+
+  <text x="70" y="78" class="title">Zephyr 全模块软件架构图</text>
+  <text x="70" y="108" class="subtitle">基于领域边界的分层组件化架构；UI 层局部采用 MVC/MVP，但整体不是传统 MVC。</text>
+  <rect x="1320" y="52" width="500" height="70" rx="14" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="1344" y="82" class="callout">架构定位</text>
+  <text x="1344" y="106" class="small">Layered Component Architecture with Domain-Oriented Boundaries</text>
+
+  <!-- Lane 1 lifecycle -->
+  <rect x="70" y="150" width="1760" height="120" rx="16" fill="#ecfdf5" stroke="#059669" stroke-width="2" filter="url(#shadow)"/>
+  <text x="96" y="180" class="lane">生命周期与组合根</text>
+  <text x="96" y="202" class="small">负责启动顺序、跨场景服务和阶段性运行时组合；SceneLoader 由 Persistent 持有</text>
+  <g>
+    <rect x="360" y="210" width="190" height="56" rx="12" fill="#d1fae5" stroke="#059669" stroke-width="2"/><text x="455" y="232" text-anchor="middle" class="node">Initializer</text><text x="455" y="251" text-anchor="middle" class="detail">游戏进程总启动入口</text>
+    <rect x="650" y="210" width="220" height="56" rx="12" fill="#a7f3d0" stroke="#059669" stroke-width="2"/><text x="760" y="232" text-anchor="middle" class="node">Persistent</text><text x="760" y="251" text-anchor="middle" class="detail">会话级服务 owner（含 SceneLoader）</text>
+    <rect x="980" y="210" width="220" height="56" rx="12" fill="#a7f3d0" stroke="#059669" stroke-width="2"/><text x="1090" y="232" text-anchor="middle" class="node">GameManager</text><text x="1090" y="251" text-anchor="middle" class="detail">阶段级服务 owner</text>
+    <rect x="1310" y="210" width="220" height="56" rx="12" fill="#d1fae5" stroke="#059669" stroke-width="2" stroke-dasharray="7 5"/><text x="1420" y="232" text-anchor="middle" class="node">SceneLoader</text><text x="1420" y="251" text-anchor="middle" class="detail">Persistent 内部服务 / 加载 authority</text>
+    <path d="M550 238 H640" stroke="#059669" stroke-width="2.5" marker-end="url(#arrow)"/><path d="M870 238 H970" stroke="#059669" stroke-width="2.5" marker-end="url(#arrow)"/><path d="M1200 238 H1300" stroke="#059669" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- Lane 2 content/presentation -->
+  <rect x="70" y="300" width="1760" height="270" rx="16" fill="url(#content)" stroke="#d97706" stroke-width="2" filter="url(#shadow)"/>
+  <text x="96" y="332" class="lane">内容与表现层</text>
+  <text x="96" y="354" class="small">变化最快；通过 Prefab、Scene、SO、Animator 和 Inspector 生产内容</text>
+  <g>
+    <rect x="110" y="390" width="190" height="70" rx="12" fill="#fef3c7" stroke="#ca8a04" stroke-width="2"/><text x="205" y="418" text-anchor="middle" class="node">Zephyr.Player</text><text x="205" y="440" text-anchor="middle" class="detail">移动 / 输入 / 交互 / 表现</text>
+    <rect x="330" y="390" width="190" height="70" rx="12" fill="#fef3c7" stroke="#ca8a04" stroke-width="2"/><text x="425" y="418" text-anchor="middle" class="node">Zephyr.Enemies</text><text x="425" y="440" text-anchor="middle" class="detail">Brain / AI / EnemySO</text>
+    <rect x="550" y="390" width="190" height="70" rx="12" fill="#fef3c7" stroke="#ca8a04" stroke-width="2"/><text x="645" y="418" text-anchor="middle" class="node">Zephyr.Weapons</text><text x="645" y="440" text-anchor="middle" class="detail">WeaponSO / Runtime</text>
+    <rect x="770" y="390" width="190" height="70" rx="12" fill="#fef3c7" stroke="#ca8a04" stroke-width="2"/><text x="865" y="418" text-anchor="middle" class="node">Zephyr.Items</text><text x="865" y="440" text-anchor="middle" class="detail">Pickup / Drop / Pool</text>
+    <rect x="990" y="390" width="190" height="70" rx="12" fill="#fef3c7" stroke="#ca8a04" stroke-width="2"/><text x="1085" y="418" text-anchor="middle" class="node">Zephyr.Rooms</text><text x="1085" y="440" text-anchor="middle" class="detail">Room / Level / Exit</text>
+    <rect x="1210" y="390" width="190" height="70" rx="12" fill="#fef3c7" stroke="#ca8a04" stroke-width="2"/><text x="1305" y="418" text-anchor="middle" class="node">Interaction</text><text x="1305" y="440" text-anchor="middle" class="detail">Door / Trigger / Interactable</text>
+    <rect x="1430" y="390" width="190" height="70" rx="12" fill="#fef3c7" stroke="#ca8a04" stroke-width="2"/><text x="1525" y="418" text-anchor="middle" class="node">Zephyr.UI</text><text x="1525" y="440" text-anchor="middle" class="detail">View / Controller / HUD</text>
+    <rect x="1650" y="390" width="140" height="70" rx="12" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/><text x="1720" y="418" text-anchor="middle" class="node">Dialogue</text><text x="1720" y="440" text-anchor="middle" class="detail">View / Trigger</text>
+  </g>
+  <g>
+    <rect x="300" y="490" width="260" height="52" rx="12" fill="#fff7ed" stroke="#ea580c"/><text x="430" y="521" text-anchor="middle" class="detail">Prefab / Scene / Animator / Collider</text>
+    <rect x="670" y="490" width="260" height="52" rx="12" fill="#fff7ed" stroke="#ea580c"/><text x="800" y="521" text-anchor="middle" class="detail">ScriptableObject 配置资产</text>
+    <rect x="1040" y="490" width="260" height="52" rx="12" fill="#fff7ed" stroke="#ea580c"/><text x="1170" y="521" text-anchor="middle" class="detail">Localization Table / UI Prefab</text>
+    <rect x="1410" y="490" width="260" height="52" rx="12" fill="#fff7ed" stroke="#ea580c"/><text x="1540" y="521" text-anchor="middle" class="detail">2D Physics / Tilemap / Sprite</text>
+  </g>
+
+  <!-- Lane 3 runtime -->
+  <rect x="70" y="600" width="1760" height="300" rx="16" fill="url(#runtime)" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+  <text x="96" y="632" class="lane">领域运行时层</text>
+  <text x="96" y="654" class="small">拥有游戏规则、跨场景服务和可测试的领域协作者</text>
+  <g>
+    <rect x="110" y="690" width="210" height="72" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="215" y="718" text-anchor="middle" class="node">Core.Combat</text><text x="215" y="741" text-anchor="middle" class="detail">Stats / Damage / Health / Buff</text>
+    <rect x="350" y="690" width="210" height="72" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="455" y="718" text-anchor="middle" class="node">Core.Flow</text><text x="455" y="741" text-anchor="middle" class="detail">GameFlow / SceneSO / Requests</text>
+    <rect x="590" y="690" width="210" height="72" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="695" y="718" text-anchor="middle" class="node">Core.Persistence</text><text x="695" y="741" text-anchor="middle" class="detail">JSON / Slots / Migration</text>
+    <rect x="830" y="690" width="210" height="72" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="935" y="718" text-anchor="middle" class="node">Core.Meta</text><text x="935" y="741" text-anchor="middle" class="detail">Settlement / Upgrade / Story</text>
+    <rect x="1070" y="690" width="210" height="72" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="1175" y="718" text-anchor="middle" class="node">Core.Camera</text><text x="1175" y="741" text-anchor="middle" class="detail">Follow / Bounds / Zone / Shake</text>
+    <rect x="1310" y="690" width="210" height="72" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="1415" y="718" text-anchor="middle" class="node">Core.Audio</text><text x="1415" y="741" text-anchor="middle" class="detail">Bus / Voice Pool / Playback</text>
+    <rect x="1550" y="690" width="240" height="72" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="1670" y="718" text-anchor="middle" class="node">Projectiles / Inputs</text><text x="1670" y="741" text-anchor="middle" class="detail">Rigidbody2D / Input adapter</text>
+  </g>
+  <g>
+    <rect x="250" y="800" width="250" height="64" rx="12" fill="#bfdbfe" stroke="#2563eb" stroke-width="2"/><text x="375" y="827" text-anchor="middle" class="node">Core.StateMachine</text><text x="375" y="849" text-anchor="middle" class="detail">State / Action / Condition / Transition</text>
+    <rect x="650" y="800" width="250" height="64" rx="12" fill="#bfdbfe" stroke="#2563eb" stroke-width="2"/><text x="775" y="827" text-anchor="middle" class="node">Core.Dialogue</text><text x="775" y="849" text-anchor="middle" class="detail">Dialogue flow / Input lock / Localization</text>
+    <rect x="1050" y="800" width="250" height="64" rx="12" fill="#bfdbfe" stroke="#2563eb" stroke-width="2"/><text x="1175" y="827" text-anchor="middle" class="node">Core.Localization</text><text x="1175" y="849" text-anchor="middle" class="detail">Language / Fallback / Table access</text>
+    <rect x="1450" y="800" width="250" height="64" rx="12" fill="#bfdbfe" stroke="#2563eb" stroke-width="2"/><text x="1575" y="827" text-anchor="middle" class="node">Core.Runtime</text><text x="1575" y="849" text-anchor="middle" class="detail">EventBus / Timer / ObjectPool</text>
+  </g>
+
+  <!-- Lane 4 foundation -->
+  <rect x="70" y="930" width="1760" height="170" rx="16" fill="url(#foundation)" stroke="#7c3aed" stroke-width="2" filter="url(#shadow)"/>
+  <text x="96" y="962" class="lane">稳定基础与跨模块合同</text>
+  <text x="96" y="984" class="small">变化最慢；不承载具体内容策略，不反向依赖 Player、Enemies、Weapons 或 UI</text>
+  <g>
+    <rect x="160" y="1012" width="300" height="58" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/><text x="310" y="1037" text-anchor="middle" class="node">Core.Contracts</text><text x="310" y="1057" text-anchor="middle" class="detail">Interfaces / Events / Value types</text>
+    <rect x="590" y="1012" width="300" height="58" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/><text x="740" y="1037" text-anchor="middle" class="node">Communication</text><text x="740" y="1057" text-anchor="middle" class="detail">Gateway / EventBus / SO Events</text>
+    <rect x="1020" y="1012" width="300" height="58" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/><text x="1170" y="1037" text-anchor="middle" class="node">Data Boundary</text><text x="1170" y="1057" text-anchor="middle" class="detail">SO Config ≠ Runtime ≠ Save</text>
+    <rect x="1450" y="1012" width="300" height="58" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/><text x="1600" y="1037" text-anchor="middle" class="node">Physics / Timing</text><text x="1600" y="1057" text-anchor="middle" class="detail">MovementCore / Timer / Pool</text>
+  </g>
+
+  <!-- verification lane -->
+  <rect x="70" y="1130" width="1760" height="170" rx="16" fill="#f1f5f9" stroke="#64748b" stroke-width="2" filter="url(#shadow)"/>
+  <text x="96" y="1162" class="lane">验证与工具边界</text>
+  <text x="96" y="1184" class="small">测试和 Editor 程序集只用于验证、资产处理和开发工具，不成为运行时业务依赖</text>
+  <g>
+    <rect x="150" y="1210" width="300" height="62" rx="12" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/><text x="300" y="1237" text-anchor="middle" class="node">Architecture Tests</text><text x="300" y="1258" text-anchor="middle" class="detail">asmdef / forbidden API / policy</text>
+    <rect x="560" y="1210" width="300" height="62" rx="12" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/><text x="710" y="1237" text-anchor="middle" class="node">EditMode Tests</text><text x="710" y="1258" text-anchor="middle" class="detail">Combat / Save / State / UseCase</text>
+    <rect x="970" y="1210" width="300" height="62" rx="12" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/><text x="1120" y="1237" text-anchor="middle" class="node">PlayMode Tests</text><text x="1120" y="1258" text-anchor="middle" class="detail">Startup / Input / Combat / Flow</text>
+    <rect x="1380" y="1210" width="300" height="62" rx="12" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/><text x="1530" y="1237" text-anchor="middle" class="node">Editor Assemblies</text><text x="1530" y="1258" text-anchor="middle" class="detail">Asset tools / inspectors / validation</text>
+  </g>
+
+  <!-- representative dependency arrows -->
+  <path d="M455 242 C455 280 215 340 215 382" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+  <path d="M760 242 C760 280 1085 340 1085 382" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+  <path d="M1420 242 C1420 280 1085 340 1085 382" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+  <path d="M215 462 C215 560 215 580 215 682" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <path d="M645 462 C645 560 215 580 215 682" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <path d="M1085 462 C1085 560 455 580 455 682" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <path d="M1525 462 C1525 560 935 580 935 682" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <path d="M215 762 C215 790 375 790 375 792" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M455 762 C455 790 375 790 375 792" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M695 762 C695 790 775 790 775 792" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M935 762 C935 790 1175 790 1175 792" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M1175 762 C1175 790 1175 790 1175 792" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M1670 762 C1670 790 1575 790 1575 792" fill="none" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- legend -->
+  <rect x="70" y="1320" width="1760" height="50" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="98" y="1351" class="node">图例</text>
+  <rect x="180" y="1334" width="20" height="20" rx="4" fill="#ecfdf5" stroke="#059669"/><text x="210" y="1350" class="legend">生命周期 / 组合根</text>
+  <rect x="390" y="1334" width="20" height="20" rx="4" fill="#fef3c7" stroke="#ca8a04"/><text x="420" y="1350" class="legend">内容与表现</text>
+  <rect x="550" y="1334" width="20" height="20" rx="4" fill="#dbeafe" stroke="#2563eb"/><text x="580" y="1350" class="legend">领域运行时</text>
+  <rect x="710" y="1334" width="20" height="20" rx="4" fill="#ede9fe" stroke="#7c3aed"/><text x="740" y="1350" class="legend">稳定基础 / 合同</text>
+  <rect x="900" y="1334" width="20" height="20" rx="4" fill="#e2e8f0" stroke="#64748b"/><text x="930" y="1350" class="legend">测试 / Editor</text>
+  <line x1="1060" y1="1344" x2="1120" y2="1344" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowBlue)"/><text x="1132" y="1350" class="legend">代表性依赖</text>
+  <line x1="1260" y1="1344" x2="1320" y2="1344" stroke="#059669" stroke-width="2" stroke-dasharray="8 6" marker-end="url(#arrow)"/><text x="1332" y="1350" class="legend">生命周期 / 场景组合</text>
+  <text x="1600" y="1350" class="legend">2026-10-19</text>
+</svg>

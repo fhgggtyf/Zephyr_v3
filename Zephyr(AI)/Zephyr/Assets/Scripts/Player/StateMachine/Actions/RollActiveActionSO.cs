@@ -29,6 +29,7 @@ namespace Zephyr.Gameplay.Player.StateMachine
     public class RollActiveAction : StateAction
     {
         private MovementCore _movementCore;
+        private PlayerColliderController _colliderController;
         private readonly float _cooldownDuration;
 
         public RollActiveAction(float cooldownDuration)
@@ -39,16 +40,19 @@ namespace Zephyr.Gameplay.Player.StateMachine
         public override void Awake(CoreSM stateMachine)
         {
             _movementCore = stateMachine.GetCachedComponent<MovementCore>();
+            stateMachine.TryGetCachedComponent(out _colliderController);
         }
 
         public override void OnStateEnter()
         {
+            _colliderController?.RequestCrouch(true);
             _movementCore.SetRollActive(true);
         }
 
         public override void OnStateExit()
         {
             _movementCore.SetRollActive(false);
+            _colliderController?.RequestCrouch(false);
             _movementCore.StartRollCooldown(_cooldownDuration);
         }
 

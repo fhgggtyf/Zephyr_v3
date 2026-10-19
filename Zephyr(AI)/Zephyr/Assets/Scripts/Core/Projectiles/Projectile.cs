@@ -1,13 +1,13 @@
+using System;
 using UnityEngine;
-using Zephyr.Core.Interfaces;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.ObjectPool;
-using Zephyr.Core.Timer;
 
 namespace Zephyr.Core.Projectiles
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D), typeof(PooledObject))]
-    public sealed class Projectile : MonoBehaviour
+    public sealed class Projectile : MonoBehaviour, ITimerGatewayConsumer
     {
         [SerializeField] private LayerMask _hitLayers = ~0;
         [SerializeField] private bool _returnOnWorldCollision = true;
@@ -15,15 +15,18 @@ namespace Zephyr.Core.Projectiles
         private Rigidbody2D _body;
         private PooledObject _pooledObject;
         private ProjectileLaunchData _data;
-        private TimerHandle _lifetime;
+        private IDisposable _lifetime;
         private int _remainingPierces;
         private GameObject _sourceRoot;
+        private ITimerGateway _timer;
 
         private void Awake()
         {
             _body = GetComponent<Rigidbody2D>();
             _pooledObject = GetComponent<PooledObject>();
         }
+
+        public void Configure(ITimerGateway timer) => _timer = timer;
 
         public void Launch(in ProjectileLaunchData data)
         {
@@ -33,14 +36,14 @@ namespace Zephyr.Core.Projectiles
             transform.position = data.Origin;
             _body.gravityScale = data.AffectedByGravity ? data.GravityScale : 0f;
             _body.linearVelocity = data.Velocity;
-            _lifetime?.Cancel();
+            _lifetime?.Dispose();
             if (data.Lifetime > 0f)
-                _lifetime = TimerService.Instance?.SetTimeout(data.Lifetime, ReturnToPool);
+                _lifetime = _timer?.SetTimeout(data.Lifetime, ReturnToPool);
         }
 
         public void ResetState()
         {
-            _lifetime?.Cancel();
+            _lifetime?.Dispose();
             _lifetime = null;
             _remainingPierces = 0;
             _sourceRoot = null;

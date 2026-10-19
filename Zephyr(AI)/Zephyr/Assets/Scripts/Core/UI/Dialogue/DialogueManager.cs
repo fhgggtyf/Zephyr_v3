@@ -3,19 +3,28 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using Zephyr.Core.Meta;
+using Zephyr.Contracts.Interfaces;
+using Zephyr.Core.Save;
+using Zephyr.Core.Flow;
 using Zephyr.Core.Runtime.Lifecycle;
+using Zephyr.Core.UI;
 
 namespace Zephyr.Core.UI.Dialogue
 {
     /// <summary>Runs one dialogue at a time and owns the instantiated dialogue view.</summary>
     [DefaultExecutionOrder(-50)]
     [SingletonLifetime(SingletonLifetime.GameManager, "GameManager")]
-    public sealed class DialogueManager : MonoBehaviour, ZephyrInputActions.IDialogueActions
+    public sealed class DialogueManager : MonoBehaviour, ZephyrInputActions.IDialogueActions,
+        IDialogueGateway, IGameManagerDependencyConsumer
     {
         private static DialogueManager _instance;
         public static DialogueManager Instance => _instance;
         public static event Action GameplayInputSuspended;
         public static event Action GameplayInputRestored;
+        public event Action InputSuspended;
+        public event Action InputRestored;
 
         [SerializeField] private DialogueView _viewPrefab;
         [SerializeField] private Transform _viewParent;
@@ -31,6 +40,8 @@ namespace Zephyr.Core.UI.Dialogue
         private Action _completion;
         private ZephyrInputActions _inputActions;
         private bool _ownsDialogueInput;
+        private ISaveDataGateway _saveData;
+        private IStoryProgressionGateway _storyProgression;
 
         private void Awake()
         {
@@ -54,10 +65,13 @@ namespace Zephyr.Core.UI.Dialogue
                 GameplayTimePause.SetModalOpen(this, true);
                 CaptureDialogueInput();
             }
+
+            SceneManager.sceneLoaded += ConfigureLoadedScene;
         }
 
         private void OnDisable()
         {
+            SceneManager.sceneLoaded -= ConfigureLoadedScene;
             if (_inputActions != null)
             {
                 _inputActions.Dialogue.Disable();
@@ -73,6 +87,35 @@ namespace Zephyr.Core.UI.Dialogue
             if (_viewParent == null) _viewParent = transform;
             if (_viewPrefab == null) Debug.LogWarning("DialogueManager has no DialogueView prefab assigned.", this);
             EnsureEventSystem();
+            ConfigureLoadedScenes();
+        }
+
+        public void Configure(IGameManagerServices services)
+        {
+            _saveData = services?.SaveData;
+            _storyProgression = services?.StoryProgression;
+            ConfigureLoadedScenes();
+        }
+
+        private void ConfigureLoadedScenes()
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+                ConfigureLoadedScene(SceneManager.GetSceneAt(i), LoadSceneMode.Additive);
+        }
+
+        private void ConfigureLoadedScene(Scene scene, LoadSceneMode _)
+        {
+            if (!scene.IsValid() || !scene.isLoaded) return;
+            GameObject[] roots = scene.GetRootGameObjects();
+            for (int i = 0; i < roots.Length; i++)
+            {
+                MonoBehaviour[] consumers = roots[i].GetComponentsInChildren<MonoBehaviour>(true);
+                for (int j = 0; j < consumers.Length; j++)
+                {
+                    if (consumers[j] is IDialogueTriggerConsumer consumer)
+                        consumer.Configure(_saveData, _storyProgression, this);
+                }
+            }
         }
 
         private void OnDestroy()
@@ -154,7 +197,7 @@ namespace Zephyr.Core.UI.Dialogue
 
         private static void EnsureEventSystem()
         {
-            if (FindAnyObjectByType<EventSystem>() != null) return;
+            if (EventSystem.current != null) return;
 
             GameObject eventSystem = new GameObject("DialogueEventSystem", typeof(EventSystem));
             Type inputModuleType = Type.GetType(
@@ -171,6 +214,7 @@ namespace Zephyr.Core.UI.Dialogue
 
             _ownsDialogueInput = true;
             GameplayInputSuspended?.Invoke();
+            InputSuspended?.Invoke();
             _inputActions.Dialogue.Enable();
         }
 
@@ -181,6 +225,7 @@ namespace Zephyr.Core.UI.Dialogue
             _inputActions?.Dialogue.Disable();
             _ownsDialogueInput = false;
             GameplayInputRestored?.Invoke();
+            InputRestored?.Invoke();
         }
 
     }

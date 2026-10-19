@@ -13,12 +13,12 @@
  */
 using Zephyr.Core;
 
-namespace Zephyr.Core.Interfaces
+namespace Zephyr.Contracts.Interfaces
 {
     /// <summary>
     /// Source of stat values (4-layer aggregation: Base + RunGains + Modifiers + TempModifiers).
     /// Implemented by StatsCore on player/enemy. GetPotential returns the per-run Potential
-    /// value (not the total budget — that's MetaStatType.PotentialBudget).
+    /// value (not the total budget — that is managed by MetaUpgradeTarget.PotentialBudget).
     /// </summary>
     public interface IStatSource
     {

@@ -43,7 +43,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6cfdb6717ec08004187f21b9b9fa76fc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Zephyr.Core::Zephyr.Core.Stats.SceneStatsModifierController
+  m_EditorClassIdentifier: Zephyr.Core.Flow::Zephyr.Core.Stats.SceneStatsModifierController
   _sceneCatalog:
   - {fileID: 11400000, guid: f3000000000000000000000000000001, type: 2}
   - {fileID: 11400000, guid: f3000000000000000000000000000002, type: 2}
