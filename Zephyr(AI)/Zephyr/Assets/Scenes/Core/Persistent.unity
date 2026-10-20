@@ -378,6 +378,7 @@ MonoBehaviour:
   _onRequestSceneUnload: {fileID: 11400000, guid: e1000000000000000000000000000003, type: 2}
   _onSceneLoaded: {fileID: 11400000, guid: e1000000000000000000000000000004, type: 2}
   _loadingScreen: {fileID: 1162933628}
+  _fadeDuration: 0.2
 --- !u!1 &1050
 GameObject:
   m_ObjectHideFlags: 0
@@ -680,7 +681,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -713,7 +714,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1162933628}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 0
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0

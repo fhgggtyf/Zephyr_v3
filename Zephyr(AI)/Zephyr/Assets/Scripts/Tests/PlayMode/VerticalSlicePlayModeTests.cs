@@ -31,6 +31,7 @@ namespace Zephyr.Tests.PlayMode
 
         private string _temporarySavePath;
         private SaveSystem _save;
+        private Action _loadingStartedHandler;
 
         [UnityTest]
         [Category("VerticalSlice")]
@@ -78,19 +79,37 @@ namespace Zephyr.Tests.PlayMode
 
             MetaHubController metaHub = UnityEngine.Object.FindAnyObjectByType<MetaHubController>();
             Assert.That(metaHub, Is.Not.Null, "MetaHub controller is missing.");
+            bool loadingStarted = false;
+            _loadingStartedHandler = () => loadingStarted = true;
+            SceneLoader.Instance.LoadingStarted += _loadingStartedHandler;
             metaHub.StartRun();
+
+            yield return WaitFor(() => loadingStarted && SceneLoader.Instance != null &&
+                                      SceneLoader.Instance.IsLoading,
+                "Run loading did not enter the loading state.");
+            Assert.That(GetLoadingScreen(SceneLoader.Instance), Is.Not.Null,
+                "SceneLoader lost its LoadingScreen reference during Run loading.");
+            Assert.That(GetLoadingScreen(SceneLoader.Instance).activeSelf, Is.True,
+                "LoadingScreen was hidden before Run dependencies became ready.");
+
             yield return WaitForStateAndScene(GameState.LoadingRun, LoadingRunSceneName);
 
             yield return WaitFor(() => GameFlow.Instance.CurrentState == GameState.InRun &&
                                       _save.CurrentRun != null &&
                                       HasLoadedRunScene(),
                 "LoadingRun did not produce an active run scene.");
+            SceneLoader.Instance.LoadingStarted -= _loadingStartedHandler;
+            _loadingStartedHandler = null;
 
             Assert.That(_save.CurrentRun, Is.Not.Null);
             Assert.That(_save.CurrentRun.Seed, Is.Not.EqualTo(0));
             Assert.That(PlayerSpawner.Instance, Is.Not.Null, "PlayerSpawner is missing from GameManager.");
             yield return WaitFor(() => PlayerSpawner.Instance.CurrentPlayer != null,
                 "PlayerSpawner did not create a player for the first run scene.");
+            Assert.That(PlayerSpawner.Instance.IsCurrentPlayerCameraBound, Is.True,
+                "Run loading completed before the Gameplay Camera bound to the Player.");
+            Assert.That(PlayerSpawner.Instance.IsCurrentPlayerCameraStable, Is.True,
+                "Run loading completed before the Gameplay Camera stabilized on the Player.");
 
             _save.CurrentRun.RunCurrency = 7;
             _save.SaveRun();
@@ -111,6 +130,10 @@ namespace Zephyr.Tests.PlayMode
         [UnityTearDown]
         public IEnumerator RemoveDisposableSaveStorage()
         {
+            if (_loadingStartedHandler != null && SceneLoader.Instance != null)
+                SceneLoader.Instance.LoadingStarted -= _loadingStartedHandler;
+            _loadingStartedHandler = null;
+
             if (_save != null)
             {
                 _save.DeleteSlot(TestSlotIndex);
@@ -177,6 +200,13 @@ namespace Zephyr.Tests.PlayMode
         {
             Scene scene = SceneManager.GetSceneByName(sceneName);
             return scene.IsValid() && scene.isLoaded;
+        }
+
+        private static GameObject GetLoadingScreen(SceneLoader sceneLoader)
+        {
+            FieldInfo loadingScreen = typeof(SceneLoader).GetField("_loadingScreen",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            return loadingScreen?.GetValue(sceneLoader) as GameObject;
         }
 
         private static bool HasLoadedRunScene()

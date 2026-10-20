@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Zephyr.Core.Camera
 {
@@ -45,7 +46,7 @@ namespace Zephyr.Core.Camera
 
         private void OnDisable() => Zones.Remove(this);
 
-        public static CameraZone FindActive(Vector2 worldPosition)
+        public static CameraZone FindActive(Scene scene, Vector2 worldPosition)
         {
             CameraZone result = null;
             int bestPriority = int.MinValue;
@@ -58,7 +59,8 @@ namespace Zephyr.Core.Camera
                     continue;
                 }
 
-                if (!zone.isActiveAndEnabled || !zone.WorldBounds.Contains(worldPosition)) continue;
+                if (!zone.isActiveAndEnabled || zone.gameObject.scene != scene ||
+                    !zone.WorldBounds.Contains(worldPosition)) continue;
                 int priority = zone.Priority;
                 if (result == null || priority > bestPriority)
                 {

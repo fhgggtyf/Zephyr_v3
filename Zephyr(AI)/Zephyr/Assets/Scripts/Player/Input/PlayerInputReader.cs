@@ -31,7 +31,7 @@ namespace Zephyr.Gameplay.Player.Input
         private IDialogueInputGateway _dialogueInput;
         private ISceneLoadingGateway _sceneLoading;
         private bool _loadingBlocked;
-        private bool _ignoreJumpUntilReleased;
+        private bool _gameplayInputBlocked;
 
         /// <summary>
         /// Current move direction from WASD. X = horizontal (A/D), Y = vertical (W/S).
@@ -151,12 +151,9 @@ private void OnEnable()
             _actions.GamePlay.AddCallbacks(this);
             SubscribeDialogueInput();
 
-            if (_dialogueInput != null && _dialogueInput.IsOpen)
-                DisableGameplayInput();
-            else if (_loadingBlocked)
-                DisableGameplayInput();
-            else
-                EnableGameplayInput();
+            _gameplayInputBlocked = (_dialogueInput != null && _dialogueInput.IsOpen) || _loadingBlocked;
+            ClearInputState();
+            EnableGameplayInput();
         }
 
 private void OnDisable()
@@ -169,12 +166,6 @@ private void OnDisable()
             ClearInputState();
         }
 
-        private void Update()
-        {
-            if (_ignoreJumpUntilReleased && !IsJumpControlPressed())
-                _ignoreJumpUntilReleased = false;
-        }
-
         public void Configure(IGameManagerServices services)
         {
             UnsubscribeDialogueInput();
@@ -184,9 +175,9 @@ private void OnDisable()
             SubscribeDialogueInput();
             SubscribeSceneLoading();
             _loadingBlocked = _sceneLoading != null && _sceneLoading.IsLoading;
-            if (_dialogueInput != null && _dialogueInput.IsOpen) DisableGameplayInput();
-            else if (_loadingBlocked) DisableGameplayInput();
-            else EnableGameplayInput();
+            _gameplayInputBlocked = (_dialogueInput != null && _dialogueInput.IsOpen) || _loadingBlocked;
+            ClearInputState();
+            EnableGameplayInput();
         }
 
         private void SubscribeSceneLoading()
@@ -240,7 +231,7 @@ private void OnDisable()
 
         private void DisableGameplayInput()
         {
-            _actions?.GamePlay.Disable();
+            _gameplayInputBlocked = true;
             ClearInputState();
         }
 
@@ -251,21 +242,9 @@ private void OnDisable()
 
         private void RestoreGameplayInput()
         {
-            _ignoreJumpUntilReleased = IsJumpControlPressed();
+            _gameplayInputBlocked = _loadingBlocked;
+            ClearInputState();
             EnableGameplayInput();
-        }
-
-        private bool IsJumpControlPressed()
-        {
-            if (_actions == null) return false;
-
-            var controls = _actions.GamePlay.Jump.controls;
-            for (int i = 0; i < controls.Count; i++)
-            {
-                if (controls[i].IsPressed()) return true;
-            }
-
-            return false;
         }
 
         private void ClearInputState()
@@ -292,6 +271,7 @@ private void OnDisable()
         /// </summary>
         public void OnMove(InputAction.CallbackContext context)
         {
+            if (_gameplayInputBlocked) return;
             MoveInput = context.ReadValue<Vector2>();
         }
 
@@ -303,6 +283,8 @@ private void OnDisable()
         /// </summary>
         public void OnSprint(InputAction.CallbackContext context)
         {
+            if (_gameplayInputBlocked) return;
+
             if (context.started)
             {
                 HasSprintInput = true;
@@ -326,6 +308,7 @@ private void OnDisable()
         /// </summary>
         public void OnRoll(InputAction.CallbackContext context)
         {
+            if (_gameplayInputBlocked) return;
             HasRollInput = context.ReadValueAsButton();
         }
 
@@ -335,16 +318,19 @@ private void OnDisable()
         /// </summary>
         public void OnCrouch(InputAction.CallbackContext context)
         {
+            if (_gameplayInputBlocked) return;
             HasCrouchInput = context.ReadValueAsButton();
         }
 
         public void OnPrimaryAttack(InputAction.CallbackContext context)
         {
+            if (_gameplayInputBlocked) return;
             if (context.started) HasPrimaryAttackInput = true;
         }
 
         public void OnSecondaryAttack(InputAction.CallbackContext context)
         {
+            if (_gameplayInputBlocked) return;
             if (context.started) HasSecondaryAttackInput = true;
         }
 
@@ -354,7 +340,8 @@ private void OnDisable()
         /// </summary>
         public void OnJump(InputAction.CallbackContext context)
         {
-            if (context.started && !_ignoreJumpUntilReleased)
+            if (_gameplayInputBlocked) return;
+            if (context.started)
                 HasJumpInput = true;
         }
     }

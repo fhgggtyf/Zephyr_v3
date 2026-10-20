@@ -17,8 +17,14 @@ namespace Zephyr.Core.Flow
     public interface ISceneLoadingGateway
     {
         bool IsLoading { get; }
+        void RequireReadySignal();
+        void SignalReady();
         event Action LoadingStarted;
         event Action LoadingCompleted;
         event Action LoadingFailed;
+    }
+
+    public readonly struct GameplayHudReady
+    {
     }
 }

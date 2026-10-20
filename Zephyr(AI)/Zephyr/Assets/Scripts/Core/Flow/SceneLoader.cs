@@ -23,17 +23,33 @@ namespace Zephyr.Core.Flow
 
         [Header("Loading Screen")]
         [SerializeField] private GameObject _loadingScreen;
+        [SerializeField, Min(0f)] private float _fadeDuration = 0.2f;
 
         private readonly Queue<SceneOperation> _operations = new Queue<SceneOperation>();
         private readonly Dictionary<SceneId, bool> _expectedLoadedStates = new Dictionary<SceneId, bool>();
+        private CanvasGroup _loadingCanvasGroup;
         private bool _isProcessing;
         private bool _loadFailed;
+        private bool _readySignalRequired;
+        private bool _readySignaled;
 
         public event Action<SceneInfo> SceneLoaded;
         public bool IsLoading => _isProcessing;
         public event Action LoadingStarted;
         public event Action LoadingCompleted;
         public event Action LoadingFailed;
+
+        public void RequireReadySignal()
+        {
+            _readySignalRequired = true;
+            _readySignaled = false;
+        }
+
+        public void SignalReady()
+        {
+            if (!_isProcessing) return;
+            _readySignaled = true;
+        }
 
         private void Awake()
         {
@@ -42,6 +58,13 @@ namespace Zephyr.Core.Flow
             {
                 Destroy(gameObject);
                 return;
+            }
+
+            if (_loadingScreen != null)
+            {
+                _loadingCanvasGroup = _loadingScreen.GetComponent<CanvasGroup>();
+                if (_loadingCanvasGroup == null)
+                    Debug.LogError("SceneLoader: LoadingScreen requires a CanvasGroup for fade transitions.", _loadingScreen);
             }
         }
 
@@ -122,7 +145,7 @@ namespace Zephyr.Core.Flow
             _loadFailed = false;
             LoadingStarted?.Invoke();
             ShowLoadingScreen();
-            yield return null;
+            yield return FadeLoadingScreen(1f);
 
             while (_operations.Count > 0)
             {
@@ -138,8 +161,14 @@ namespace Zephyr.Core.Flow
             }
 
             _expectedLoadedStates.Clear();
+            if (!_loadFailed && _readySignalRequired)
+                yield return new WaitUntil(() => _readySignaled || _loadFailed);
+
+            yield return FadeLoadingScreen(0f);
             HideLoadingScreen();
             _isProcessing = false;
+            _readySignalRequired = false;
+            _readySignaled = false;
             if (_loadFailed) LoadingFailed?.Invoke();
             else LoadingCompleted?.Invoke();
         }
@@ -204,12 +233,43 @@ namespace Zephyr.Core.Flow
 
         private void ShowLoadingScreen()
         {
-            if (_loadingScreen != null) _loadingScreen.SetActive(true);
+            if (_loadingScreen == null) return;
+
+            _loadingScreen.SetActive(true);
+            if (_loadingCanvasGroup != null)
+                _loadingCanvasGroup.alpha = 0f;
         }
 
         private void HideLoadingScreen()
         {
-            if (_loadingScreen != null) _loadingScreen.SetActive(false);
+            if (_loadingCanvasGroup != null)
+                _loadingCanvasGroup.alpha = 0f;
+            if (_loadingScreen != null)
+                _loadingScreen.SetActive(false);
+        }
+
+        private IEnumerator FadeLoadingScreen(float targetAlpha)
+        {
+            if (_loadingCanvasGroup == null) yield break;
+
+            float duration = Mathf.Max(0f, _fadeDuration);
+            if (duration <= Mathf.Epsilon)
+            {
+                _loadingCanvasGroup.alpha = targetAlpha;
+                yield break;
+            }
+
+            float startAlpha = _loadingCanvasGroup.alpha;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                _loadingCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha,
+                    Mathf.Clamp01(elapsed / duration));
+                yield return null;
+            }
+
+            _loadingCanvasGroup.alpha = targetAlpha;
         }
 
         private readonly struct SceneOperation

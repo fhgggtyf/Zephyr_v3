@@ -32,6 +32,24 @@ namespace Zephyr.Gameplay.Player.Flow
         [SerializeField] private Transform _spawnPoint;
 
         public GameObject CurrentPlayer { get; private set; }
+        public bool IsCurrentPlayerCameraBound
+        {
+            get
+            {
+                if (CurrentPlayer == null || !_playerScene.IsValid()) return false;
+                CameraController camera = CameraController.FindForGameplay(_playerScene);
+                return camera != null && camera.IsFollowing(CurrentPlayer.transform);
+            }
+        }
+        public bool IsCurrentPlayerCameraStable
+        {
+            get
+            {
+                if (CurrentPlayer == null || !_playerScene.IsValid()) return false;
+                CameraController camera = CameraController.FindForGameplay(_playerScene);
+                return camera != null && camera.IsFollowingStable(CurrentPlayer.transform);
+            }
+        }
         public event Action<GameObject> PlayerSpawned;
         public event Action PlayerDespawned;
         private Scene _playerScene;

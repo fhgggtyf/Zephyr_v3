@@ -46,6 +46,7 @@ namespace Zephyr.Gameplay.Player.UI
                 _subscribedToPlayerTarget = true;
                 if (_eventBus.TryGetLatest(out PlayerTargetChangedEvent current))
                     HandlePlayerTargetChanged(current);
+                _eventBus.Publish(new GameplayHudReady());
             }
         }
 

@@ -428,7 +428,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3196589296009216815, guid: 3f24310cfbf9e7c4a98a8551db270373, type: 3}
       propertyPath: _regions.Array.size
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3196589296009216815, guid: 3f24310cfbf9e7c4a98a8551db270373, type: 3}
       propertyPath: m_EditorClassIdentifier
@@ -1559,6 +1559,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Zephyr.Core.Flow::Zephyr.Core.Levels.RoomController
   _bossRoom: 0
   _scene: {fileID: 0}
+  _statModifiers: []
   _locksUntilCleared: 1
   _totalWaves: 1
   _interWaveDelay: 1

@@ -2317,6 +2317,8 @@ These are **not** `DontDestroyOnLoad` objects — their persistence is guarantee
 
 **SceneLoader binding:** `SceneLoader` lives in `Persistent` and handles **all** scene loading requests. Gameplay code (including `GameManager` components) never calls `SceneManager.LoadScene` directly — it raises a `OnRequestSceneLoad(SceneLoadRequest)` event (Ch.3) which `SceneLoader` subscribes to and processes asynchronously. `SceneLoader` owns the loading-screen UI and fade transitions.
 
+The `Persistent/LoadingOverlay` is a full-screen black `Image` driven by a `CanvasGroup`. `SceneLoader._fadeDuration` is the shared, Inspector-configurable duration for both directions. `LoadingStarted` locks gameplay input before the overlay fades in; scene unload/load begins only after the fade-in completes. For transitions with a ready barrier, the overlay remains opaque until the room, player, HUD, and gameplay camera are ready and the camera has stabilized; only then does it fade out. `LoadingCompleted` or `LoadingFailed` is raised after the overlay is hidden, so input cannot resume during the fade-out. Fade timing uses unscaled time.
+
 ```csharp
 namespace Zephyr.Core.Flow
 {
@@ -2913,6 +2915,12 @@ Action maps switch with `GameFlow` state (Ch.14) **and** with transient UI modes
 > VerticalCenter, and FullLock modes plus offset, look-ahead, anchor, and priority. CameraController
 > applies these values to the default Cinemachine Position Composer and Confiner. Damage shake is
 > emitted through Cinemachine Impulse and never feeds back into logical follow state.
+> The runtime implementation selects `CameraBounds` and `CameraZone` only from the follow target's
+> loaded Scene, so additive Persistent/GameManager/room scenes cannot leak camera configuration into
+> one another. Guidance moves only the controller-owned `CameraLockTarget`; it does not write the
+> output camera or virtual-camera transform, leaving Cinemachine as the sole output authority. The
+> gameplay `CinemachineBrain` ignores time scale, and impulse duration is configured during setup;
+> damage events submit amplitude only.
 
 > Layer 🟥: locked foundation. Namespace `Zephyr.Core.Camera`. A **deadzone-based** follow camera with **soft** room bounds and **authored camera zones** that reframe the view when the player enters them (Hollow Knight / Metroidvania-style, not Dead-Cells-style rigid confinement).
 > **Cinemachine migration contract (2026-10-08):** Cinemachine is responsible for the actual camera calculation. `GameManager` owns the gameplay output `Camera`/`CinemachineBrain` lifecycle and the default gameplay `CinemachineCamera`; `Persistent` owns no camera. Gameplay scenes provide `CameraBounds`, their `CameraBoundsShape`/`PolygonCollider2D`, and `CameraZone` data only. `CameraController` remains the single upper-layer camera API, but now acts as the Cinemachine adapter: it sets `Follow`, `CinemachinePositionComposer`, `CinemachineConfiner2D`, and Cinemachine impulse components rather than moving the output camera in `LateUpdate`. Local gameplay cameras lose output authority when the GameManager camera is present. The current implementation can create the Cinemachine child rig at runtime so existing scene files remain loadable; serialized hierarchy cleanup should still be performed through Unity MCP when that tool is available.
