@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,8 +13,10 @@ namespace Zephyr.Core.UI
     {
         private static readonly HashSet<object> s_modalOwners = new HashSet<object>();
         private static bool s_gameFlowPaused;
+        private static bool s_lastPaused;
 
         public static bool IsPaused => s_gameFlowPaused || s_modalOwners.Count > 0;
+        public static event Action<bool> StateChanged;
 
         public static void SetModalOpen(object owner, bool open)
         {
@@ -38,7 +41,12 @@ namespace Zephyr.Core.UI
 
         private static void Apply()
         {
-            Time.timeScale = IsPaused ? 0f : 1f;
+            bool paused = IsPaused;
+            Time.timeScale = paused ? 0f : 1f;
+            if (paused == s_lastPaused) return;
+
+            s_lastPaused = paused;
+            StateChanged?.Invoke(paused);
         }
     }
 }

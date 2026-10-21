@@ -2853,8 +2853,12 @@ This keeps audio decoupled: a system that raises an event gets audio for free; t
 > **Implemented snapshot (supersedes the `InputReader` SO proposal below):** the input asset has
 > `GamePlay` and `Dialogue` maps. GamePlay exposes Move, Sprint, Roll, Jump, Crouch, PrimaryAttack, and
 > SecondaryAttack through player-owned `PlayerInputReader`; Dialogue exposes NextLine. DialogueManager
-> disables gameplay input and enables Dialogue for the conversation lifetime. Interact is one
-> configurable runtime action owned by `PlayerInteractor`. Pause/UI/MetaHub maps remain planned.
+> disables gameplay input and enables Dialogue for the conversation lifetime. The EventSystem uses the
+> separate `UI` map from `InputSystem_Actions.inputactions` for pointer/navigation/button processing.
+> `GameplayTimePause` is the modal ownership boundary: while any modal or game-flow pause is active it
+> emits a state change and `PlayerInputReader` disables the `GamePlay` map; it restores Gameplay only
+> after all modal, dialogue, loading, and flow blocks are clear. Interact is one configurable runtime
+> action owned by `PlayerInteractor`.
 
 > Layer 🟥: locked foundation. Namespace `Zephyr.Core.Input`. Uses Unity's new Input System (Q24). Input is decoupled from gameplay via an `InputReader` SO that broadcasts intent events.
 
@@ -2892,18 +2896,18 @@ Action maps switch with `GameFlow` state (Ch.14) **and** with transient UI modes
 | Context | Active map |
 |---------|------------|
 | `InRun` (normal gameplay) | `Gameplay` |
-| `Paused` | `UI` (Gameplay disabled) |
+| `Paused` | `UI` through `InputSystemUIInputModule` (Gameplay disabled) |
 | `MetaHub` | `MetaHub` |
 | `MainMenu` | `UI` |
 | Dialogue active (Ch.16.6) | `Dialogue` (Gameplay disabled) |
 
-`GameFlow.OnStateChanged` drives `InputReader.EnableMap` for state transitions. Dialogue overrides are managed exclusively by `DialogueManager` (Ch.16.6f) — it disables `GamePlay` and enables `Dialogue` when a conversation starts, and restores `GamePlay` on completion. Pausing disables the Gameplay map so gameplay intent events stop firing while a modal is open.
+`GameFlow.OnStateChanged` drives the existing flow pause boundary. Dialogue overrides are managed by `DialogueManager` (Ch.16.6f), while modal UI registers an owner with `GameplayTimePause`; the shared boundary disables `GamePlay` and leaves the EventSystem's `UI` map available. Gameplay input is restored only when no modal, dialogue, loading, or flow block remains.
 
 ### 18.3 Red Lines
 
 1. `InputReader`, `InputMap` are locked; AI may not modify.
 2. Gameplay code reads intent via the Ch.3 event bus, never via direct `InputAction`/`InputReader` refs (except the bootstrap that wires the reader to the bus).
-3. Action-map switching for state transitions is driven solely by `GameFlow.OnStateChanged` (Ch.14). Dialogue map switching is driven solely by `DialogueManager` (Ch.16.6f); gameplay code must not manually enable/disable maps itself.
+3. Action-map switching for state transitions is driven by the existing flow/modal boundary (Ch.14). Dialogue switching is driven by `DialogueManager` (Ch.16.6f), and modal UI uses `GameplayTimePause`; gameplay code must not create a second input gate or scan UI state globally.
 
 ---
 

@@ -42,7 +42,7 @@ namespace Zephyr.Gameplay.Interaction
             _startButton?.onClick.RemoveListener(StartRun);
             _cancelButton?.onClick.RemoveListener(Close);
             UnbindLocalization();
-            Time.timeScale = 1f;
+            GameplayTimePause.SetModalOpen(this, false);
         }
 
         private void Update()
@@ -58,20 +58,20 @@ namespace Zephyr.Gameplay.Interaction
             _metaGateway = owner?.MetaGateway;
             ResolveReferences();
             BuildAllocation();
-            Time.timeScale = 0f;
+            GameplayTimePause.SetModalOpen(this, true);
             Refresh();
             gameObject.SetActive(true);
         }
 
         public void CloseWithoutDestroyingOwner()
         {
-            Time.timeScale = 1f;
+            GameplayTimePause.SetModalOpen(this, false);
             if (gameObject != null) Destroy(gameObject);
         }
 
         private void Close()
         {
-            Time.timeScale = 1f;
+            GameplayTimePause.SetModalOpen(this, false);
             _owner?.ClosePanel();
             if (gameObject != null) Destroy(gameObject);
         }

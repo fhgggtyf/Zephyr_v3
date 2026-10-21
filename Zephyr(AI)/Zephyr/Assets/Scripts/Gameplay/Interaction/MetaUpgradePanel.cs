@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using Zephyr.Core.Localization;
 using Zephyr.Core.Meta;
 using Zephyr.Core.Save;
+using Zephyr.Core.UI;
 
 namespace Zephyr.Gameplay.Interaction
 {
@@ -39,7 +40,7 @@ namespace Zephyr.Gameplay.Interaction
             _allocatableButton?.onClick.RemoveListener(PurchaseAllocatable);
             _closeButton?.onClick.RemoveListener(Close);
             UnbindLocalization();
-            Time.timeScale = 1f;
+            GameplayTimePause.SetModalOpen(this, false);
         }
 
         private void Update()
@@ -52,14 +53,14 @@ namespace Zephyr.Gameplay.Interaction
             _owner = owner;
             _metaGateway = owner?.MetaGateway;
             ResolveReferences();
-            Time.timeScale = 0f;
+            GameplayTimePause.SetModalOpen(this, true);
             Refresh();
             gameObject.SetActive(true);
         }
 
         public void Close()
         {
-            Time.timeScale = 1f;
+            GameplayTimePause.SetModalOpen(this, false);
             _owner?.NotifyPanelClosed(this);
             _owner = null;
             if (gameObject != null) Destroy(gameObject);
@@ -67,7 +68,7 @@ namespace Zephyr.Gameplay.Interaction
 
         public void CloseWithoutNotifyingOwner()
         {
-            Time.timeScale = 1f;
+            GameplayTimePause.SetModalOpen(this, false);
             _owner = null;
             if (gameObject != null) Destroy(gameObject);
         }

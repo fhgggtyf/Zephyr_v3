@@ -15,6 +15,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Zephyr.Core.Flow;
+using Zephyr.Core.UI;
 using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Gameplay.Player.Input
@@ -150,14 +151,14 @@ private void OnEnable()
             _actions ??= new ZephyrInputActions();
             _actions.GamePlay.AddCallbacks(this);
             SubscribeDialogueInput();
+            GameplayTimePause.StateChanged += HandleGameplayPauseChanged;
 
-            _gameplayInputBlocked = (_dialogueInput != null && _dialogueInput.IsOpen) || _loadingBlocked;
-            ClearInputState();
-            EnableGameplayInput();
+            SyncGameplayInput();
         }
 
-private void OnDisable()
+        private void OnDisable()
         {
+            GameplayTimePause.StateChanged -= HandleGameplayPauseChanged;
             UnsubscribeDialogueInput();
             UnsubscribeSceneLoading();
             if (_actions == null) return;
@@ -175,9 +176,7 @@ private void OnDisable()
             SubscribeDialogueInput();
             SubscribeSceneLoading();
             _loadingBlocked = _sceneLoading != null && _sceneLoading.IsLoading;
-            _gameplayInputBlocked = (_dialogueInput != null && _dialogueInput.IsOpen) || _loadingBlocked;
-            ClearInputState();
-            EnableGameplayInput();
+            SyncGameplayInput();
         }
 
         private void SubscribeSceneLoading()
@@ -231,20 +230,38 @@ private void OnDisable()
 
         private void DisableGameplayInput()
         {
-            _gameplayInputBlocked = true;
-            ClearInputState();
+            SetGameplayInputEnabled(false);
         }
 
         private void EnableGameplayInput()
         {
-            if (isActiveAndEnabled) _actions?.GamePlay.Enable();
+            if (isActiveAndEnabled && !_gameplayInputBlocked) _actions?.GamePlay.Enable();
         }
 
         private void RestoreGameplayInput()
         {
-            _gameplayInputBlocked = _loadingBlocked;
+            SyncGameplayInput();
+        }
+
+        private void HandleGameplayPauseChanged(bool _)
+        {
+            SyncGameplayInput();
+        }
+
+        private void SyncGameplayInput()
+        {
+            bool blocked = _loadingBlocked
+                || (_dialogueInput != null && _dialogueInput.IsOpen)
+                || GameplayTimePause.IsPaused;
+            SetGameplayInputEnabled(!blocked);
+        }
+
+        private void SetGameplayInputEnabled(bool enabled)
+        {
+            _gameplayInputBlocked = !enabled;
             ClearInputState();
-            EnableGameplayInput();
+            if (enabled) EnableGameplayInput();
+            else _actions?.GamePlay.Disable();
         }
 
         private void ClearInputState()
