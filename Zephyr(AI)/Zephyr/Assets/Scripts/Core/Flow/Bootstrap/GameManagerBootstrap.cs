@@ -36,6 +36,7 @@ namespace Zephyr.Core.Flow
             MonoBehaviour[] components = transform.root.GetComponentsInChildren<MonoBehaviour>(true);
             IPlayerSpawnGateway playerSpawn = null;
             IDialogueInputGateway dialogueInput = null;
+            IWeaponReplacementGateway weaponReplacement = null;
             ISceneLoadingGateway sceneLoading = SceneLoader.Instance;
             for (int i = 0; i < components.Length; i++)
             {
@@ -43,6 +44,8 @@ namespace Zephyr.Core.Flow
                     playerSpawn = spawnGateway;
                 if (components[i] is IDialogueInputGateway dialogueGateway)
                     dialogueInput = dialogueGateway;
+                if (components[i] is IWeaponReplacementGateway replacementGateway)
+                    weaponReplacement = replacementGateway;
             }
 
             _composition = new GameManagerServices(
@@ -56,6 +59,7 @@ namespace Zephyr.Core.Flow
                 sceneLoading,
                 storyProgression,
                 localization,
+                weaponReplacement,
                 dropSpawn,
                 timer,
                 saveData?.CurrentRun?.Seed ?? 0,
@@ -138,6 +142,7 @@ namespace Zephyr.Core.Flow
                 ISceneLoadingGateway sceneLoading,
                 IStoryProgressionGateway storyProgression,
                 ILocalizationGateway localization,
+                IWeaponReplacementGateway weaponReplacement,
                 IDropSpawnGateway dropSpawn,
                 ITimerGateway timer,
                 int seed,
@@ -154,6 +159,7 @@ namespace Zephyr.Core.Flow
                 SceneLoading = sceneLoading;
                 StoryProgression = storyProgression;
                 Localization = localization;
+                WeaponReplacement = weaponReplacement;
                 DropSpawn = dropSpawn;
                 Timer = timer;
                 Seed = seed;
@@ -172,6 +178,7 @@ namespace Zephyr.Core.Flow
             public ILocalizationGateway Localization { get; }
             public IStoryProgressionGateway StoryProgression { get; }
             public IDropSpawnGateway DropSpawn { get; }
+            public IWeaponReplacementGateway WeaponReplacement { get; }
             public ITimerGateway Timer { get; }
             public int Seed { get; }
             public int RoomDepth { get; }

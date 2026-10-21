@@ -6,10 +6,12 @@ using Zephyr.Core.Events;
 using Zephyr.Core.Flow;
 using Zephyr.Core.Health;
 using Zephyr.Core.Localization;
+using Zephyr.Core.ObjectPool;
 using Zephyr.Core.Save;
 using Zephyr.Core.UI;
 using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Weapons;
+using Zephyr.Core.Items;
 using Zephyr.Gameplay.Player.Core;
 
 namespace Zephyr.Gameplay.Player.UI
@@ -18,8 +20,10 @@ namespace Zephyr.Gameplay.Player.UI
     /// Gameplay HUD hosted by GameManager. It is visible only while a player scene
     /// is loaded, which keeps tutorial/run presentation out of the menu and hubs.
     /// </summary>
-    public sealed class GameplayHudController : LocalizedBehaviour, IGameManagerDependencyConsumer
+    public sealed class GameplayHudController : LocalizedBehaviour, IGameManagerDependencyConsumer,
+        IWeaponReplacementGateway
     {
+        [SerializeField] private GameObject _weaponReplacementPanelPrefab;
         private Canvas _canvas;
         private HealthComponent _health;
         private PlayerResourceController _resources;
@@ -34,6 +38,8 @@ namespace Zephyr.Gameplay.Player.UI
         private bool _subscribedToPlayerTarget;
         private ISaveDataGateway _saveData;
         private IEventBusGateway _eventBus;
+        private IDropSpawnGateway _dropSpawn;
+        private WeaponReplacementPanel _weaponReplacementPanel;
 
         private void Start()
         {
@@ -54,6 +60,72 @@ namespace Zephyr.Gameplay.Player.UI
         {
             _saveData = services?.SaveData;
             _eventBus = services?.EventBus;
+            _dropSpawn = services?.DropSpawn;
+        }
+
+        public bool RequestWeaponPickup(GameObject pickupObject, GameObject player)
+        {
+            WeaponPickup pickup = pickupObject != null ? pickupObject.GetComponent<WeaponPickup>() : null;
+            WeaponController controller = player != null
+                ? player.GetComponentInChildren<WeaponController>(true)
+                : null;
+            if (pickup == null || controller == null || pickup.Weapon == null) return true;
+
+            WeaponSlot? emptySlot = controller.GetWeapon(WeaponSlot.Primary) == null
+                ? WeaponSlot.Primary
+                : controller.GetWeapon(WeaponSlot.Secondary) == null
+                    ? WeaponSlot.Secondary
+                    : (WeaponSlot?)null;
+            if (emptySlot.HasValue)
+            {
+                pickup.TryCompletePickup(controller, emptySlot.Value, out _);
+                return true;
+            }
+
+            if (_weaponReplacementPanel != null) return true;
+            if (_weaponReplacementPanelPrefab == null)
+            {
+                Debug.LogError("GameplayHudController is missing the weapon replacement panel prefab.", this);
+                return true;
+            }
+
+            GameObject instance = Instantiate(_weaponReplacementPanelPrefab,
+                _canvas != null ? _canvas.transform : transform);
+            _weaponReplacementPanel = instance.GetComponent<WeaponReplacementPanel>();
+            if (_weaponReplacementPanel == null)
+            {
+                Destroy(instance);
+                Debug.LogError("Weapon replacement panel prefab is missing WeaponReplacementPanel.", this);
+                return true;
+            }
+
+            _weaponReplacementPanel.Show(
+                controller.GetWeapon(WeaponSlot.Primary),
+                controller.GetWeapon(WeaponSlot.Secondary),
+                pickup.Weapon,
+                slot => ConfirmWeaponReplacement(pickup, controller, slot),
+                () => _weaponReplacementPanel = null);
+            return true;
+        }
+
+        private bool ConfirmWeaponReplacement(WeaponPickup pickup, WeaponController controller,
+            WeaponSlot slot)
+        {
+            if (pickup == null || controller == null || pickup.Weapon == null) return false;
+            WeaponSO replacedWeapon = controller.GetWeapon(slot);
+            if (replacedWeapon == null || _dropSpawn == null) return false;
+
+            Vector3 dropPosition = controller.transform.root.position + Vector3.up * 0.35f;
+            GameObject dropped = _dropSpawn.SpawnWeapon(dropPosition, replacedWeapon.WeaponId);
+            if (dropped == null) return false;
+            if (!pickup.TryCompletePickup(controller, slot, out _))
+            {
+                dropped.GetComponent<PooledObject>()?.ReturnToPool();
+                return false;
+            }
+
+            _weaponReplacementPanel = null;
+            return true;
         }
 
         private void OnDestroy()

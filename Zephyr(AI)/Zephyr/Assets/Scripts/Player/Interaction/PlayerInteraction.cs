@@ -25,6 +25,7 @@ namespace Zephyr.Gameplay.Player.Interaction
         private IInteractable _currentTarget;
         private IInteractionFocusReceiver _focusedReceiver;
         private IDialogueInputGateway _dialogueInput;
+        private IWeaponReplacementGateway _weaponReplacement;
 
         public IInteractable CurrentTarget => _currentTarget;
         public float InteractionRadius => _interactionRadius;
@@ -64,6 +65,7 @@ namespace Zephyr.Gameplay.Player.Interaction
         {
             UnsubscribeDialogueInput();
             _dialogueInput = services?.DialogueInput;
+            _weaponReplacement = services?.WeaponReplacement;
             SubscribeDialogueInput();
             if (_dialogueInput != null && _dialogueInput.IsOpen) DisableInput();
             else EnableInput();
@@ -92,6 +94,14 @@ namespace Zephyr.Gameplay.Player.Interaction
         {
             if (!context.started || _currentTarget == null || !_currentTarget.CanInteract()
                 || !IsWithinInteractionRadius(_currentTarget)) return;
+
+            if (_currentTarget is IWeaponPickup)
+            {
+                MonoBehaviour pickup = _currentTarget as MonoBehaviour;
+                if (pickup != null && _weaponReplacement != null
+                    && _weaponReplacement.RequestWeaponPickup(pickup.gameObject, transform.root.gameObject)) return;
+            }
+
             _currentTarget.OnInteract();
         }
 

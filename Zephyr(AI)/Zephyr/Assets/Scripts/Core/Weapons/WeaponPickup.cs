@@ -29,6 +29,19 @@ namespace Zephyr.Core.Items
 
         public WeaponSO Weapon => _weapon;
 
+        public bool TryCompletePickup(WeaponController controller, WeaponSlot slot,
+            out WeaponSO replacedWeapon)
+        {
+            replacedWeapon = null;
+            if (controller == null || _weapon == null) return false;
+
+            replacedWeapon = controller.GetWeapon(slot);
+            controller.Equip(slot, _weapon);
+            _runtimeContext?.TryRecordAcquiredWeapon(_weapon.WeaponId);
+            DespawnPickup();
+            return true;
+        }
+
         private void Awake()
         {
             _pooledObject = GetComponent<PooledObject>();
@@ -143,8 +156,11 @@ public bool CanInteract() => _weapon != null && _playerController != null;
         {
             WeaponController controller = _playerController;
             if (controller == null || _weapon == null) return;
-            controller.Equip(controller.ActiveSlot, _weapon);
-            _runtimeContext?.TryRecordAcquiredWeapon(_weapon.WeaponId);
+            TryCompletePickup(controller, controller.ActiveSlot, out _);
+        }
+
+        private void DespawnPickup()
+        {
             if (_pooledObject != null)
             {
                 // Scene-authored pickups can carry PooledObject without being

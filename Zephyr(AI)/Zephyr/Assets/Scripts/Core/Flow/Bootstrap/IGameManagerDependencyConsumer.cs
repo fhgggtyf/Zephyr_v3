@@ -20,7 +20,9 @@ namespace Zephyr.Core.Flow
         IEventBusGateway EventBus { get; }
         IDialogueInputGateway DialogueInput { get; }
         ISceneLoadingGateway SceneLoading { get; }
-                ILocalizationGateway Localization { get; }
-IStoryProgressionGateway StoryProgression { get; }
+        ILocalizationGateway Localization { get; }
+        IWeaponReplacementGateway WeaponReplacement { get; }
+        IDropSpawnGateway DropSpawn { get; }
+        IStoryProgressionGateway StoryProgression { get; }
     }
 }
