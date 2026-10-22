@@ -31,6 +31,14 @@ namespace Zephyr.Core.Weapons
         [Min(0f)] [SerializeField] private float m_baseFlatPen;
         [Range(0f, 1f)] [SerializeField] private float m_basePercentPen;
 
+        [Header("Combat feedback")]
+        [Min(0f)] [SerializeField] private float m_hitstopIntensity = 1f;
+        [Min(0f)] [SerializeField] private float m_hitstopDuration;
+        [Min(0f)] [SerializeField] private float m_shakeIntensity = 1f;
+        [SerializeField] private int m_impactVfxId;
+        [SerializeField] private int m_feedbackPriority;
+        [SerializeField] private int m_feedbackCooldownGroup;
+
         [Header("Attack")]
         [SerializeField] private ComboData m_combo = new ComboData();
         [SerializeField] private AttackResourceCost m_attackResourceCost;
@@ -62,6 +70,7 @@ namespace Zephyr.Core.Weapons
         public float BaseAttackSpeed => m_baseAttackSpeed;
         public float BaseFlatPen => m_baseFlatPen;
         public float BasePercentPen => m_basePercentPen;
+        public DamageFeedbackSettings Feedback => new DamageFeedbackSettings(m_hitstopIntensity, m_hitstopDuration, m_shakeIntensity, m_impactVfxId, m_feedbackPriority, m_feedbackCooldownGroup);
         public ComboData Combo => m_combo;
         public AttackResourceCost AttackResourceCost => m_attackResourceCost;
         public RuntimeAnimatorController AnimatorController => m_animatorController;

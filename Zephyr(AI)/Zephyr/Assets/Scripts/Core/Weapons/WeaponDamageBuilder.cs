@@ -73,7 +73,8 @@ namespace Zephyr.Core.Weapons
                 sourcePosition,
                 source,
                 stats.CriticalMultiplier,
-                stats.BackstabMultiplier);
+                stats.BackstabMultiplier,
+                weapon.Feedback);
         }
     }
 }

@@ -38,6 +38,7 @@ namespace Zephyr.Core.Flow
             IDialogueInputGateway dialogueInput = null;
             IWeaponReplacementGateway weaponReplacement = null;
             ISceneLoadingGateway sceneLoading = SceneLoader.Instance;
+            ICombatFeedbackGateway combatFeedback = null;
             for (int i = 0; i < components.Length; i++)
             {
                 if (components[i] is IPlayerSpawnGateway spawnGateway)
@@ -46,6 +47,8 @@ namespace Zephyr.Core.Flow
                     dialogueInput = dialogueGateway;
                 if (components[i] is IWeaponReplacementGateway replacementGateway)
                     weaponReplacement = replacementGateway;
+                if (components[i] is ICombatFeedbackGateway feedbackGateway)
+                    combatFeedback = feedbackGateway;
             }
 
             _composition = new GameManagerServices(
@@ -62,6 +65,7 @@ namespace Zephyr.Core.Flow
                 weaponReplacement,
                 dropSpawn,
                 timer,
+                combatFeedback,
                 saveData?.CurrentRun?.Seed ?? 0,
                 saveData?.CurrentRun?.CurrentRoomDepth ?? 0,
                 new GameplayRuntimeContext(saveData, eventBus));
@@ -145,6 +149,7 @@ namespace Zephyr.Core.Flow
                 IWeaponReplacementGateway weaponReplacement,
                 IDropSpawnGateway dropSpawn,
                 ITimerGateway timer,
+                ICombatFeedbackGateway combatFeedback,
                 int seed,
                 int roomDepth,
                 IPickupRuntimeContext pickupContext)
@@ -162,6 +167,7 @@ namespace Zephyr.Core.Flow
                 WeaponReplacement = weaponReplacement;
                 DropSpawn = dropSpawn;
                 Timer = timer;
+                CombatFeedback = combatFeedback;
                 Seed = seed;
                 RoomDepth = roomDepth;
                 PickupContext = pickupContext;
@@ -180,6 +186,7 @@ namespace Zephyr.Core.Flow
             public IDropSpawnGateway DropSpawn { get; }
             public IWeaponReplacementGateway WeaponReplacement { get; }
             public ITimerGateway Timer { get; }
+            public ICombatFeedbackGateway CombatFeedback { get; }
             public int Seed { get; }
             public int RoomDepth { get; }
             public IPickupRuntimeContext PickupContext { get; }

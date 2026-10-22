@@ -35,6 +35,7 @@ namespace Zephyr.Gameplay.Player.Core
         private float _energyRegenDelayRemaining;
         private bool _sprintConsumptionActive;
         private bool _sprintRecoveryLockout;
+        private bool _runtimeStateRestored;
 
         public float CurrentStamina => _currentStamina;
         public float CurrentEnergy => _currentEnergy;
@@ -63,7 +64,8 @@ namespace Zephyr.Gameplay.Player.Core
         private void Start()
         {
             // All stat initializers have completed Awake by this point.
-            ResetToMax();
+            if (!_runtimeStateRestored)
+                ResetToMax();
         }
 
         private void Update()
@@ -201,6 +203,41 @@ namespace Zephyr.Gameplay.Player.Core
             _energyRegenDelayRemaining = 0f;
             _sprintConsumptionActive = false;
             _sprintRecoveryLockout = false;
+            _runtimeStateRestored = false;
+        }
+
+        public RuntimeState CaptureRuntimeState()
+        {
+            return new RuntimeState(_currentStamina, _currentEnergy,
+                _staminaRegenDelayRemaining, _energyRegenDelayRemaining);
+        }
+
+        public void RestoreRuntimeState(RuntimeState state)
+        {
+            _currentStamina = Mathf.Clamp(state.CurrentStamina, 0f, MaxStamina);
+            _currentEnergy = Mathf.Clamp(state.CurrentEnergy, 0f, MaxEnergy);
+            _staminaRegenDelayRemaining = Mathf.Max(0f, state.StaminaRegenDelayRemaining);
+            _energyRegenDelayRemaining = Mathf.Max(0f, state.EnergyRegenDelayRemaining);
+            _sprintConsumptionActive = false;
+            _sprintRecoveryLockout = false;
+            _runtimeStateRestored = true;
+        }
+
+        public readonly struct RuntimeState
+        {
+            public float CurrentStamina { get; }
+            public float CurrentEnergy { get; }
+            public float StaminaRegenDelayRemaining { get; }
+            public float EnergyRegenDelayRemaining { get; }
+
+            public RuntimeState(float currentStamina, float currentEnergy,
+                float staminaRegenDelayRemaining, float energyRegenDelayRemaining)
+            {
+                CurrentStamina = currentStamina;
+                CurrentEnergy = currentEnergy;
+                StaminaRegenDelayRemaining = staminaRegenDelayRemaining;
+                EnergyRegenDelayRemaining = energyRegenDelayRemaining;
+            }
         }
 
         private void OnValidate()

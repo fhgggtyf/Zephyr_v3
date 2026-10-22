@@ -82,7 +82,8 @@ namespace Zephyr.Gameplay.Enemies
                 config != null ? config.DamageType : DamageType.AD,
                 sourcePosition: transform.position,
                 source: gameObject,
-                category: config != null ? config.DamageCategory : WeaponCategory.Melee);
+                category: config != null ? config.DamageCategory : WeaponCategory.Melee,
+                feedback: attack.Feedback);
 
             _attackStartedAt = Time.time;
             _lastAttackAt = Time.time;

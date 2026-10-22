@@ -12,7 +12,8 @@ namespace Zephyr.Gameplay.Player.UI
     /// </summary>
     public sealed class DeathView : LocalizedBehaviour
     {
-        private static Font s_fallbackFont;
+        [SerializeField] private Font _uiFont;
+
         [Header("Replaceable artwork")]
         [SerializeField] private Image _backdrop;
         [SerializeField] private Image _panel;
@@ -99,25 +100,15 @@ namespace Zephyr.Gameplay.Player.UI
 
         private void EnsureFonts()
         {
-            if (s_fallbackFont == null)
-            {
-                s_fallbackFont = Font.CreateDynamicFontFromOSFont(new[]
-                {
-                    "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", "Arial Unicode MS", "Arial"
-                }, 32);
-                if (s_fallbackFont == null)
-                    s_fallbackFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            }
-
             SetFallbackFont(_title);
             SetFallbackFont(_potentialLoss);
             SetFallbackFont(_respawnLabel);
             SetFallbackFont(_giveUpLabel);
         }
 
-        private static void SetFallbackFont(Text text)
+        private void SetFallbackFont(Text text)
         {
-            if (text != null && text.font == null) text.font = s_fallbackFont;
+            if (text != null && text.font == null && _uiFont != null) text.font = _uiFont;
         }
 
         private Image FindImage(string path) => transform.Find(path)?.GetComponent<Image>();

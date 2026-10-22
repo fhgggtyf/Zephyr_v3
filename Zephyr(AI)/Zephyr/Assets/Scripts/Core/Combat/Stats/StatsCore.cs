@@ -167,6 +167,63 @@ namespace Zephyr.Core.Stats
             return _stats[statType].Potential;
         }
 
+        public RuntimeState CaptureRuntimeState()
+        {
+            var state = new RuntimeState();
+            foreach (StatType type in System.Enum.GetValues(typeof(StatType)))
+                state.Potentials[type] = _stats.GetValueOrDefault(type).Potential;
+
+            CopyValues(_runGains, state.RunGains);
+            CopyValues(_runGainPercents, state.RunGainPercents);
+            CopyValues(_modifiers, state.Modifiers);
+            CopyValues(_modifierPercents, state.ModifierPercents);
+            CopyValues(_categoryInRunAddends, state.CategoryAddends);
+            return state;
+        }
+
+        public void RestoreRuntimeState(RuntimeState state)
+        {
+            if (state == null) return;
+
+            foreach (StatType type in System.Enum.GetValues(typeof(StatType)))
+            {
+                var record = _stats.GetValueOrDefault(type);
+                record.Potential = Mathf.Clamp(state.Potentials.GetValueOrDefault(type), 0f,
+                    StatConstants.PotentialMax);
+                _stats[type] = record;
+            }
+
+            ReplaceValues(_runGains, state.RunGains);
+            ReplaceValues(_runGainPercents, state.RunGainPercents);
+            ReplaceValues(_modifiers, state.Modifiers);
+            ReplaceValues(_modifierPercents, state.ModifierPercents);
+            ReplaceValues(_categoryInRunAddends, state.CategoryAddends);
+        }
+
+        private static void CopyValues<TKey>(Dictionary<TKey, float> source,
+            Dictionary<TKey, float> destination)
+        {
+            foreach (KeyValuePair<TKey, float> entry in source)
+                destination[entry.Key] = entry.Value;
+        }
+
+        private static void ReplaceValues<TKey>(Dictionary<TKey, float> destination,
+            Dictionary<TKey, float> source)
+        {
+            destination.Clear();
+            CopyValues(source, destination);
+        }
+
+        public sealed class RuntimeState
+        {
+            internal readonly Dictionary<StatType, float> Potentials = new Dictionary<StatType, float>();
+            internal readonly Dictionary<StatType, float> RunGains = new Dictionary<StatType, float>();
+            internal readonly Dictionary<StatType, float> RunGainPercents = new Dictionary<StatType, float>();
+            internal readonly Dictionary<StatType, float> Modifiers = new Dictionary<StatType, float>();
+            internal readonly Dictionary<StatType, float> ModifierPercents = new Dictionary<StatType, float>();
+            internal readonly Dictionary<string, float> CategoryAddends = new Dictionary<string, float>();
+        }
+
         #region Permanent Base (profile lifetime, never reset)
 
         /// <summary>

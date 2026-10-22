@@ -34,6 +34,7 @@ namespace Zephyr.Core.Flow
         private bool _readySignaled;
 
         public event Action<SceneInfo> SceneLoaded;
+        public event Action<SceneSO, SceneSO> SceneUnloading;
         public bool IsLoading => _isProcessing;
         public event Action LoadingStarted;
         public event Action LoadingCompleted;
@@ -152,7 +153,7 @@ namespace Zephyr.Core.Flow
                 SceneOperation operation = _operations.Dequeue();
 
                 if (operation.SceneToReplace != null && operation.SceneToReplace != operation.TargetScene)
-                    yield return UnloadSceneAsync(operation.SceneToReplace);
+                    yield return UnloadSceneAsync(operation.SceneToReplace, operation.TargetScene);
 
                 if (operation.TargetScene != null)
                     yield return LoadSceneAsync(operation.TargetScene, operation.Mode);
@@ -202,10 +203,11 @@ namespace Zephyr.Core.Flow
             SceneLoaded?.Invoke(info);
         }
 
-        private static IEnumerator UnloadSceneAsync(SceneSO scene)
+        private IEnumerator UnloadSceneAsync(SceneSO scene, SceneSO targetScene)
         {
             if (!IsSceneLoaded(scene)) yield break;
 
+            SceneUnloading?.Invoke(scene, targetScene);
             AsyncOperation operation = SceneManager.UnloadSceneAsync(scene.SceneName);
             if (operation != null) yield return operation;
         }

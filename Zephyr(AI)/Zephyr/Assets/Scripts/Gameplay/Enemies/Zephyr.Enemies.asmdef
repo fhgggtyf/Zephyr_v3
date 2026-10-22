@@ -5,7 +5,8 @@
         "Zephyr.Core.Contracts",
         "Zephyr.Core.Runtime",
         "Zephyr.Core.Combat",
-        "Zephyr.Core.StateMachine"
+        "Zephyr.Core.StateMachine",
+        "Zephyr.Core.Flow"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

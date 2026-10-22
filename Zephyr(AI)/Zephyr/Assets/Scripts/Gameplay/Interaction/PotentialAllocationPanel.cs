@@ -20,6 +20,7 @@ namespace Zephyr.Gameplay.Interaction
         [SerializeField] private Transform _rowsRoot;
         [SerializeField] private Button _startButton;
         [SerializeField] private Button _cancelButton;
+
         private readonly List<RowView> _rows = new List<RowView>();
         private readonly Dictionary<StatType, int> _randomValues = new Dictionary<StatType, int>();
         private readonly Dictionary<StatType, int> _manualValues = new Dictionary<StatType, int>();
@@ -28,6 +29,8 @@ namespace Zephyr.Gameplay.Interaction
         private int _budget;
         private int _allocatable;
         private int _remainingManual;
+        private bool _rowsBound;
+        private bool _rowsValid;
 
         private void Awake()
         {
@@ -102,7 +105,8 @@ namespace Zephyr.Gameplay.Interaction
                 order[swapIndex] = temp;
             }
 
-            for (int i = 0; i < Mathf.Min(randomBudget, order.Count); i++) _randomValues[order[i]] = 1;
+            for (int i = 0; i < Mathf.Min(randomBudget, order.Count); i++)
+                _randomValues[order[i]] = 1;
             int randomRemaining = randomBudget - Mathf.Min(randomBudget, stats.Length);
             while (randomRemaining > 0)
             {
@@ -113,78 +117,57 @@ namespace Zephyr.Gameplay.Interaction
             }
 
             _remainingManual = _allocatable;
-            BuildRows(stats);
+            BindAuthoredRows(stats);
         }
 
-private void BuildRows(StatType[] stats)
+        private void BindAuthoredRows(StatType[] stats)
         {
+            if (_rowsBound) return;
+
             Transform resolvedRows = _rowsRoot != null ? _rowsRoot : transform.Find("Panel/Rows");
             if (resolvedRows == null)
             {
                 Debug.LogError("PotentialAllocationPanel: Panel/Rows is missing from the prefab.", this);
+                _rowsValid = false;
                 return;
             }
 
             _rowsRoot = resolvedRows;
-            RectTransform rowsRect = resolvedRows as RectTransform;
-            if (rowsRect != null)
-            {
-                rowsRect.anchorMin = new Vector2(0.5f, 0.5f);
-                rowsRect.anchorMax = new Vector2(0.5f, 0.5f);
-                rowsRect.pivot = new Vector2(0.5f, 0.5f);
-                rowsRect.sizeDelta = new Vector2(740f, 350f);
-                rowsRect.anchoredPosition = new Vector2(0f, -42f);
-            }
-
-            for (int i = _rowsRoot.childCount - 1; i >= 0; i--)
-                Destroy(_rowsRoot.GetChild(i).gameObject);
-
             _rows.Clear();
-            const float rowHeight = 32f;
+            _rowsValid = true;
             for (int i = 0; i < stats.Length; i++)
             {
                 StatType stat = stats[i];
-                RectTransform row = RuntimeUIFactory.CreateRect(stat + "Row", _rowsRoot);
-                RuntimeUIFactory.Place(row, new Vector2(0.5f, 1f), new Vector2(740f, rowHeight),
-                    new Vector2(0f, -i * rowHeight - rowHeight * 0.5f));
+                Transform row = _rowsRoot.Find(string.Concat(stat, "Row"));
+                if (row == null)
+                {
+                    Debug.LogError($"PotentialAllocationPanel: missing authored row for {stat}.", this);
+                    _rowsValid = false;
+                    continue;
+                }
 
-                Text label = RuntimeUIFactory.CreateText("Label", row, 17, TextAnchor.MiddleLeft, Color.white);
-                RuntimeUIFactory.Place(label.rectTransform, new Vector2(0f, 0.5f), new Vector2(210f, 28f),
-                    new Vector2(108f, 0f));
-                label.text = Localize("stat." + stat, stat.ToString());
+                Text label = row.Find("Label")?.GetComponent<Text>();
+                Text value = row.Find("Value")?.GetComponent<Text>();
+                Text random = row.Find("Random")?.GetComponent<Text>();
+                Text manual = row.Find("Manual")?.GetComponent<Text>();
+                Button minus = row.Find("Minus")?.GetComponent<Button>();
+                Button plus = row.Find("Plus")?.GetComponent<Button>();
+                if (label == null || value == null || random == null || manual == null ||
+                    minus == null || plus == null)
+                {
+                    Debug.LogError($"PotentialAllocationPanel: row {stat} has incomplete authored bindings.", this);
+                    _rowsValid = false;
+                    continue;
+                }
 
-                Text value = RuntimeUIFactory.CreateText("Value", row, 17, TextAnchor.MiddleCenter, Color.white);
-                RuntimeUIFactory.Place(value.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(72f, 28f),
-                    new Vector2(-125f, 0f));
-
-                Text random = RuntimeUIFactory.CreateText("Random", row, 15, TextAnchor.MiddleCenter,
-                    new Color(0.72f, 0.84f, 1f));
-                RuntimeUIFactory.Place(random.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(128f, 28f),
-                    new Vector2(8f, 0f));
-
-                Text manual = RuntimeUIFactory.CreateText("Manual", row, 15, TextAnchor.MiddleCenter,
-                    new Color(1f, 0.85f, 0.48f));
-                RuntimeUIFactory.Place(manual.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(128f, 28f),
-                    new Vector2(145f, 0f));
-
-                Text minusLabel;
-                Button minus = RuntimeUIFactory.CreateButton("Minus", row,
-                    new Color(0.18f, 0.22f, 0.28f), Color.white, out minusLabel);
-                RuntimeUIFactory.Place(minus.GetComponent<RectTransform>(), new Vector2(1f, 0.5f),
-                    new Vector2(34f, 28f), new Vector2(-48f, 0f));
-
-                Text plusLabel;
-                Button plus = RuntimeUIFactory.CreateButton("Plus", row,
-                    new Color(0.18f, 0.32f, 0.25f), Color.white, out plusLabel);
-                RuntimeUIFactory.Place(plus.GetComponent<RectTransform>(), new Vector2(1f, 0.5f),
-                    new Vector2(34f, 28f), new Vector2(-8f, 0f));
-
-                minusLabel.text = "-";
-                plusLabel.text = "+";
-                minus.onClick.AddListener(() => ChangeManual(stat, -1));
-                plus.onClick.AddListener(() => ChangeManual(stat, 1));
-                _rows.Add(new RowView(stat, value, random, manual));
+                StatType capturedStat = stat;
+                minus.onClick.AddListener(() => ChangeManual(capturedStat, -1));
+                plus.onClick.AddListener(() => ChangeManual(capturedStat, 1));
+                _rows.Add(new RowView(stat, label, value, random, manual));
             }
+
+            _rowsBound = true;
+            _rowsValid &= _rows.Count == stats.Length;
         }
 
         private void ChangeManual(StatType stat, int delta)
@@ -204,13 +187,14 @@ private void BuildRows(StatType[] stats)
                 manual--;
                 _remainingManual++;
             }
+
             _manualValues[stat] = manual;
             Refresh();
         }
 
         private void StartRun()
         {
-            if (_remainingManual != 0 || _owner == null) return;
+            if (!CanStartRun() || _owner == null) return;
             var potentials = new Dictionary<StatType, float>();
             foreach (StatType stat in Enum.GetValues(typeof(StatType)))
                 potentials[stat] = _randomValues[stat] + _manualValues[stat];
@@ -218,7 +202,7 @@ private void BuildRows(StatType[] stats)
             _owner.BeginRun();
         }
 
-private void Refresh()
+        private void Refresh()
         {
             if (_title != null) _title.text = Localize("potential.entry.title", "Prepare Your Potential");
             if (_summary != null)
@@ -233,6 +217,7 @@ private void Refresh()
                 RowView row = _rows[i];
                 int random = _randomValues[row.Stat];
                 int manual = _manualValues[row.Stat];
+                row.Label.text = Localize(string.Concat("stat.", row.Stat), row.Stat.ToString());
                 row.Value.text = (random + manual).ToString();
                 row.Random.text = Localize("potential.entry.random_value", "Random: {0}", random);
                 row.Manual.text = Localize("potential.entry.manual_value", "You: {0}", manual);
@@ -253,25 +238,27 @@ private void Refresh()
 
         private bool CanStartRun()
         {
-            if (_remainingManual != 0) return false;
+            if (!_rowsValid || _remainingManual != 0) return false;
             foreach (StatType stat in Enum.GetValues(typeof(StatType)))
             {
                 if (_randomValues[stat] + _manualValues[stat] < 1) return false;
             }
+
             return true;
         }
-
 
         private readonly struct RowView
         {
             public readonly StatType Stat;
+            public readonly Text Label;
             public readonly Text Value;
             public readonly Text Random;
             public readonly Text Manual;
 
-            public RowView(StatType stat, Text value, Text random, Text manual)
+            public RowView(StatType stat, Text label, Text value, Text random, Text manual)
             {
                 Stat = stat;
+                Label = label;
                 Value = value;
                 Random = random;
                 Manual = manual;

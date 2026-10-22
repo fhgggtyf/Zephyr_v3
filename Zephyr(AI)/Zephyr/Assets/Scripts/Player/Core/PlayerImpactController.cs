@@ -6,6 +6,8 @@ using Zephyr.Core.DamageSystem;
 using Zephyr.Contracts.Damage;
 using Zephyr.Core.Health;
 using Zephyr.Core.Stats;
+using Zephyr.Core.Flow;
+using Zephyr.Contracts.Interfaces;
 using Zephyr.Gameplay.Player.Visual;
 
 namespace Zephyr.Gameplay.Player.Core
@@ -17,7 +19,7 @@ namespace Zephyr.Gameplay.Player.Core
     /// </summary>
     [DefaultExecutionOrder(-250)]
     [RequireComponent(typeof(HealthComponent))]
-    public sealed class PlayerImpactController : MonoBehaviour
+    public sealed class PlayerImpactController : MonoBehaviour, IGameManagerDependencyConsumer
     {
         private const float MaxKnockbackTime = 0.8f;
         private const float GetupTime = 1f;
@@ -30,6 +32,7 @@ namespace Zephyr.Gameplay.Player.Core
         [SerializeField, Min(0f)] private float _hitbackVerticalSpeed = 11f;
         [SerializeField, Min(0.01f)] private float _minimumHitbackFlight = 0.1f;
         [SerializeField, Min(0f)] private float _bounceDamping = 0.85f;
+        [SerializeField, Min(0f)] private float _knockbackAccumulationWindow = 0.18f;
 
         [Header("Presentation")]
         [SerializeField] private Color _flashColor = new Color(1f, 1f, 1f, 0.25f);
@@ -44,11 +47,16 @@ namespace Zephyr.Gameplay.Player.Core
         private CameraController _camera;
         private Coroutine _flashRoutine;
         private float _knockbackRemaining;
+        private float _knockbackAccumulatedDuration;
+        private float _knockbackAccumulationExpiresAt;
         private ImpactMode _mode;
         private float _modeEndsAt;
         private float _hitbackStartedAt;
         private Vector2 _pendingSourcePosition;
         private Color[] _originalColors;
+        private ICombatFeedbackGateway _combatFeedback;
+        private bool _hitbackFeedbackSent;
+        private DamageInfo _pendingHitbackInfo;
 
         public bool IsInImpact => _mode != ImpactMode.None;
         public bool IsInvincible => _hurtReceiver != null && _hurtReceiver.IsInvincible;
@@ -57,6 +65,11 @@ namespace Zephyr.Gameplay.Player.Core
         public bool WantsHitbackState => _mode == ImpactMode.Hitback;
         public bool WantsGetupState => _mode == ImpactMode.Getup;
         public bool IsImpactComplete => _mode == ImpactMode.None;
+
+        public void Configure(IGameManagerServices services)
+        {
+            _combatFeedback = services?.CombatFeedback;
+        }
 
         public enum ImpactState { Knockback, Hitback, Getup }
         private enum ImpactMode { None, Knockback, Hitback, Getup }
@@ -102,8 +115,12 @@ namespace Zephyr.Gameplay.Player.Core
             float damage = Mathf.Max(0f, result.DealtToHp + result.DealtToShield);
             if (damage <= 0f) return;
 
-            _camera = CameraController.FindForGameplay(gameObject.scene);
-            _camera?.ShakeForDamage(damage);
+            _combatFeedback?.RequestDamageFeedback(info, result, transform.position);
+            if (_combatFeedback == null)
+            {
+                _camera = CameraController.FindForGameplay(gameObject.scene);
+                _camera?.ShakeForDamage(damage);
+            }
 
             // DamageTaken is not raised for filtered hits. A lethal accepted hit
             // still shakes the camera, but death presentation owns all motion.
@@ -116,7 +133,12 @@ namespace Zephyr.Gameplay.Player.Core
             duration = Mathf.Max(0.01f, duration);
 
             if (_mode == ImpactMode.Hitback || _mode == ImpactMode.Getup) return;
-            float projected = (_mode == ImpactMode.Knockback ? _knockbackRemaining : 0f) + duration;
+            if (Time.time > _knockbackAccumulationExpiresAt)
+                _knockbackAccumulatedDuration = 0f;
+
+            _knockbackAccumulatedDuration += duration;
+            _knockbackAccumulationExpiresAt = Time.time + _knockbackAccumulationWindow;
+            float projected = Mathf.Max(_knockbackAccumulatedDuration, _mode == ImpactMode.Knockback ? _knockbackRemaining : 0f);
             if (projected > MaxKnockbackTime)
             {
                 BeginHitback(info);
@@ -125,6 +147,7 @@ namespace Zephyr.Gameplay.Player.Core
 
             if (_mode != ImpactMode.Knockback)
             {
+                _hitbackFeedbackSent = false;
                 _mode = ImpactMode.Knockback;
                 _pendingSourcePosition = info.SourcePosition;
             }
@@ -148,6 +171,8 @@ namespace Zephyr.Gameplay.Player.Core
         private void BeginHitback(DamageInfo info)
         {
             _mode = ImpactMode.Hitback;
+            _hitbackFeedbackSent = false;
+            _pendingHitbackInfo = info;
             _pendingSourcePosition = info.SourcePosition;
             _hitbackStartedAt = Time.time;
         }
@@ -185,6 +210,12 @@ namespace Zephyr.Gameplay.Player.Core
                     float direction = Mathf.Sign(transform.position.x - _pendingSourcePosition.x);
                     if (Mathf.Abs(direction) < 0.01f) direction = -(_movement != null && _movement.Facing.x > 0f ? 1f : -1f);
                     if (_body != null) _body.linearVelocity = new Vector2(direction * _hitbackHorizontalSpeed, _hitbackVerticalSpeed);
+                    if (!_hitbackFeedbackSent)
+                    {
+                        _hitbackFeedbackSent = true;
+                        float intensity = 1f + Mathf.Clamp01(_knockbackRemaining / MaxKnockbackTime);
+                        _combatFeedback?.RequestHitbackFeedback(_pendingHitbackInfo, transform.position, intensity);
+                    }
                     break;
                 case ImpactState.Getup:
                     _hurtReceiver?.SetInvincible(true);
@@ -195,6 +226,8 @@ namespace Zephyr.Gameplay.Player.Core
 
         public void UpdateImpactState(ImpactState state)
         {
+            if (_mode == ImpactMode.None && _knockbackAccumulatedDuration > 0f && Time.time > _knockbackAccumulationExpiresAt)
+                _knockbackAccumulatedDuration = 0f;
             if (_mode == ImpactMode.None) return;
             if (state == ImpactState.Knockback && _mode == ImpactMode.Knockback)
             {

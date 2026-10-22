@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Zephyr.Contracts.Damage;
 
 namespace Zephyr.Gameplay.Enemies
 {
@@ -20,6 +21,13 @@ namespace Zephyr.Gameplay.Enemies
         [Min(0f)] [SerializeField] private float _activeStartTime;
         [Min(0f)] [SerializeField] private float _activeDuration = 0.18f;
         [Min(0f)] [SerializeField] private float _damageMultiplier = 1f;
+        [Header("Combat feedback")]
+        [Min(0f)] [SerializeField] private float _hitstopIntensity = 1f;
+        [Min(0f)] [SerializeField] private float _hitstopDuration;
+        [Min(0f)] [SerializeField] private float _shakeIntensity = 1f;
+        [SerializeField] private int _impactVfxId;
+        [SerializeField] private int _feedbackPriority;
+        [SerializeField] private int _feedbackCooldownGroup;
 
         public string Id => string.IsNullOrWhiteSpace(_id) ? "Attack" : _id;
         public string AnimationState => string.IsNullOrWhiteSpace(_animationState) ? "Attack" : _animationState;
@@ -30,5 +38,6 @@ namespace Zephyr.Gameplay.Enemies
         public float ActiveStartTime => Mathf.Clamp(_activeStartTime, 0f, TotalDuration);
         public float ActiveDuration => Mathf.Clamp(_activeDuration, 0f, TotalDuration - ActiveStartTime);
         public float DamageMultiplier => Mathf.Max(0f, _damageMultiplier);
+        public DamageFeedbackSettings Feedback => new DamageFeedbackSettings(_hitstopIntensity, _hitstopDuration, _shakeIntensity, _impactVfxId, _feedbackPriority, _feedbackCooldownGroup);
     }
 }

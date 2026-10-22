@@ -160,6 +160,7 @@ Transform:
   - {fileID: 6446632683941532858}
   - {fileID: 1061811635}
   - {fileID: 698412093}
+  - {fileID: 29770250}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1002
@@ -610,6 +611,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6000000000000000000000000000004, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Zephyr.Player::Zephyr.Gameplay.Player.UI.GameplayHudController
+  _viewPrefab: {fileID: 4585157012641072888, guid: 461c0ef8bd5eb0243a1d399b0a55ad04, type: 3}
 --- !u!114 &1073
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -717,6 +719,58 @@ MonoBehaviour:
   _viewParent: {fileID: 0}
   _deathAnimationName: Death
   _deathAnimationFallbackDuration: 1.2
+--- !u!1 &29770249
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 29770250}
+  - component: {fileID: 29770251}
+  m_Layer: 0
+  m_Name: CombatFeedbackCoordinator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &29770250
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 29770249}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1001}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &29770251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 29770249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d1ab12d13b418f46b530c88e9ae6dc1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Core.Flow::Zephyr.Core.Combat.Feedback.CombatFeedbackCoordinator
+  _normalDurationPerIntensity: 0.018
+  _normalMaxDuration: 0.08
+  _normalCooldown: 0.055
+  _hitbackBaseDuration: 0.11
+  _hitbackDurationPerIntensity: 0.06
+  _hitbackMaxDuration: 0.28
+  _hitbackCooldown: 0.2
+  _shakePerIntensity: 1
 --- !u!1001 &76558699
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -725,6 +779,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1071}
     m_Modifications:
+    - target: {fileID: 6255699640413703039, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_PreserveAspect
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6830896662843507431, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 820
@@ -820,6 +878,10 @@ PrefabInstance:
     - target: {fileID: 7974757566827225025, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8500395432258600314, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
+      propertyPath: m_PlaneDistance
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -12,10 +12,11 @@ namespace Zephyr.Core.UI
     public static class GameplayTimePause
     {
         private static readonly HashSet<object> s_modalOwners = new HashSet<object>();
+        private static readonly HashSet<object> s_combatHitstopOwners = new HashSet<object>();
         private static bool s_gameFlowPaused;
         private static bool s_lastPaused;
 
-        public static bool IsPaused => s_gameFlowPaused || s_modalOwners.Count > 0;
+        public static bool IsPaused => s_gameFlowPaused || s_modalOwners.Count > 0 || s_combatHitstopOwners.Count > 0;
         public static event Action<bool> StateChanged;
 
         public static void SetModalOpen(object owner, bool open)
@@ -32,9 +33,18 @@ namespace Zephyr.Core.UI
             Apply();
         }
 
+        public static void SetCombatHitstop(object owner, bool active)
+        {
+            if (owner == null) return;
+            if (active) s_combatHitstopOwners.Add(owner);
+            else s_combatHitstopOwners.Remove(owner);
+            Apply();
+        }
+
         public static void ResetAll()
         {
             s_modalOwners.Clear();
+            s_combatHitstopOwners.Clear();
             s_gameFlowPaused = false;
             Apply();
         }

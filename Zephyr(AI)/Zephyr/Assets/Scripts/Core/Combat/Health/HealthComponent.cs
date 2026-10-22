@@ -151,6 +151,12 @@ namespace Zephyr.Core.Health
             CurrentShield = MaxShield;
         }
 
+        public void RestoreRuntimeState(float currentHp, float currentShield)
+        {
+            CurrentHp = Mathf.Clamp(currentHp, 0f, MaxHp);
+            CurrentShield = Mathf.Clamp(currentShield, 0f, MaxShield);
+        }
+
         private void CacheDamageFilters()
         {
             m_damageFilters.Clear();

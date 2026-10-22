@@ -24,5 +24,6 @@ namespace Zephyr.Core.Flow
         IWeaponReplacementGateway WeaponReplacement { get; }
         IDropSpawnGateway DropSpawn { get; }
         IStoryProgressionGateway StoryProgression { get; }
+        ICombatFeedbackGateway CombatFeedback { get; }
     }
 }

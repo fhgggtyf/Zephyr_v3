@@ -50,5 +50,35 @@ namespace Zephyr.Tests.EditMode
             Assert.That(_stats.GetStatValue(StatType.MaxHp), Is.EqualTo(270f).Within(0.001f));
         }
 
+        [Test]
+        public void RuntimeStateRestoresRunLayersAndPotentialWithoutTemporaryModifiers()
+        {
+            _stats.SetBase(StatType.Attack, 20f);
+            _stats.SetRunPotential(StatType.Attack, 4.5f);
+            _stats.ApplyPotentialScaledGain(StatType.Attack, 10f);
+            _stats.AddRunGainPercent(StatType.Attack, 0.15f);
+            _stats.AddModifier(StatType.Attack, 3f);
+            _stats.AddModifierPercent(StatType.Attack, 0.1f);
+            _stats.AddCategoryMultiplier("Melee", 0.2f);
+            _stats.AddTemporaryModifier(StatType.Attack, 50f);
+
+            StatsCore.RuntimeState snapshot = _stats.CaptureRuntimeState();
+            GameObject destination = new GameObject("StatsCoreRuntimeStateDestination");
+            try
+            {
+                StatsCore restored = destination.AddComponent<StatsCore>();
+                restored.SetBase(StatType.Attack, 20f);
+                restored.RestoreRuntimeState(snapshot);
+
+                Assert.That(restored.GetPotential(StatType.Attack), Is.EqualTo(4.5f).Within(0.001f));
+                Assert.That(restored.GetStatValue(StatType.Attack), Is.EqualTo(34.375f).Within(0.001f));
+                Assert.That(restored.GetCategoryMultiplier("Melee"), Is.EqualTo(0.2f).Within(0.001f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(destination);
+            }
+        }
+
     }
 }

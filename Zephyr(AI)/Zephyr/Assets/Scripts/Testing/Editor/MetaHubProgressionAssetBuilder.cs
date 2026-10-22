@@ -2,6 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using Zephyr.Core;
 using Zephyr.Core.Meta;
 using Zephyr.Gameplay.Interaction;
 
@@ -9,6 +10,7 @@ namespace Zephyr.Gameplay.Testing.Editor
 {
     public static class MetaHubProgressionAssetBuilder
     {
+        private const string ProjectFontPath = "Assets/ArtResources/Fonts/fusion-pixel-12px-proportional-zh_hans.otf";
         [MenuItem("Zephyr/Build MetaHub Progression Assets")]
         public static void Build()
         {
@@ -68,7 +70,8 @@ namespace Zephyr.Gameplay.Testing.Editor
             root.SetActive(false);
             Canvas canvas = root.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 500;
             CanvasScaler scaler = root.GetComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(960f, 540f); scaler.matchWidthOrHeight = 0.5f;
-            if (potential) root.AddComponent<PotentialAllocationPanel>(); else root.AddComponent<MetaUpgradePanel>();
+            PotentialAllocationPanel potentialComponent = null;
+            if (potential) potentialComponent = root.AddComponent<PotentialAllocationPanel>(); else root.AddComponent<MetaUpgradePanel>();
             Image backdrop = CreateImage("Backdrop", root.transform, new Color(0.02f, 0.04f, 0.08f, 0.82f), new Vector2(0.5f, 0.5f), new Vector2(960f, 540f), Vector2.zero);
             Image panel = CreateImage("Panel", root.transform, new Color(0.07f, 0.11f, 0.18f, 0.98f), new Vector2(0.5f, 0.5f), potential ? new Vector2(860f, 520f) : new Vector2(760f, 430f), Vector2.zero);
             TextObject("Title", panel.transform, 30, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 1f), new Vector2(680f, 44f), new Vector2(0f, -32f));
@@ -76,9 +79,18 @@ namespace Zephyr.Gameplay.Testing.Editor
             {
                 TextObject("Summary", panel.transform, 18, TextAnchor.MiddleCenter, new Color(0.75f, 0.85f, 1f), new Vector2(0.5f, 1f), new Vector2(700f, 32f), new Vector2(0f, -72f));
                 TextObject("Remaining", panel.transform, 22, TextAnchor.MiddleCenter, new Color(1f, 0.86f, 0.45f), new Vector2(0.5f, 1f), new Vector2(700f, 34f), new Vector2(0f, -104f));
-                RectTransform rows = new GameObject("Rows", typeof(RectTransform)).GetComponent<RectTransform>(); rows.SetParent(panel.transform, false); Place(rows, new Vector2(0.5f, 1f), new Vector2(720f, 440f), new Vector2(0f, -124f));
-                ButtonObject("StartButton", panel.transform, "Start Game", new Vector2(0.5f, 0f), new Vector2(220f, 44f), new Vector2(140f, 28f));
-                ButtonObject("CancelButton", panel.transform, "Cancel", new Vector2(0.5f, 0f), new Vector2(160f, 44f), new Vector2(-140f, 28f));
+                RectTransform rows = new GameObject("Rows", typeof(RectTransform)).GetComponent<RectTransform>(); rows.SetParent(panel.transform, false); Place(rows, new Vector2(0.5f, 1f), new Vector2(720f, 420f), new Vector2(0f, -124f));
+                CreatePotentialRows(rows);
+                Button startButton = ButtonObject("StartButton", panel.transform, "Start Game", new Vector2(0.5f, 0f), new Vector2(220f, 44f), new Vector2(140f, 28f));
+                Button cancelButton = ButtonObject("CancelButton", panel.transform, "Cancel", new Vector2(0.5f, 0f), new Vector2(160f, 44f), new Vector2(-140f, 28f));
+                SerializedObject panelSo = new SerializedObject(potentialComponent);
+                panelSo.FindProperty("_title").objectReferenceValue = panel.transform.Find("Title").GetComponent<Text>();
+                panelSo.FindProperty("_summary").objectReferenceValue = panel.transform.Find("Summary").GetComponent<Text>();
+                panelSo.FindProperty("_remaining").objectReferenceValue = panel.transform.Find("Remaining").GetComponent<Text>();
+                panelSo.FindProperty("_rowsRoot").objectReferenceValue = rows;
+                panelSo.FindProperty("_startButton").objectReferenceValue = startButton;
+                panelSo.FindProperty("_cancelButton").objectReferenceValue = cancelButton;
+                panelSo.ApplyModifiedPropertiesWithoutUndo();
             }
             else
             {
@@ -98,6 +110,24 @@ namespace Zephyr.Gameplay.Testing.Editor
             TextObject("Value", row, 26, TextAnchor.MiddleCenter, Color.white, new Vector2(0f, 0.5f), new Vector2(110f, 42f), new Vector2(55f, 10f));
             TextObject("Description", row, 18, TextAnchor.MiddleLeft, Color.white, new Vector2(0.5f, 0.5f), new Vector2(300f, 42f), new Vector2(70f, 10f));
             ButtonObject("BuyButton", row, buttonLabel, new Vector2(1f, 0.5f), new Vector2(180f, 48f), new Vector2(-100f, 10f));
+        }
+
+        private static void CreatePotentialRows(Transform parent)
+        {
+            string[] stats = System.Enum.GetNames(typeof(StatType));
+            for (int i = 0; i < stats.Length; i++)
+            {
+                RectTransform row = new GameObject(stats[i] + "Row", typeof(RectTransform)).GetComponent<RectTransform>();
+                row.SetParent(parent, false);
+                Place(row, new Vector2(0.5f, 1f), new Vector2(700f, 36f), new Vector2(0f, -18f - i * 40f));
+                CreateImage("Background", row, new Color(0.10f, 0.16f, 0.24f, 0.8f), new Vector2(0.5f, 0.5f), new Vector2(700f, 36f), Vector2.zero);
+                TextObject("Label", row, 15, TextAnchor.MiddleLeft, Color.white, new Vector2(0f, 0.5f), new Vector2(185f, 30f), new Vector2(12f, 0f));
+                TextObject("Value", row, 17, TextAnchor.MiddleCenter, new Color(1f, 0.9f, 0.45f, 1f), new Vector2(0f, 0.5f), new Vector2(55f, 30f), new Vector2(215f, 0f));
+                TextObject("Random", row, 13, TextAnchor.MiddleLeft, new Color(0.73f, 0.84f, 0.95f, 1f), new Vector2(0f, 0.5f), new Vector2(135f, 30f), new Vector2(285f, 0f));
+                TextObject("Manual", row, 13, TextAnchor.MiddleLeft, new Color(0.73f, 0.95f, 0.78f, 1f), new Vector2(0f, 0.5f), new Vector2(135f, 30f), new Vector2(420f, 0f));
+                ButtonObject("Minus", row, "-", new Vector2(1f, 0.5f), new Vector2(34f, 30f), new Vector2(-70f, 0f));
+                ButtonObject("Plus", row, "+", new Vector2(1f, 0.5f), new Vector2(34f, 30f), new Vector2(-28f, 0f));
+            }
         }
 
         private static GameObject GetOrCreateStation(string path, string name, GameObject panel, Sprite sprite, Object[] upgrades, Vector2 colliderSize, bool isTrigger)
@@ -127,7 +157,7 @@ namespace Zephyr.Gameplay.Testing.Editor
 
         private static Text TextObject(string name, Transform parent, int size, TextAnchor alignment, Color color, Vector2 anchor, Vector2 dimensions, Vector2 position)
         {
-            GameObject go = new GameObject(name, typeof(RectTransform), typeof(Text)); go.transform.SetParent(parent, false); Place((RectTransform)go.transform, anchor, dimensions, position); Text text = go.GetComponent<Text>(); text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"); text.fontSize = size; text.alignment = alignment; text.color = color; text.horizontalOverflow = HorizontalWrapMode.Wrap; text.verticalOverflow = VerticalWrapMode.Truncate; text.raycastTarget = false; return text;
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(Text)); go.transform.SetParent(parent, false); Place((RectTransform)go.transform, anchor, dimensions, position); Text text = go.GetComponent<Text>(); text.font = AssetDatabase.LoadAssetAtPath<Font>(ProjectFontPath); text.fontSize = size; text.alignment = alignment; text.color = color; text.horizontalOverflow = HorizontalWrapMode.Wrap; text.verticalOverflow = VerticalWrapMode.Truncate; text.raycastTarget = false; return text;
         }
 
         private static Button ButtonObject(string name, Transform parent, string label, Vector2 anchor, Vector2 dimensions, Vector2 position)

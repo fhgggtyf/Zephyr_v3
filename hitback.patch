@@ -1,0 +1,32 @@
+*** Begin Patch
+*** Update File: Zephyr(AI)/Zephyr/Assets/Scripts/Player/Core/PlayerImpactController.cs
+@@
+         [SerializeField, Min(0f)] private float _hitbackVerticalSpeed = 11f;
+         [SerializeField, Min(0.01f)] private float _minimumHitbackFlight = 0.1f;
+         [SerializeField, Min(0f)] private float _bounceDamping = 0.85f;
++        [SerializeField, Min(0f)] private float _knockbackAccumulationWindow = 0.18f;
+@@
+         private float _knockbackRemaining;
++        private float _knockbackAccumulatedDuration;
++        private float _knockbackAccumulationExpiresAt;
+@@
+             float duration = damage / Mathf.Max(1f, _damagePerSecond) * (1f - reduction);
+             duration = Mathf.Max(0.01f, duration);
+ 
+             if (_mode == ImpactMode.Hitback || _mode == ImpactMode.Getup) return;
+-            float projected = (_mode == ImpactMode.Knockback ? _knockbackRemaining : 0f) + duration;
++            if (Time.time > _knockbackAccumulationExpiresAt)
++                _knockbackAccumulatedDuration = 0f;
++
++            _knockbackAccumulatedDuration += duration;
++            _knockbackAccumulationExpiresAt = Time.time + _knockbackAccumulationWindow;
++            float projected = Mathf.Max(_knockbackAccumulatedDuration, _mode == ImpactMode.Knockback ? _knockbackRemaining : 0f);
+             if (projected > MaxKnockbackTime)
+@@
+         private void UpdateImpactState(ImpactState state)
+         {
++            if (_mode == ImpactMode.None && _knockbackAccumulatedDuration > 0f && Time.time > _knockbackAccumulationExpiresAt)
++                _knockbackAccumulatedDuration = 0f;
++
+             if (_mode == ImpactMode.None) return;
+*** End Patch

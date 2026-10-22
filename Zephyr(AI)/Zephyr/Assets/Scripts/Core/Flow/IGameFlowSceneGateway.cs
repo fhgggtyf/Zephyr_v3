@@ -19,6 +19,7 @@ namespace Zephyr.Core.Flow
         bool IsLoading { get; }
         void RequireReadySignal();
         void SignalReady();
+        event Action<SceneSO, SceneSO> SceneUnloading;
         event Action LoadingStarted;
         event Action LoadingCompleted;
         event Action LoadingFailed;

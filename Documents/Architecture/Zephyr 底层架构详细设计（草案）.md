@@ -906,7 +906,7 @@ public struct StatRecord
 }
 ```
 
-**Run lifecycle** (`StatsCore.ResetForRunStart()`): At run start, Potential and all run/timed runtime values are cleared. `PlayerBaseStats`, Meta upgrades, `MetaStatType` values, and permanent category bases survive the reset. The Player instance is owned by GameManager during gameplay so RunGains and TimedModifiers survive gameplay scene transitions. After reset, `InitializeRunPotentials()` sets the run's per-stat Potential values from the Run-entry budget.
+**Run lifecycle** (`StatsCore.ResetForRunStart()`): At run start, Potential and all run/timed runtime values are cleared. `PlayerBaseStats`, Meta upgrades, `MetaStatType` values, and permanent category bases survive the reset. `PlayerSpawner` is owned by GameManager, but each gameplay scene owns its own Player instance. Before `SceneLoader` unloads a gameplay scene for another gameplay scene, it synchronously notifies the spawner; the spawner captures the current runtime state and destroys the outgoing instance before Unity unloads its scene. The destination scene's `PlayerSpawnPoint` determines position and facing, and the replacement Player is instantiated into that destination scene. Its defaults and Meta upgrades are initialized first, then the in-memory snapshot restores Potential, run gains/modifiers/category addends, health/shield, stamina/energy and weapon slots before `Start()` can reset resources. This transient snapshot is neither a shared ScriptableObject nor `RunData` and is cleared when leaving gameplay; timer-owned temporary effects are not copied without their timer owner. After a new-run reset, `InitializeRunPotentials()` sets the run's per-stat Potential values from the Run-entry budget.
 
 ### 5.3 How Potential Gates Gains (binding)
 

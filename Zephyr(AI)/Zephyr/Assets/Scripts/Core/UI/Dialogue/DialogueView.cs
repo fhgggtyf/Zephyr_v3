@@ -20,6 +20,7 @@ namespace Zephyr.Core.UI.Dialogue
         [SerializeField] private Text _body;
         [SerializeField] private Text _counter;
         [SerializeField] private Button _advanceButton;
+        [SerializeField] private Font _fallbackFont;
 
         public event Action AdvanceRequested;
         public Image LeftPortraitImage => _leftPortrait;
@@ -70,7 +71,7 @@ namespace Zephyr.Core.UI.Dialogue
             _counter ??= FindText("Counter");
             _advanceButton ??= GetComponentInChildren<Button>(true);
 
-            Font fallbackFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            Font fallbackFont = _fallbackFont;
             if (fallbackFont != null)
             {
                 if (_leftSpeaker != null && _leftSpeaker.font == null) _leftSpeaker.font = fallbackFont;

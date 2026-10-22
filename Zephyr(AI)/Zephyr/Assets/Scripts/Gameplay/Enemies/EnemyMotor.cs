@@ -34,6 +34,7 @@ namespace Zephyr.Gameplay.Enemies
             _requestedSpeed = speed;
             if (Mathf.Abs(_moveInput.x) > 0.01f) Facing = _moveInput.x > 0f ? Vector2.right : Vector2.left;
         }
+
         public void Stop() { _moveInput = Vector2.zero; _requestedSpeed = -1f; }
 
         public bool CanPatrolInDirection(float direction)

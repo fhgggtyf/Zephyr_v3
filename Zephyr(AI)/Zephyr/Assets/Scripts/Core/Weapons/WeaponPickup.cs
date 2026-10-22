@@ -183,22 +183,60 @@ public bool CanInteract() => _weapon != null && _playerController != null;
 
         private void EnsureVisuals()
         {
-            if (_visualRoot == null) _visualRoot = transform;
+            if (_visualRoot == null)
+            {
+                Transform visual = transform.Find("VisualRoot");
+                if (visual != null) _visualRoot = visual;
+            }
+
             if (_iconRenderer == null) _iconRenderer = GetComponentInChildren<SpriteRenderer>(true);
+
+            if (_visualRoot == null)
+            {
+                GameObject visualObject = new GameObject("VisualRoot");
+                _visualRoot = visualObject.transform;
+                _visualRoot.SetParent(transform, false);
+                _visualRoot.localPosition = Vector3.zero;
+                _visualRoot.localRotation = Quaternion.identity;
+                _visualRoot.localScale = Vector3.one;
+
+                if (_iconRenderer != null && _iconRenderer.transform == transform)
+                {
+                    SpriteRenderer visualRenderer = visualObject.AddComponent<SpriteRenderer>();
+                    CopyRendererSettings(_iconRenderer, visualRenderer);
+                    _iconRenderer.enabled = false;
+                    _iconRenderer = visualRenderer;
+                }
+            }
+
             if (_glowRenderer == null)
             {
-                Transform glow = transform.Find("Glow");
+                Transform glow = _visualRoot.Find("Glow");
                 if (glow == null)
                 {
                     var glowObject = new GameObject("Glow");
                     glow = glowObject.transform;
-                    glow.SetParent(transform, false);
+                    glow.SetParent(_visualRoot, false);
                     glow.localScale = Vector3.one * 1.35f;
                 }
                 _glowRenderer = glow.GetComponent<SpriteRenderer>();
                 if (_glowRenderer == null) _glowRenderer = glow.gameObject.AddComponent<SpriteRenderer>();
                 _glowRenderer.sortingOrder = -1;
             }
+        }
+
+        private static void CopyRendererSettings(SpriteRenderer source, SpriteRenderer destination)
+        {
+            destination.sprite = source.sprite;
+            destination.color = source.color;
+            destination.sharedMaterial = source.sharedMaterial;
+            destination.sortingLayerID = source.sortingLayerID;
+            destination.sortingOrder = source.sortingOrder;
+            destination.flipX = source.flipX;
+            destination.flipY = source.flipY;
+            destination.drawMode = source.drawMode;
+            destination.maskInteraction = source.maskInteraction;
+            destination.enabled = source.enabled;
         }
 
         private void RefreshVisuals()

@@ -10,15 +10,16 @@ using Zephyr.Contracts.Flow;
 using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Save;
 using Zephyr.Core.Weapons;
+using Zephyr.Core.Health;
+using Zephyr.Core.Stats;
 using Zephyr.Core.Runtime.Lifecycle;
 using Zephyr.Gameplay.Player.Core;
 
 namespace Zephyr.Gameplay.Player.Flow
 {
     /// <summary>
-    /// Spawns one persistent player instance for the active gameplay scene. The
-    /// instance is owned by GameManager so run gains and timed modifiers survive
-    /// gameplay scene transitions; it is destroyed when leaving gameplay state.
+    /// Coordinates player instances for gameplay scenes. Runtime state is held
+    /// temporarily by GameManager while a room transition replaces the instance.
     /// </summary>
     [DefaultExecutionOrder(-150)]
     [SingletonLifetime(SingletonLifetime.GameManager, "GameManager")]
@@ -57,9 +58,11 @@ namespace Zephyr.Gameplay.Player.Flow
         private Coroutine _pendingSpawnRoutine;
         private RespawnLoadout _pendingRespawnLoadout;
         private bool _hasPendingRespawnLoadout;
+        private PlayerRuntimeSnapshot _pendingRuntimeState;
         private Vector3 _pendingRespawnPosition;
         private bool _hasPendingRespawnPosition;
         private IGameFlowGateway _gameFlow;
+        private ISceneLoadingGateway _sceneLoading;
         private ISaveDataGateway _saveData;
         private IEventBusGateway _eventBus;
         private IGameManagerServices _gameManagerServices;
@@ -79,6 +82,8 @@ namespace Zephyr.Gameplay.Player.Flow
         {
             SceneManager.sceneLoaded += HandleSceneLoaded;
             SceneManager.sceneUnloaded += HandleSceneUnloaded;
+            if (_sceneLoading != null)
+                _sceneLoading.SceneUnloading += HandleSceneUnloading;
         }
 
         private void Start()
@@ -92,6 +97,11 @@ namespace Zephyr.Gameplay.Player.Flow
         {
             _gameManagerServices = services;
             _gameFlow = services?.GameFlow;
+            if (_sceneLoading != null)
+                _sceneLoading.SceneUnloading -= HandleSceneUnloading;
+            _sceneLoading = services?.SceneLoading;
+            if (isActiveAndEnabled && _sceneLoading != null)
+                _sceneLoading.SceneUnloading += HandleSceneUnloading;
             _saveData = services?.SaveData;
             _eventBus = services?.EventBus;
         }
@@ -100,6 +110,8 @@ namespace Zephyr.Gameplay.Player.Flow
         {
             SceneManager.sceneLoaded -= HandleSceneLoaded;
             SceneManager.sceneUnloaded -= HandleSceneUnloaded;
+            if (_sceneLoading != null)
+                _sceneLoading.SceneUnloading -= HandleSceneUnloading;
 
             if (_pendingSpawnRoutine != null)
             {
@@ -155,6 +167,23 @@ namespace Zephyr.Gameplay.Player.Flow
                 DespawnPlayer();
         }
 
+        private void HandleSceneUnloading(SceneSO departingScene, SceneSO targetScene)
+        {
+            if (!IsPlayerScene(departingScene)) return;
+
+            if (IsPlayerScene(targetScene))
+            {
+                if (CurrentPlayer != null)
+                    CaptureCurrentRuntimeState();
+            }
+            else
+            {
+                _pendingRuntimeState = null;
+            }
+
+            DespawnPlayer();
+        }
+
         private void HandleGameStateChanged(GameState previous, GameState current)
         {
             if (current == GameState.Tutorial || current == GameState.LoadingRun || current == GameState.InRun)
@@ -163,6 +192,7 @@ namespace Zephyr.Gameplay.Player.Flow
                 return;
             }
 
+            _pendingRuntimeState = null;
             DespawnPlayer();
         }
 
@@ -191,15 +221,13 @@ namespace Zephyr.Gameplay.Player.Flow
 
             if (CurrentPlayer != null)
             {
-                Vector3 position = _hasPendingRespawnPosition
-                    ? _pendingRespawnPosition
-                    : _respawnPoint != null ? _respawnPoint.position : CurrentPlayer.transform.position;
-                Quaternion rotation = _respawnPoint != null ? _respawnPoint.rotation : CurrentPlayer.transform.rotation;
-                CurrentPlayer.transform.SetPositionAndRotation(position, rotation);
-                _playerScene = gameplayScene;
-                CameraController.FindForGameplay(gameplayScene)?.SetFollow(CurrentPlayer.transform);
-                _hasPendingRespawnPosition = false;
-                return;
+                if (CurrentPlayer.scene == gameplayScene)
+                {
+                    CameraController.FindForGameplay(gameplayScene)?.SetFollow(CurrentPlayer.transform);
+                    return;
+                }
+
+                DespawnPlayer();
             }
 
             if (_playerPrefab == null)
@@ -213,18 +241,68 @@ namespace Zephyr.Gameplay.Player.Flow
                 : _respawnPoint != null ? _respawnPoint.position : Vector3.zero;
             Quaternion spawnRotation = _respawnPoint != null ? _respawnPoint.rotation : Quaternion.identity;
             CurrentPlayer = Instantiate(_playerPrefab, spawnPosition, spawnRotation);
-            SceneManager.MoveGameObjectToScene(CurrentPlayer, gameObject.scene);
+            SceneManager.MoveGameObjectToScene(CurrentPlayer, gameplayScene);
             ConfigurePlayerConsumers(CurrentPlayer);
             _playerScene = gameplayScene;
             PlayerStatsInitializer statsInitializer = CurrentPlayer.GetComponent<PlayerStatsInitializer>();
             statsInitializer?.Configure(_saveData);
             statsInitializer?.InitializeNow();
+            ApplyPendingRuntimeState();
             ApplyPendingRespawnLoadout();
 
             CameraController camera = CameraController.FindForGameplay(gameplayScene);
             camera?.SetFollow(CurrentPlayer.transform);
             PlayerSpawned?.Invoke(CurrentPlayer);
             PublishPlayerTargetChanged();
+        }
+
+        private void CaptureCurrentRuntimeState()
+        {
+            StatsCore stats = CurrentPlayer.GetComponent<StatsCore>();
+            HealthComponent health = CurrentPlayer.GetComponent<HealthComponent>();
+            PlayerResourceController resources = CurrentPlayer.GetComponent<PlayerResourceController>();
+            WeaponController weapons = CurrentPlayer.GetComponentInChildren<WeaponController>(true);
+
+            _pendingRuntimeState = new PlayerRuntimeSnapshot
+            {
+                Stats = stats != null ? stats.CaptureRuntimeState() : null,
+                CurrentHp = health != null ? health.CurrentHp : 0f,
+                CurrentShield = health != null ? health.CurrentShield : 0f,
+                Resources = resources != null ? resources.CaptureRuntimeState() : default,
+                PrimaryWeapon = weapons != null ? weapons.GetWeapon(WeaponSlot.Primary) : null,
+                SecondaryWeapon = weapons != null ? weapons.GetWeapon(WeaponSlot.Secondary) : null,
+                ActiveSlot = weapons != null ? weapons.ActiveSlot : WeaponSlot.Primary,
+                HasHealth = health != null,
+                HasResources = resources != null,
+                HasWeapons = weapons != null
+            };
+        }
+
+        private void ApplyPendingRuntimeState()
+        {
+            PlayerRuntimeSnapshot state = _pendingRuntimeState;
+            _pendingRuntimeState = null;
+            if (state == null || CurrentPlayer == null) return;
+
+            CurrentPlayer.GetComponent<StatsCore>()?.RestoreRuntimeState(state.Stats);
+
+            if (state.HasHealth)
+                CurrentPlayer.GetComponent<HealthComponent>()?.RestoreRuntimeState(
+                    state.CurrentHp, state.CurrentShield);
+
+            if (state.HasResources)
+                CurrentPlayer.GetComponent<PlayerResourceController>()?.RestoreRuntimeState(state.Resources);
+
+            if (state.HasWeapons)
+            {
+                WeaponController weapons = CurrentPlayer.GetComponentInChildren<WeaponController>(true);
+                if (weapons != null)
+                {
+                    weapons.Equip(WeaponSlot.Primary, state.PrimaryWeapon);
+                    weapons.Equip(WeaponSlot.Secondary, state.SecondaryWeapon);
+                    weapons.SetActiveSlot(state.ActiveSlot);
+                }
+            }
         }
 
         private void ConfigurePlayerConsumers(GameObject player)
@@ -358,11 +436,40 @@ namespace Zephyr.Gameplay.Player.Flow
             return false;
         }
 
+        private bool IsPlayerScene(SceneSO scene)
+        {
+            if (scene == null || _playerScenes == null) return false;
+
+            foreach (SceneSO playerScene in _playerScenes)
+            {
+                if (playerScene != null &&
+                    (playerScene == scene || playerScene.Id == scene.Id ||
+                     playerScene.SceneName == scene.SceneName))
+                    return true;
+            }
+
+            return false;
+        }
+
         private struct RespawnLoadout
         {
             public WeaponSO Primary;
             public WeaponSO Secondary;
             public WeaponSlot ActiveSlot;
+        }
+
+        private sealed class PlayerRuntimeSnapshot
+        {
+            public StatsCore.RuntimeState Stats;
+            public float CurrentHp;
+            public float CurrentShield;
+            public PlayerResourceController.RuntimeState Resources;
+            public WeaponSO PrimaryWeapon;
+            public WeaponSO SecondaryWeapon;
+            public WeaponSlot ActiveSlot;
+            public bool HasHealth;
+            public bool HasResources;
+            public bool HasWeapons;
         }
     }
 }

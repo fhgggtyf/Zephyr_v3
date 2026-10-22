@@ -12,10 +12,13 @@ using Zephyr.Contracts.Flow;
 using Zephyr.Contracts.Interfaces;
 using Zephyr.Core.Flow;
 using Zephyr.Core.Flow.Scenes;
+using Zephyr.Core.Health;
 using Zephyr.Core.Save;
+using Zephyr.Core.Stats;
 using Zephyr.Gameplay.Enemies;
 using Zephyr.Gameplay.Levels;
 using Zephyr.Gameplay.Player.Flow;
+using Zephyr.Gameplay.Player.Core;
 
 namespace Zephyr.Tests.PlayMode
 {
@@ -51,6 +54,9 @@ namespace Zephyr.Tests.PlayMode
 
             GameFlow.Instance.RequestTransition(GameState.Tutorial);
             yield return WaitForStateAndScene(GameState.Tutorial, TutorialPhaseOneSceneName);
+            GameObject phaseOnePlayer = PlayerSpawner.Instance != null
+                ? PlayerSpawner.Instance.CurrentPlayer
+                : null;
 
             SceneProgressionController progression = UnityEngine.Object.FindAnyObjectByType<SceneProgressionController>();
             Assert.That(progression, Is.Not.Null, "GameManager progression controller is missing.");
@@ -58,6 +64,17 @@ namespace Zephyr.Tests.PlayMode
                 "Tutorial phase one did not accept its progression request.");
             yield return WaitForScene(TutorialPhaseTwoSceneName);
             Assert.That(GameFlow.Instance.CurrentState, Is.EqualTo(GameState.Tutorial));
+            if (phaseOnePlayer != null)
+            {
+                yield return WaitFor(() => PlayerSpawner.Instance != null &&
+                                          PlayerSpawner.Instance.CurrentPlayer != null &&
+                                          PlayerSpawner.Instance.CurrentPlayer.scene.name == TutorialPhaseTwoSceneName,
+                    "Tutorial progression did not create a Player in the destination scene.");
+                Assert.That(PlayerSpawner.Instance.CurrentPlayer, Is.Not.SameAs(phaseOnePlayer),
+                    "Tutorial room progression reused the previous Player instance.");
+                Assert.That(phaseOnePlayer == null, Is.True,
+                    "The previous room's Player instance survived its scene unload.");
+            }
             Assert.That(_save.Meta.HasCompletedTutorial, Is.False);
 
             yield return WaitFor(() => PlayerSpawner.Instance != null &&
@@ -74,6 +91,9 @@ namespace Zephyr.Tests.PlayMode
             Assert.That(playerCollider, Is.Not.Null, "The test player has no Collider2D for exit validation.");
             finalExit.SendMessage("OnTriggerEnter2D", playerCollider, SendMessageOptions.RequireReceiver);
             yield return WaitForStateAndScene(GameState.MetaHub, MetaHubSceneName);
+            yield return WaitFor(() => PlayerSpawner.Instance == null ||
+                                      PlayerSpawner.Instance.CurrentPlayer == null,
+                "MetaHub retained a dynamically spawned gameplay Player.");
             Assert.That(_save.Meta.HasCompletedTutorial, Is.True,
                 "Completing the final tutorial phase did not persist the tutorial flag.");
 
@@ -111,10 +131,83 @@ namespace Zephyr.Tests.PlayMode
             Assert.That(PlayerSpawner.Instance.IsCurrentPlayerCameraStable, Is.True,
                 "Run loading completed before the Gameplay Camera stabilized on the Player.");
 
+            GameObject roomOnePlayer = PlayerSpawner.Instance.CurrentPlayer;
+            Assert.That(roomOnePlayer.scene.name, Does.StartWith("LV"),
+                "The gameplay Player must belong to its active room, not GameManager.");
+            HealthComponent roomOneHealth = roomOnePlayer.GetComponent<HealthComponent>();
+            PlayerResourceController roomOneResources = roomOnePlayer.GetComponent<PlayerResourceController>();
+            StatsCore roomOneStats = roomOnePlayer.GetComponent<StatsCore>();
+            Assert.That(roomOneHealth, Is.Not.Null);
+            Assert.That(roomOneResources, Is.Not.Null);
+            Assert.That(roomOneStats, Is.Not.Null);
+
+            roomOneHealth.TakeDamage(new DamageInfo(10f, DamageType.True,
+                sourcePosition: roomOnePlayer.transform.position, source: roomOnePlayer));
+            Assert.That(roomOneResources.TryConsumeStamina(11f), Is.True);
+            Assert.That(roomOneResources.TryConsumeEnergy(7f), Is.True);
+            roomOneStats.SetRunPotential(Zephyr.Core.StatType.Attack, 3.5f);
+            roomOneStats.AddModifier(Zephyr.Core.StatType.Attack, 6f);
+            float hpBeforeRoomTransition = roomOneHealth.CurrentHp;
+            float staminaBeforeRoomTransition = roomOneResources.CurrentStamina;
+            float energyBeforeRoomTransition = roomOneResources.CurrentEnergy;
+            float attackBeforeRoomTransition = roomOneStats.GetStatValue(Zephyr.Core.StatType.Attack);
+            Zephyr.Core.Weapons.WeaponController roomOneWeapons =
+                roomOnePlayer.GetComponentInChildren<Zephyr.Core.Weapons.WeaponController>(true);
+            Zephyr.Core.Weapons.WeaponSO primaryBeforeRoomTransition = roomOneWeapons != null
+                ? roomOneWeapons.GetWeapon(Zephyr.Core.Weapons.WeaponSlot.Primary)
+                : null;
+            Zephyr.Core.Weapons.WeaponSO secondaryBeforeRoomTransition = roomOneWeapons != null
+                ? roomOneWeapons.GetWeapon(Zephyr.Core.Weapons.WeaponSlot.Secondary)
+                : null;
+            Zephyr.Core.Weapons.WeaponSlot activeSlotBeforeRoomTransition = roomOneWeapons != null
+                ? roomOneWeapons.ActiveSlot
+                : Zephyr.Core.Weapons.WeaponSlot.Primary;
+
+            Assert.That(SceneProgressionController.Instance.AdvanceFromCurrentScene(), Is.True,
+                "Run room progression did not accept its transition request.");
+            yield return WaitForScene("LV2Placeholder");
+            yield return WaitFor(() => PlayerSpawner.Instance != null &&
+                                      PlayerSpawner.Instance.CurrentPlayer != null &&
+                                      PlayerSpawner.Instance.CurrentPlayer.scene.name == "LV2Placeholder",
+                "Run room progression did not spawn a Player in LV2Placeholder.");
+
+            GameObject roomTwoPlayer = PlayerSpawner.Instance.CurrentPlayer;
+            Assert.That(roomTwoPlayer, Is.Not.SameAs(roomOnePlayer),
+                "Run room progression reused the previous Player instance.");
+            Assert.That(roomOnePlayer == null, Is.True,
+                "The previous room's Player instance survived its scene unload.");
+            Assert.That(roomTwoPlayer.scene.name, Is.EqualTo("LV2Placeholder"));
+            Assert.That(roomTwoPlayer.GetComponent<HealthComponent>().CurrentHp,
+                Is.EqualTo(hpBeforeRoomTransition).Within(0.001f));
+            Assert.That(roomTwoPlayer.GetComponent<PlayerResourceController>().CurrentStamina,
+                Is.EqualTo(staminaBeforeRoomTransition).Within(0.001f));
+            Assert.That(roomTwoPlayer.GetComponent<PlayerResourceController>().CurrentEnergy,
+                Is.EqualTo(energyBeforeRoomTransition).Within(0.001f));
+            Assert.That(roomTwoPlayer.GetComponent<StatsCore>().GetPotential(Zephyr.Core.StatType.Attack),
+                Is.EqualTo(3.5f).Within(0.001f));
+            Assert.That(roomTwoPlayer.GetComponent<StatsCore>().GetStatValue(Zephyr.Core.StatType.Attack),
+                Is.EqualTo(attackBeforeRoomTransition).Within(0.001f));
+            if (roomOneWeapons != null)
+            {
+                Zephyr.Core.Weapons.WeaponController roomTwoWeapons =
+                    roomTwoPlayer.GetComponentInChildren<Zephyr.Core.Weapons.WeaponController>(true);
+                Assert.That(roomTwoWeapons, Is.Not.Null);
+                Assert.That(roomTwoWeapons.GetWeapon(Zephyr.Core.Weapons.WeaponSlot.Primary),
+                    Is.SameAs(primaryBeforeRoomTransition));
+                Assert.That(roomTwoWeapons.GetWeapon(Zephyr.Core.Weapons.WeaponSlot.Secondary),
+                    Is.SameAs(secondaryBeforeRoomTransition));
+                Assert.That(roomTwoWeapons.ActiveSlot, Is.EqualTo(activeSlotBeforeRoomTransition));
+            }
+            Assert.That(PlayerSpawner.Instance.IsCurrentPlayerCameraBound, Is.True,
+                "The destination room camera did not bind to the replacement Player.");
+
             _save.CurrentRun.RunCurrency = 7;
             _save.SaveRun();
             GameFlow.Instance.RequestTransition(GameState.MetaHub);
             yield return WaitForStateAndScene(GameState.MetaHub, MetaHubSceneName);
+            yield return WaitFor(() => PlayerSpawner.Instance == null ||
+                                      PlayerSpawner.Instance.CurrentPlayer == null,
+                "MetaHub retained the completed run's gameplay Player.");
 
             Assert.That(_save.CurrentRun, Is.Null, "Run settlement did not clear the active run.");
             Assert.That(_save.Meta.MetaCurrency, Is.EqualTo(7));

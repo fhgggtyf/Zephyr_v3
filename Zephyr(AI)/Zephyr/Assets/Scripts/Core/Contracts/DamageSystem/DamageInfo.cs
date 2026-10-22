@@ -85,6 +85,7 @@ namespace Zephyr.Contracts.Damage
         /// category-based buffs and meta upgrades.
         /// </summary>
         public readonly float[] AdditionalMultipliers;
+        public readonly DamageFeedbackSettings Feedback;
 
         public DamageInfo(
             float damage,
@@ -100,7 +101,8 @@ namespace Zephyr.Contracts.Damage
             WeaponRarity? rarity = null,
             float[] additionalMultipliers = null,
             float criticalMultiplier = 1f,
-            float backstabMultiplier = 1f)
+            float backstabMultiplier = 1f,
+            DamageFeedbackSettings feedback = default)
         {
             Damage = damage;
             Type = type;
@@ -116,6 +118,7 @@ namespace Zephyr.Contracts.Damage
             Element = element;
             Rarity = rarity;
             AdditionalMultipliers = additionalMultipliers;
+            Feedback = feedback;
         }
 
         /// <summary>
@@ -153,7 +156,8 @@ namespace Zephyr.Contracts.Damage
             Vector2 sourcePosition = default,
             GameObject source = null,
             float criticalMultiplier = 1f,
-            float backstabMultiplier = 1f)
+            float backstabMultiplier = 1f,
+            DamageFeedbackSettings feedback = default)
         {
             return new DamageInfo(
                 damage, type,
@@ -162,7 +166,7 @@ namespace Zephyr.Contracts.Damage
                 shieldCoeff,
                 category, element, rarity,
                 additionalMultipliers,
-                criticalMultiplier, backstabMultiplier);
+                criticalMultiplier, backstabMultiplier, feedback);
         }
     }
 }

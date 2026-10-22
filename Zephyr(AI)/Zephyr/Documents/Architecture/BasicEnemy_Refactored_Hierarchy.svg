@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1900" viewBox="0 0 1500 1900">
+  <defs>
+    <style>
+      .title { font: 700 32px "Microsoft YaHei", "Segoe UI", sans-serif; fill:#172033; }
+      .subtitle { font: 400 17px "Microsoft YaHei", "Segoe UI", sans-serif; fill:#536174; }
+      .root { fill:#e8f1ff; stroke:#3767a8; stroke-width:3; }
+      .core { fill:#eef8f1; stroke:#3b8c5a; stroke-width:2.5; }
+      .logic { fill:#fff5df; stroke:#bf7c19; stroke-width:2.5; }
+      .visual { fill:#f7edff; stroke:#8752a8; stroke-width:2.5; }
+      .data { fill:#eef0f4; stroke:#687386; stroke-width:2; stroke-dasharray:8 5; }
+      .danger { fill:#fff0ef; stroke:#bd534c; stroke-width:2.5; }
+      .boxTitle { font:700 20px "Microsoft YaHei", "Segoe UI", sans-serif; fill:#172033; }
+      .path { font: 400 14px Consolas, "Microsoft YaHei", monospace; fill:#3f4d60; }
+      .body { font:400 16px "Microsoft YaHei", "Segoe UI", sans-serif; fill:#263244; }
+      .small { font:400 14px "Microsoft YaHei", "Segoe UI", sans-serif; fill:#536174; }
+      .arrow { stroke:#5d6b7e; stroke-width:2.5; fill:none; marker-end:url(#arrow); }
+      .dashed { stroke-dasharray:8 6; }
+      .line { stroke:#c9d0da; stroke-width:1.5; }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#5d6b7e"/>
+    </marker>
+  </defs>
+
+  <rect width="1500" height="1900" fill="#fbfcfe"/>
+  <text x="750" y="58" text-anchor="middle" class="title">BasicEnemy（重构目标版）GameObject Hierarchy</text>
+  <text x="750" y="90" text-anchor="middle" class="subtitle">普通 Enemy：共用 StateMachine 基础设施，行为由 State / Action / Condition / Attack Module 组合</text>
+
+  <!-- Root -->
+  <rect x="420" y="130" width="660" height="128" rx="16" class="root"/>
+  <text x="750" y="166" text-anchor="middle" class="boxTitle">BasicEnemy 〈根 GameObject〉</text>
+  <text x="750" y="192" text-anchor="middle" class="path">Assets/Prefabs/Enemies/BasicEnemy.prefab</text>
+  <text x="750" y="219" text-anchor="middle" class="body">EnemyContext • EnemyStats • EnemyBrain • EnemyHealth • EnemyMotor</text>
+  <text x="750" y="243" text-anchor="middle" class="small">只做组合与引用持有；不把具体攻击、动画和感知逻辑堆进根脚本</text>
+
+  <!-- children connectors -->
+  <path d="M750 258 L750 310" class="arrow"/>
+  <path d="M750 310 L225 310 L225 365" class="arrow"/>
+  <path d="M750 310 L535 310 L535 365" class="arrow"/>
+  <path d="M750 310 L965 310 L965 365" class="arrow"/>
+  <path d="M750 310 L1275 310 L1275 365" class="arrow"/>
+
+  <!-- Brain -->
+  <rect x="75" y="365" width="300" height="250" rx="14" class="logic"/>
+  <text x="225" y="400" text-anchor="middle" class="boxTitle">Brain</text>
+  <text x="225" y="426" text-anchor="middle" class="path">EnemyBrain.cs</text>
+  <line x1="105" y1="443" x2="345" y2="443" class="line"/>
+  <text x="105" y="472" class="body">• 持有状态图引用</text>
+  <text x="105" y="500" class="body">• 驱动通用 StateMachine</text>
+  <text x="105" y="528" class="body">• 不实现具体攻击细节</text>
+  <text x="105" y="566" class="small">配置：</text>
+  <text x="105" y="588" class="path">EnemyStateGraph.asset</text>
+
+  <!-- Body -->
+  <rect x="385" y="365" width="300" height="250" rx="14" class="core"/>
+  <text x="535" y="400" text-anchor="middle" class="boxTitle">Body</text>
+  <text x="535" y="426" text-anchor="middle" class="path">EnemyContext.cs</text>
+  <line x1="415" y1="443" x2="655" y2="443" class="line"/>
+  <text x="415" y="472" class="body">• 缓存本体组件引用</text>
+  <text x="415" y="500" class="body">• 提供目标/距离/高度信息</text>
+  <text x="415" y="528" class="body">• 提供阶段与运行时状态</text>
+  <text x="415" y="566" class="small">配合：</text>
+  <text x="415" y="588" class="path">EnemyStats.cs / EnemyHealth.cs</text>
+
+  <!-- Motor -->
+  <rect x="815" y="365" width="300" height="250" rx="14" class="core"/>
+  <text x="965" y="400" text-anchor="middle" class="boxTitle">Movement</text>
+  <text x="965" y="426" text-anchor="middle" class="path">EnemyMotor.cs</text>
+  <line x1="845" y1="443" x2="1085" y2="443" class="line"/>
+  <text x="845" y="472" class="body">• 接收移动意图</text>
+  <text x="845" y="500" class="body">• 处理地面/空中移动</text>
+  <text x="845" y="528" class="body">• 不选择状态或攻击</text>
+  <text x="845" y="566" class="small">使用：</text>
+  <text x="845" y="588" class="path">现有 MovementCore 边界</text>
+
+  <!-- Visual -->
+  <rect x="1125" y="365" width="300" height="250" rx="14" class="visual"/>
+  <text x="1275" y="400" text-anchor="middle" class="boxTitle">Visual</text>
+  <text x="1275" y="426" text-anchor="middle" class="path">EnemyVisual.cs</text>
+  <line x1="1155" y1="443" x2="1395" y2="443" class="line"/>
+  <text x="1155" y="472" class="body">• Animator / SpriteRenderer</text>
+  <text x="1155" y="500" class="body">• 内部维护 FacingDirection</text>
+  <text x="1155" y="528" class="body">• 统一映射 flipX / 动画参数</text>
+  <text x="1155" y="566" class="small">不新增 EnemyFacing GO</text>
+  <text x="1155" y="588" class="path">FacingDirection.cs（enum）</text>
+
+  <!-- children lower -->
+  <path d="M225 615 L225 680" class="arrow"/>
+  <path d="M535 615 L535 680" class="arrow"/>
+  <path d="M965 615 L965 680" class="arrow"/>
+  <path d="M1275 615 L1275 680" class="arrow"/>
+
+  <!-- State actions -->
+  <rect x="55" y="680" width="340" height="305" rx="14" class="logic"/>
+  <text x="225" y="715" text-anchor="middle" class="boxTitle">State Actions / Conditions</text>
+  <text x="225" y="742" text-anchor="middle" class="path">Enemy StateMachine 模块</text>
+  <line x1="85" y1="760" x2="365" y2="760" class="line"/>
+  <text x="85" y="790" class="body">ApproachActionSO</text>
+  <text x="85" y="817" class="body">AttackActionSO</text>
+  <text x="85" y="844" class="body">Stagger / Death ActionSO</text>
+  <text x="85" y="879" class="body">InAttackRangeConditionSO</text>
+  <text x="85" y="906" class="body">AttackFinishedConditionSO</text>
+  <text x="85" y="943" class="small">每个 SO 创建本 Enemy 专属 runtime action</text>
+  <text x="85" y="965" class="small">共享 SO 不保存冷却、计时器等实例状态</text>
+
+  <!-- Attacks -->
+  <rect x="425" y="680" width="340" height="305" rx="14" class="logic"/>
+  <text x="595" y="715" text-anchor="middle" class="boxTitle">Attack State 内部</text>
+  <text x="595" y="742" text-anchor="middle" class="path">AttackActionRuntime.cs</text>
+  <line x1="455" y1="760" x2="735" y2="760" class="line"/>
+  <text x="455" y="790" class="body">AttackSelectorRuntime</text>
+  <text x="455" y="817" class="body">• 距离 / 高度差</text>
+  <text x="455" y="844" class="body">• 冷却 / 可用性</text>
+  <text x="455" y="871" class="body">• 权重 / 优先级</text>
+  <text x="455" y="910" class="body">AttackModuleRuntime</text>
+  <text x="455" y="937" class="body">• 前摇 → 命中 → 恢复</text>
+  <text x="455" y="964" class="body">• 完成 / 失败 / 被打断</text>
+
+  <!-- Sensors -->
+  <rect x="795" y="680" width="340" height="305" rx="14" class="core"/>
+  <text x="965" y="715" text-anchor="middle" class="boxTitle">Target / Sensor</text>
+  <text x="965" y="742" text-anchor="middle" class="path">EnemyTargetSensor.cs</text>
+  <line x1="825" y1="760" x2="1105" y2="760" class="line"/>
+  <text x="825" y="790" class="body">• 感知/接收当前目标</text>
+  <text x="825" y="817" class="body">• 维护目标有效性</text>
+  <text x="825" y="844" class="body">• 不直接切换状态</text>
+  <text x="825" y="882" class="small">如果项目已有目标服务，</text>
+  <text x="825" y="906" class="small">这里改为适配现有边界，</text>
+  <text x="825" y="930" class="small">不要新增全局查找。</text>
+
+  <!-- hitbox -->
+  <rect x="1165" y="680" width="300" height="305" rx="14" class="danger"/>
+  <text x="1315" y="715" text-anchor="middle" class="boxTitle">AttackOrigin</text>
+  <text x="1315" y="742" text-anchor="middle" class="path">子物体：攻击生成点</text>
+  <line x1="1195" y1="760" x2="1435" y2="760" class="line"/>
+  <text x="1195" y="790" class="body">• 投射物出生点</text>
+  <text x="1195" y="817" class="body">• 近战命中框锚点</text>
+  <text x="1195" y="844" class="body">• 前方偏移受 Facing 映射</text>
+  <text x="1195" y="882" class="small">不挂选择逻辑</text>
+  <text x="1195" y="906" class="small">不直接决定攻击类型</text>
+
+  <!-- data -->
+  <path d="M595 985 L595 1060" class="arrow dashed"/>
+  <path d="M225 985 L225 1060" class="arrow dashed"/>
+  <path d="M965 985 L965 1060" class="arrow dashed"/>
+  <rect x="145" y="1060" width="1210" height="175" rx="14" class="data"/>
+  <text x="750" y="1097" text-anchor="middle" class="boxTitle">ScriptableObject 配置层（Prefab 通过序列化引用连接）</text>
+  <text x="190" y="1135" class="body">EnemyConfigSO</text>
+  <text x="475" y="1135" class="body">EnemyStateGraphSO</text>
+  <text x="790" y="1135" class="body">AttackPoolSO</text>
+  <text x="1055" y="1135" class="body">AttackModuleSO × N</text>
+  <text x="190" y="1174" class="small">属性、移动参数、基础战斗数据</text>
+  <text x="475" y="1174" class="small">状态、TransitionTable、Action/Condition</text>
+  <text x="790" y="1174" class="small">候选攻击、筛选规则、选择策略</text>
+  <text x="1055" y="1174" class="small">具体招式的时序和表现配置</text>
+  <text x="750" y="1212" text-anchor="middle" class="small">SO 只保存共享作者配置；当前目标、冷却、当前招式、计时器属于运行时实例</text>
+
+  <!-- flow -->
+  <rect x="145" y="1300" width="1210" height="260" rx="14" fill="#ffffff" stroke="#c9d0da" stroke-width="2"/>
+  <text x="750" y="1340" text-anchor="middle" class="boxTitle">一次普通 Enemy 攻击的责任流</text>
+  <text x="205" y="1402" class="body">1. StateMachine 进入 Attack</text>
+  <text x="205" y="1436" class="body">2. AttackActionRuntime 请求 Selector 选招</text>
+  <text x="205" y="1470" class="body">3. Selector 根据 Context 筛选 AttackModule</text>
+  <text x="205" y="1504" class="body">4. Module 请求 Facing 面向目标，调用 Motor 执行攻击移动</text>
+  <text x="785" y="1402" class="body">5. Module 在命中窗口调用现有伤害/命中边界</text>
+  <text x="785" y="1436" class="body">6. Module 完成恢复并报告 Finished</text>
+  <text x="785" y="1470" class="body">7. State Condition 决定追击、再次攻击或受击</text>
+  <text x="785" y="1504" class="body">8. EnemyVisual 根据 FacingDirection 更新 Sprite / Animator</text>
+
+  <!-- rules -->
+  <rect x="145" y="1620" width="1210" height="190" rx="14" fill="#fff8e8" stroke="#d6a64a" stroke-width="2"/>
+  <text x="750" y="1660" text-anchor="middle" class="boxTitle">这张图刻意保留的架构约束</text>
+  <text x="195" y="1702" class="body">• 不新增 EnemyFacing GameObject：FacingDirection enum + EnemyVisual 统一映射</text>
+  <text x="195" y="1738" class="body">• 不让攻击模块直接写 Rigidbody 速度：通过 EnemyMotor 的既有运动边界</text>
+  <text x="195" y="1774" class="body">• 不让 EnemyActionSO 继续膨胀为 enum switch：每个行为通过独立 Action / Condition SO 组合</text>
+  <text x="195" y="1810" class="body">• Boss 可复用这套公共层，在自己的 Prefab 上增加 PhaseRuntime 和 Boss 状态/攻击配置</text>
+
+  <text x="750" y="1860" text-anchor="middle" class="subtitle">概念方案图：脚本文件名是建议命名，实施前需按现有 asmdef 与目录确认最终路径</text>
+</svg>

@@ -17,6 +17,8 @@ namespace Zephyr.Gameplay.Player.UI
     /// </summary>
     public sealed class GameplayHudController : LocalizedBehaviour, IGameManagerDependencyConsumer
     {
+        [SerializeField] private GameplayHudView _viewPrefab;
+
         private HealthComponent _health;
         private PlayerResourceController _resources;
         private WeaponController _weapons;
@@ -29,9 +31,14 @@ namespace Zephyr.Gameplay.Player.UI
 
         private void Start()
         {
-            _view = new GameplayHudView(transform,
-                (localizationKey, fallback) => Localize(localizationKey, fallback));
-            _view.Build();
+            if (_viewPrefab == null)
+            {
+                Debug.LogError("GameplayHudController is missing its authored GameplayHudView prefab.", this);
+                return;
+            }
+
+            _view = Instantiate(_viewPrefab, transform);
+            _view.Initialize((localizationKey, fallback) => Localize(localizationKey, fallback));
             BindLocalization(HandleLocaleChanged);
 
             if (_eventBus != null)
