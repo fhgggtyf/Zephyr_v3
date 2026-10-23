@@ -11,7 +11,7 @@ namespace Zephyr.Core.Weapons
         private const int k_maxOverlapResults = 32;
 
         private readonly Collider2D[] m_overlapResults = new Collider2D[k_maxOverlapResults];
-        private readonly HashSet<IDamageable> m_hitTargets = new HashSet<IDamageable>();
+        private readonly HashSet<Component> m_hitTargets = new HashSet<Component>();
         private ContactFilter2D m_contactFilter;
         private bool m_isHitWindowOpen;
 
@@ -81,10 +81,9 @@ namespace Zephyr.Core.Weapons
                 Collider2D hit = m_overlapResults[i];
                 if (hit == null) continue;
 
-                IDamageable damageable = FindDamageable(hit);
-                if (damageable == null || m_hitTargets.Contains(damageable)) continue;
+                Component receiver = FindDamageReceiver(hit);
+                if (receiver == null || m_hitTargets.Contains(receiver)) continue;
 
-                Component receiver = damageable as Component;
                 if (receiver != null && Runtime.Owner != null
                     && receiver.transform.root == Runtime.Owner.transform.root)
                 {
@@ -98,8 +97,9 @@ namespace Zephyr.Core.Weapons
                     Runtime.Owner != null ? Runtime.Owner : Runtime.gameObject,
                     worldCenter);
 
-                m_hitTargets.Add(damageable);
-                damageable.TakeDamage(damageInfo);
+                m_hitTargets.Add(receiver);
+                if (receiver is IDamageReceiver damageReceiver)
+                    damageReceiver.ReceiveDamage(damageInfo, worldCenter);
             }
         }
 
@@ -161,18 +161,18 @@ namespace Zephyr.Core.Weapons
             }
         }
 
-        private static IDamageable FindDamageable(Collider2D collider)
+        private static Component FindDamageReceiver(Collider2D collider)
         {
             MonoBehaviour[] parentBehaviours = collider.GetComponentsInParent<MonoBehaviour>(true);
             foreach (MonoBehaviour behaviour in parentBehaviours)
             {
-                if (behaviour is IDamageable damageable) return damageable;
+                if (behaviour is IDamageReceiver) return behaviour;
             }
 
             MonoBehaviour[] childBehaviours = collider.GetComponentsInChildren<MonoBehaviour>(true);
             foreach (MonoBehaviour behaviour in childBehaviours)
             {
-                if (behaviour is IDamageable damageable) return damageable;
+                if (behaviour is IDamageReceiver) return behaviour;
             }
 
             return null;

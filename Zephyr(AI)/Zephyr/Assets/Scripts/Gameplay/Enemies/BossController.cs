@@ -28,6 +28,7 @@ namespace Zephyr.Gameplay.Enemies
         [SerializeField] private Rigidbody2D _body;
         [SerializeField] private Collider2D _bodyCollider;
         [SerializeField] private BossSpearController _spear;
+        [SerializeField] private bool _stateMachineDriven;
         [SerializeField, Min(0f)] private float _closeRange = 2.2f;
         [SerializeField, Min(0f)] private float _approachSpeed = 3f;
         [SerializeField, Min(0f)] private float _initialAttackDelay = 0.5f;
@@ -55,12 +56,17 @@ namespace Zephyr.Gameplay.Enemies
         private LayerMask _configuredColliderIncludeLayers;
         private LayerMask _configuredColliderExcludeLayers;
         private bool _collisionOverridesCached;
+        private BossAttackDefinition _selectedAttack;
 
         public StatType TargetPotential => _config != null ? _config.TargetPotential : StatType.MaxHp;
         public float PotentialAttack => _config != null ? _config.PotentialAttack : 0f;
         public bool IsStageTwo => _stageTwo;
         public BossAttackDefinition CurrentAttack => _activeAttack;
         public float AttackCooldownRemaining => Mathf.Max(0f, _nextAttackAt - Time.time);
+        public bool HasSelectedAttack => _selectedAttack != null;
+        public bool IsAttackFinished => _activeAttack == null;
+        public bool IsSurroundFinished => !_surroundSlash;
+        public bool CanSelectAttack => !_dead && _brain != null && _brain.HasTarget && Time.time >= _nextAttackAt;
 
         private void Awake()
         {
@@ -124,6 +130,7 @@ namespace Zephyr.Gameplay.Enemies
 
         private void Update()
         {
+            if (_stateMachineDriven) return;
             if (_dead || _health == null || _health.CurrentHp <= 0f) return;
             UpdateStage();
 
@@ -159,6 +166,43 @@ namespace Zephyr.Gameplay.Enemies
             }
 
             StartAttack(next);
+        }
+
+        public void RefreshStage() => UpdateStage();
+
+        public void SelectNextAttack()
+        {
+            UpdateStage();
+            _selectedAttack = CanSelectAttack ? ChooseAttack() : null;
+        }
+
+        public void BeginSelectedAttack()
+        {
+            if (_selectedAttack == null) return;
+            BossAttackDefinition attack = _selectedAttack;
+            _selectedAttack = null;
+            StartAttack(attack);
+        }
+
+        public void TickCurrentAttack()
+        {
+            if (_activeAttack != null && !_dead) UpdateAttack();
+        }
+
+        public void TickStageTwoSurround()
+        {
+            if (_surroundSlash && !_dead) UpdateSurroundSlash();
+        }
+
+        public void StopForStateMachine()
+        {
+            if (_activeAttack == null && !_surroundSlash) _motor?.Stop();
+        }
+
+        public void TickApproach()
+        {
+            if (_brain == null || !_brain.HasTarget) _motor?.Stop();
+            else ApproachPlayer();
         }
 
         private void UpdateStage()
@@ -332,12 +376,12 @@ namespace Zephyr.Gameplay.Enemies
                     if (target == null || target == _health || !IsPlayerTarget(target)) continue;
                     int id = target.GetHashCode() ^ (i * 397);
                     if (segment.DamageOncePerTarget && !_hitTargets.Add(id)) continue;
-                    target.TakeDamage(new DamageInfo(
+                    ApplyDamageToTarget(target, new DamageInfo(
                         _activeAttack.Damage * segment.DamageMultiplier,
                         DamageType.AD,
                         sourcePosition: transform.position,
                         source: gameObject,
-                        category: WeaponCategory.Melee));
+                        category: WeaponCategory.Melee), center);
                 }
             }
         }
@@ -366,12 +410,27 @@ namespace Zephyr.Gameplay.Enemies
             {
                 HealthComponent target = hit != null ? hit.GetComponentInParent<HealthComponent>() : null;
                 if (target == null || target == _health || !IsPlayerTarget(target) || !_hitTargets.Add(target.GetHashCode() ^ id)) continue;
-                target.TakeDamage(new DamageInfo(
+                ApplyDamageToTarget(target, new DamageInfo(
                     (_stats != null ? _stats.AttackDamage : 0f) * damageMultiplier,
                     DamageType.AD,
                     sourcePosition: transform.position,
                     source: gameObject,
-                    category: WeaponCategory.Melee));
+                    category: WeaponCategory.Melee), (Vector2)transform.position + FacingOffset(localOffset));
+            }
+        }
+
+        private static void ApplyDamageToTarget(HealthComponent target, DamageInfo damageInfo, Vector2 impactPoint)
+        {
+            if (target == null) return;
+
+            MonoBehaviour[] behaviours = target.GetComponentsInParent<MonoBehaviour>(true);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is IDamageReceiver damageReceiver)
+                {
+                    damageReceiver.ReceiveDamage(damageInfo, impactPoint);
+                    return;
+                }
             }
         }
 

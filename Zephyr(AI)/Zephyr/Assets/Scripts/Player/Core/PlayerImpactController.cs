@@ -115,13 +115,6 @@ namespace Zephyr.Gameplay.Player.Core
             float damage = Mathf.Max(0f, result.DealtToHp + result.DealtToShield);
             if (damage <= 0f) return;
 
-            _combatFeedback?.RequestDamageFeedback(info, result, transform.position);
-            if (_combatFeedback == null)
-            {
-                _camera = CameraController.FindForGameplay(gameObject.scene);
-                _camera?.ShakeForDamage(damage);
-            }
-
             // DamageTaken is not raised for filtered hits. A lethal accepted hit
             // still shakes the camera, but death presentation owns all motion.
             if (_health == null || _health.CurrentHp <= 0f || _hurtReceiver == null)

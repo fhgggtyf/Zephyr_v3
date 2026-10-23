@@ -313,6 +313,8 @@ namespace Zephyr.Gameplay.Player.Flow
             {
                 if (consumers[i] is IGameManagerDependencyConsumer consumer)
                     consumer.Configure(_gameManagerServices);
+                if (consumers[i] is ICombatFeedbackConsumer feedbackConsumer)
+                    feedbackConsumer.Configure(_gameManagerServices?.CombatFeedback);
             }
         }
 

@@ -342,12 +342,25 @@
 本项目同时连接了两套 Unity MCP。为避免把不同版本的接口、项目根目录或资源生成管线混用，必须固定使用以下路由：
 
 - **图片生成**：只使用新的 `mcp__unityMCP.generate_image`。
-- **其他所有 Unity 操作**：统一使用旧的 `mcp__unity_mcp` 工具，包括场景、GameObject、组件、Prefab、脚本、Tilemap、Animator、资源导入、Console 检查、SceneView 截图、Play Mode 和测试。
+- **测试运行**：允许且固定使用新的 `mcp__unityMCP__run_tests`（EditMode / PlayMode）。这是旧 MCP 之外唯一的明确例外；不需要再向用户申请。
+- **其他所有 Unity 操作**：统一使用旧的 `mcp__unity_mcp` 工具，包括场景、GameObject、组件、Prefab、脚本、Tilemap、Animator、资源导入、Console 检查、SceneView 截图和 Play Mode。
 
 执行 Unity 任务时必须遵守：
 
 1. 不得因为某个工具调用失败，就自动把同一个操作切换到另一套 MCP。
 2. 开始任务前先用负责该类操作的 MCP 确认项目根目录；当前项目根目录为 `D:\GitHub\Zephyr_v3\Zephyr(AI)\Zephyr`。
-3. 一个操作只能由一套 MCP 完成。图片生成完成后，后续导入、检查、场景引用和验证仍使用旧的 `mcp__unity_mcp`。
-4. 工作更新中注明当前使用的 MCP 路由；最终汇报中说明图片生成和其他 Unity 操作分别使用了哪套 MCP。
+3. 一个操作只能由一套 MCP 完成。图片生成/测试运行完成后，后续导入、检查、场景引用和验证仍使用旧的 `mcp__unity_mcp`。
+4. 工作更新中注明当前使用的 MCP 路由；最终汇报中说明图片生成、测试运行和其他 Unity 操作分别使用了哪套 MCP。
 5. 继续遵守本文件的连续失败熔断规则，不得以切换 MCP 作为重试或替代方案。
+6. 测试运行只允许 `mcp__unityMCP__run_tests`；不得因为测试失败或超时，把场景/Prefab/资源等其他操作切到新 MCP。
+
+## 11. 多模型 AI 工作流（`.ai/`）
+
+- 本仓库新增 `.ai/` **三档**多模型编排：**Tier 0/1 的指挥用本家 DeepSeek（`deepseek-account / deepseek-flash`）**；Tier 2 才让 GPT-6-astra 看架构、Claude Opus 5.5 实现、GPT-6.1-sol 评审。档位由 DeepSeek 指挥按 `.ai/checklists/tiers.md` 判断，不确定时升一档。
+- Tier 0/1 的机械段可交常驻 `worker-deepseek`（复用同一会话，减少重复上下文）；GPT/Claude 只在 Tier 2、`gptPlan` 或 `gptReview` 时按需调用。
+- Tier 1 采用 lean：控制器自己写计划/审 diff + 跑门禁，workflow 只跑 Claude；用 `tier-report.ps1` 盯门禁失败率/回滚率/平均返工，超阈值就把该 pattern 升到 Tier 2。
+- 使用该流程前，先读 [`.ai/README.md`](.ai/README.md) 与 [`.ai/roles/orchestrator.md`](.ai/roles/orchestrator.md)。
+- 该流程是**编排层**，不替代本文件；冲突时以本文件为准。
+- 该流程不改变第 10 节的 Unity MCP 路由：测试运行固定用 `mcp__unityMCP__run_tests`，其他 Unity 操作仍只用 `mcp__unity_mcp`。
+- 当用户说“按 `.ai` 流程 / 多模型流程 / 架构-实现-评审”时，先读 `.ai/README.md` 与 `.ai/roles/orchestrator.md`，再按 `.ai/workflows/unity-task.workflow.js` 执行。
+- 当前交接见 `.ai/state/handoff.md`。

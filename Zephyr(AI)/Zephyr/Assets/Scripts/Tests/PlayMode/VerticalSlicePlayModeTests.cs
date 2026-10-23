@@ -141,8 +141,11 @@ namespace Zephyr.Tests.PlayMode
             Assert.That(roomOneResources, Is.Not.Null);
             Assert.That(roomOneStats, Is.Not.Null);
 
-            roomOneHealth.TakeDamage(new DamageInfo(10f, DamageType.True,
-                sourcePosition: roomOnePlayer.transform.position, source: roomOnePlayer));
+            IDamageReceiver roomOneReceiver = roomOnePlayer.GetComponentInParent<IDamageReceiver>();
+            Assert.That(roomOneReceiver, Is.Not.Null, "The gameplay Player has no IDamageReceiver.");
+            roomOneReceiver.ReceiveDamage(new DamageInfo(10f, DamageType.True,
+                sourcePosition: roomOnePlayer.transform.position, source: roomOnePlayer),
+                roomOnePlayer.transform.position);
             Assert.That(roomOneResources.TryConsumeStamina(11f), Is.True);
             Assert.That(roomOneResources.TryConsumeEnergy(7f), Is.True);
             roomOneStats.SetRunPotential(Zephyr.Core.StatType.Attack, 3.5f);
@@ -333,11 +336,14 @@ namespace Zephyr.Tests.PlayMode
             {
                 if (enemy == null || enemy.IsComplete || enemy.Health == null) continue;
 
-                enemy.Health.TakeDamage(new DamageInfo(
+                IDamageReceiver receiver = enemy.GetComponentInParent<IDamageReceiver>();
+                Assert.That(receiver, Is.Not.Null, $"Enemy {enemy.name} has no IDamageReceiver.");
+                receiver.ReceiveDamage(new DamageInfo(
                     100000f,
                     DamageType.True,
                     sourcePosition: enemy.transform.position,
-                    source: enemy.gameObject));
+                    source: enemy.gameObject),
+                    enemy.transform.position);
             }
         }
     }

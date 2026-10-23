@@ -174,11 +174,14 @@ namespace Zephyr.Gameplay.Enemies
                 _stats.Config.Drops,
                 new DropContext(_dropSpawnGateway.Seed, GetEntityId().GetHashCode(), _dropSpawnGateway.RoomDepth),
                 _stats.Luck);
-            Vector3 spawnPosition = transform.position + Vector3.up * 0.25f;
+            Vector3 currencySpawnPosition = transform.position + Vector3.up * 0.25f;
+            Vector3 weaponSpawnPosition = transform.position + Vector3.up;
             for (int i = 0; i < results.Length; i++)
             {
                 DropResult result = results[i];
-                Vector3 position = spawnPosition + Vector3.right * (i * 0.2f);
+                Vector3 position = result.Kind == DropKind.Weapon
+                    ? weaponSpawnPosition + Vector3.right * (i * 0.2f)
+                    : currencySpawnPosition + Vector3.right * (i * 0.2f);
                 if (result.Kind == DropKind.Currency)
                     _dropSpawnGateway.SpawnCurrency(position, result.CurrencyAmount);
                 else if (result.Kind == DropKind.Weapon)

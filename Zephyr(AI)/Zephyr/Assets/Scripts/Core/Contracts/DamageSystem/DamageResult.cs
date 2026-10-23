@@ -19,6 +19,20 @@
 
 namespace Zephyr.Contracts.Damage
 {
+    public readonly struct DamageResolution
+    {
+        public readonly bool Accepted;
+        public readonly DamageResult Result;
+
+        public DamageResolution(bool accepted, DamageResult result)
+        {
+            Accepted = accepted;
+            Result = result;
+        }
+
+        public static DamageResolution Blocked => new DamageResolution(false, default);
+    }
+
     /// <summary>
     /// Final result of a damage calculation, split between shield and health.
     /// Matches Ch.2.7 DamageResult definition.

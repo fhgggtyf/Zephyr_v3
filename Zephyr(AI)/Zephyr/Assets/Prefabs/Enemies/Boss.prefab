@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 1000000010}
   - component: {fileID: 1000000020}
   - component: {fileID: 5065030343374821302}
+  - component: {fileID: 1962942597283726561}
   m_Layer: 6
   m_Name: Boss
   m_TagString: Enemy
@@ -185,6 +186,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Zephyr.Enemies::Zephyr.Gameplay.Enemies.EnemyMotor
   _maxFallSpeed: 20
+  _groundLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  _patrolProbeDistance: 0.08
+  _patrolProbeHeight: 0.2
+  _patrolProbeDepth: 2
+  _patrolHeightTolerance: 0.05
 --- !u!114 &1000000010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -221,6 +229,7 @@ MonoBehaviour:
   _body: {fileID: 1000000007}
   _bodyCollider: {fileID: 1000000008}
   _spear: {fileID: 1026169385807329353}
+  _stateMachineDriven: 0
   _closeRange: 2.2
   _approachSpeed: 3
   _initialAttackDelay: 0.5
@@ -246,6 +255,19 @@ MonoBehaviour:
   _pickupPrefab: {fileID: 3020984478629037338, guid: 99f04c70cd802264b8e8e149e137c5d2, type: 3}
   _spawnPoint: {fileID: 3819510472552446224}
   _spawnOffset: {x: 0, y: 0.8}
+--- !u!114 &1962942597283726561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4695b42937826a4eadffd92ca94a1e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Core.Combat::Zephyr.Core.Health.IndividualDamageHandler
+  _health: {fileID: 0}
 --- !u!1 &1000000021
 GameObject:
   m_ObjectHideFlags: 0
@@ -548,6 +570,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Zephyr.Enemies::Zephyr.Gameplay.Enemies.EnemyVisual
   _motor: {fileID: 1000000009}
+  _animator: {fileID: 0}
+  _useDirectionalAsepriteTags: 0
 --- !u!114 &2508685133934282095
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -569,4 +593,9 @@ MonoBehaviour:
   _attack: Attack
   _hurt: Hurt
   _death: Death
+  _useDirectionalTags: 0
+  _walkLeft: walkleft
+  _walkRight: walkright
+  _idleLeft: idleleft
+  _idleRight: idleright
   _crossFade: 0.05

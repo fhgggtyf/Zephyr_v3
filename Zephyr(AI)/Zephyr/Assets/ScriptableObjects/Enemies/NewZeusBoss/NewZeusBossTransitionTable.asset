@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78b55574a6e9d2e4aaebcc51a63d6632, type: 3}
+  m_Name: NewZeusBossTransitionTable
+  m_EditorClassIdentifier: Zephyr.Core.StateMachine::Zephyr.Core.StateMachine.ScriptableObjects.TransitionTableSO
+  _transitions:
+  - FromState: {fileID: 11400000, guid: 47b2e6a2b11318449ad6dea9b9c11369, type: 2}
+    ToState: {fileID: 11400000, guid: a3e2582dde4608d448f584707f5343f0, type: 2}
+    Conditions:
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: 4a84e158f2be7724483afb43ed354b10, type: 2}
+      Operator: 0
+  - FromState: {fileID: 11400000, guid: 47b2e6a2b11318449ad6dea9b9c11369, type: 2}
+    ToState: {fileID: 11400000, guid: aca212aa0253b584fa7308dff9192162, type: 2}
+    Conditions:
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: ecbeb020029f9094bb96f2a2fc2fbd83, type: 2}
+      Operator: 0
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: 85186bfc9872b9c459d6b55693fe5bdd, type: 2}
+      Operator: 0
+  - FromState: {fileID: 11400000, guid: aca212aa0253b584fa7308dff9192162, type: 2}
+    ToState: {fileID: 11400000, guid: a3e2582dde4608d448f584707f5343f0, type: 2}
+    Conditions:
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: 4a84e158f2be7724483afb43ed354b10, type: 2}
+      Operator: 0
+  - FromState: {fileID: 11400000, guid: aca212aa0253b584fa7308dff9192162, type: 2}
+    ToState: {fileID: 11400000, guid: 3bc6e3a6a86191745808e6edcb569c1c, type: 2}
+    Conditions:
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: 9b1649180b6aa124cbd9580264606b56, type: 2}
+      Operator: 0
+  - FromState: {fileID: 11400000, guid: aca212aa0253b584fa7308dff9192162, type: 2}
+    ToState: {fileID: 11400000, guid: 47b2e6a2b11318449ad6dea9b9c11369, type: 2}
+    Conditions:
+    - ExpectedResult: 1
+      Condition: {fileID: 11400000, guid: 9b1649180b6aa124cbd9580264606b56, type: 2}
+      Operator: 0
+  - FromState: {fileID: 11400000, guid: 3bc6e3a6a86191745808e6edcb569c1c, type: 2}
+    ToState: {fileID: 11400000, guid: a3e2582dde4608d448f584707f5343f0, type: 2}
+    Conditions:
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: 4a84e158f2be7724483afb43ed354b10, type: 2}
+      Operator: 0
+  - FromState: {fileID: 11400000, guid: 3bc6e3a6a86191745808e6edcb569c1c, type: 2}
+    ToState: {fileID: 11400000, guid: 2ad64e76cb13bc24ea1c013f7395826a, type: 2}
+    Conditions:
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: e96698168222dbc41954e41009236ac8, type: 2}
+      Operator: 0
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: cb0278c486f50fc47a2aa6ac3f3fc337, type: 2}
+      Operator: 0
+  - FromState: {fileID: 11400000, guid: 3bc6e3a6a86191745808e6edcb569c1c, type: 2}
+    ToState: {fileID: 11400000, guid: 47b2e6a2b11318449ad6dea9b9c11369, type: 2}
+    Conditions:
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: e96698168222dbc41954e41009236ac8, type: 2}
+      Operator: 0
+    - ExpectedResult: 1
+      Condition: {fileID: 11400000, guid: cb0278c486f50fc47a2aa6ac3f3fc337, type: 2}
+      Operator: 0
+  - FromState: {fileID: 11400000, guid: 2ad64e76cb13bc24ea1c013f7395826a, type: 2}
+    ToState: {fileID: 11400000, guid: a3e2582dde4608d448f584707f5343f0, type: 2}
+    Conditions:
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: 4a84e158f2be7724483afb43ed354b10, type: 2}
+      Operator: 0
+  - FromState: {fileID: 11400000, guid: 2ad64e76cb13bc24ea1c013f7395826a, type: 2}
+    ToState: {fileID: 11400000, guid: 47b2e6a2b11318449ad6dea9b9c11369, type: 2}
+    Conditions:
+    - ExpectedResult: 0
+      Condition: {fileID: 11400000, guid: 2143a4e9c7b57f845ba23560fce4db74, type: 2}
+      Operator: 0
+  _initialState: {fileID: 11400000, guid: 47b2e6a2b11318449ad6dea9b9c11369, type: 2}

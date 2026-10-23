@@ -117,6 +117,8 @@ namespace Zephyr.Core.Flow
                 MonoBehaviour component = components[i];
                 if (component is IGameManagerDependencyConsumer consumer)
                     consumer.Configure(_services);
+                if (component is ICombatFeedbackConsumer feedbackConsumer)
+                    feedbackConsumer.Configure(_services.CombatFeedback);
                 if (component is IRoomRuntimeDependencyConsumer roomConsumer)
                     roomConsumer.Configure(_composition);
                 if (component is ITimerGatewayConsumer timerConsumer)

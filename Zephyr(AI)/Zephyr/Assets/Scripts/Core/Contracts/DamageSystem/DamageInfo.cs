@@ -3,7 +3,7 @@
  * -------------
  * Module:  Core / DamageSystem
  * Purpose: Immutable readonly struct carrying all damage-related data from source to target.
- *          Serves as the standard payload for IDamageable.TakeDamage and the damage pipeline.
+ *          Serves as the standard payload for IDamageReceiver.ReceiveDamage and the damage pipeline.
  *          Contains raw damage, type (AD/AP/True), critical/backstab flags, piercing value,
  *          source identity (position + GameObject), and optional weapon metadata
  *          (category, elemental type, rarity) for multiplier lookups. Carries an optional

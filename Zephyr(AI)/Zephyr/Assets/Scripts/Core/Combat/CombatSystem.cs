@@ -9,15 +9,16 @@ namespace Zephyr.Core.Combat
     public sealed class CombatSystem : MonoBehaviour
     {
         public bool IsReady { get; private set; }
-        public event System.Action<IDamageable, DamageInfo> DamageApplied;
+        public event System.Action<IDamageReceiver, DamageInfo, DamageResolution> DamageApplied;
         private void Awake() => IsReady = true;
         private void OnDisable() => IsReady = false;
 
-        public bool ApplyDamage(IDamageable target, DamageInfo info)
+        public bool ApplyDamage(IDamageReceiver target, DamageInfo info, Vector2 impactPoint)
         {
             if (!IsReady || target == null) return false;
-            target.TakeDamage(info);
-            DamageApplied?.Invoke(target, info);
+            DamageResolution resolution = target.ReceiveDamage(info, impactPoint);
+            if (!resolution.Accepted) return false;
+            DamageApplied?.Invoke(target, info, resolution);
             return true;
         }
     }

@@ -77,7 +77,7 @@ namespace Zephyr.Gameplay.Player.UI
             WeaponSO replacedWeapon = controller.GetWeapon(slot);
             if (replacedWeapon == null || _dropSpawn == null) return false;
 
-            Vector3 dropPosition = controller.transform.root.position + Vector3.up * 0.35f;
+            Vector3 dropPosition = controller.transform.root.position + Vector3.up;
             GameObject dropped = _dropSpawn.SpawnWeapon(dropPosition, replacedWeapon.WeaponId);
             if (dropped == null) return false;
             if (!pickup.TryCompletePickup(controller, slot, out _))

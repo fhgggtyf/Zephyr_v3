@@ -54,6 +54,8 @@ namespace Zephyr.Gameplay.Enemies
             Vector3 spawnPosition = _spawnPoint != null
                 ? _spawnPoint.position
                 : transform.position + (Vector3)_spawnOffset;
+            spawnPosition += Vector3.up;
+
             GameObject pickupObject = _dropSpawnGateway.Spawn(_pickupPrefab, spawnPosition, Quaternion.identity);
             if (pickupObject == null) return;
             _dropped = true;

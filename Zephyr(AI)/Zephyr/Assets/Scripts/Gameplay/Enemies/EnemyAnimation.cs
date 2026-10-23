@@ -16,25 +16,45 @@ namespace Zephyr.Gameplay.Enemies
         [SerializeField] private string _attack = "Attack";
         [SerializeField] private string _hurt = "Hurt";
         [SerializeField] private string _death = "Death";
+        [Header("Directional Aseprite tags")]
+        [SerializeField] private bool _useDirectionalTags;
+        [SerializeField] private string _walkLeft = "walkleft";
+        [SerializeField] private string _walkRight = "walkright";
+        [SerializeField] private string _idleLeft = "idleleft";
+        [SerializeField] private string _idleRight = "idleright";
+
         [SerializeField, Min(0f)] private float _crossFade = 0.05f;
 
         private int _currentHash;
+        private EnemyMotor _motor;
 
-        private void Awake() => _animator ??= GetComponent<Animator>();
 
-        public void Play(EnemyActionKind kind, float stateDuration = -1f)
+private void Awake()
         {
-            string state = kind switch
-            {
-                EnemyActionKind.Patrol => _patrol,
-                EnemyActionKind.Alert => _alert,
-                EnemyActionKind.Chase => _chase,
-                EnemyActionKind.Telegraph => _telegraph,
-                EnemyActionKind.Attack => _attack,
-                EnemyActionKind.Hurt => _hurt,
-                EnemyActionKind.Death => _death,
-                _ => _idle
-            };
+            _animator ??= GetComponent<Animator>();
+            _motor = GetComponentInParent<EnemyMotor>();
+        }
+
+public void Play(EnemyActionKind kind, float stateDuration = -1f)
+        {
+            bool facingLeft = _motor != null && _motor.Facing.x < 0f;
+            string state;
+            if (_useDirectionalTags && kind == EnemyActionKind.Idle)
+                state = facingLeft ? _idleLeft : _idleRight;
+            else if (_useDirectionalTags && (kind == EnemyActionKind.Patrol || kind == EnemyActionKind.Chase))
+                state = facingLeft ? _walkLeft : _walkRight;
+            else
+                state = kind switch
+                {
+                    EnemyActionKind.Patrol => _patrol,
+                    EnemyActionKind.Alert => _alert,
+                    EnemyActionKind.Chase => _chase,
+                    EnemyActionKind.Telegraph => _telegraph,
+                    EnemyActionKind.Attack => _attack,
+                    EnemyActionKind.Hurt => _hurt,
+                    EnemyActionKind.Death => _death,
+                    _ => _idle
+                };
 
             PlayState(state, kind == EnemyActionKind.Attack, stateDuration);
         }

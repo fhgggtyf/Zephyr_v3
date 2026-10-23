@@ -24,6 +24,7 @@ GameObject:
   - component: {fileID: 1000000017}
   - component: {fileID: 1000000018}
   - component: {fileID: 1000000019}
+  - component: {fileID: 5190428861457551883}
   m_Layer: 6
   m_Name: BasicEnemy
   m_TagString: Untagged
@@ -208,6 +209,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Zephyr.Enemies::Zephyr.Gameplay.Enemies.EnemyMotor
   _maxFallSpeed: 20
+  _groundLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  _patrolProbeDistance: 0.08
+  _patrolProbeHeight: 0.2
+  _patrolProbeDepth: 2
+  _patrolHeightTolerance: 0.05
 --- !u!114 &1000000010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -296,6 +304,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Zephyr.Enemies::Zephyr.Gameplay.Enemies.EnemyVisual
   _motor: {fileID: 1000000009}
+  _animator: {fileID: 0}
+  _useDirectionalAsepriteTags: 0
 --- !u!95 &1000000013
 Animator:
   serializedVersion: 7
@@ -339,6 +349,11 @@ MonoBehaviour:
   _attack: Attack
   _hurt: Hurt
   _death: Death
+  _useDirectionalTags: 0
+  _walkLeft: walkleft
+  _walkRight: walkright
+  _idleLeft: idleleft
+  _idleRight: idleright
   _crossFade: 0.05
 --- !u!114 &1000000017
 MonoBehaviour:
@@ -383,3 +398,16 @@ MonoBehaviour:
     m_Bits: 4294967295
   _showGizmo: 1
   _previewFacingRight: 1
+--- !u!114 &5190428861457551883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4695b42937826a4eadffd92ca94a1e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Zephyr.Core.Combat::Zephyr.Core.Health.IndividualDamageHandler
+  _health: {fileID: 0}

@@ -1,0 +1,47 @@
+# Sanitized DSH profile patch for the Zephyr multi-model workflow.
+# Merge these entries into ~/.dsh/profiles/desktop/cordis.patch.yml.
+# Do NOT copy over your existing `insert:` MCP block (Unity) or UI/permission entries.
+# Credential: create FASTLLM_API_KEY in the DSH credential store; no key is stored here.
+
+- id: agent-default-model
+  name: "@deepseek-ai/dsh-agent-default-model"
+  config:
+    provider: deepseek-account
+    model: deepseek-flash
+    reasoningEffort: max
+
+- id: subagent-model-selection-settings
+  name: "@deepseek-ai/dsh-tool-subagent/model-selection-settings"
+  config:
+    enabled: true
+    allowedModels:
+      - provider: deepseek-account
+        model: deepseek-flash
+      - provider: fastllm
+        model: gpt-6-astra
+      - provider: fastllm
+        model: claude-opus-5-5
+      - provider: fastllm
+        model: gpt-6.1-sol
+
+- id: llm-pi-ai
+  name: "@deepseek-ai/dsh-llm-pi-ai"
+  config:
+    providers:
+      fastllm:
+        apiKeyEnv: FASTLLM_API_KEY
+        api: openai-responses
+        baseURL: https://fastllm.top/v1
+        models:
+          - id: gpt-6-astra
+            name: gpt-6-astra
+            input: [text, image]
+          - id: gpt-6.1-sol
+            name: gpt-6.1-sol
+            input: [text, image]
+          - id: gpt-6-sol
+            name: gpt-6-sol
+            input: [text, image]
+          - id: claude-opus-5-5
+            name: claude-opus-5-5
+            input: [text, image]

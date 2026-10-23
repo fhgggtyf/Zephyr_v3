@@ -28,7 +28,7 @@
  *               else:                  hpDamage = (D×P − S) / P
  *             P = 0 → Case A: shield takes 0, HP takes 0.3D.
  *          Returns a DamageResult with DealtToShield, DealtToHp, ShieldBroken.
- * Dependencies: IDamageable, IStatSource, IShieldable (Interfaces),
+ * Dependencies: IShieldable, IStatSource, IMetaStatSource (Interfaces),
  *               GameConstants (tuning values), DamageInfo, DamageResult (value types).
  * Scene:    GameManager (runtime, called during combat by ProjectileSystem and melee hit logic).
  * Ch.Ref:   Ch.2.7 Core Data Structures, Ch.4.6-4.7 Damage Pipeline & Shield-Break, Ch.9 Combat.
@@ -55,11 +55,11 @@ namespace Zephyr.Core.DamageSystem
         /// Pipeline (Ch.4.6): crit → backstab → additional multipliers → variance →
         ///           mitigation → shield-break split (Ch.4.7).
         /// </summary>
-        /// <param name="target">The damageable target (must implement IDamageable).</param>
+        /// <param name="target">The target shield layer, if one exists.</param>
         /// <param name="targetStats">The target's stat source (for mitigation calculation).</param>
         /// <param name="info">The damage payload with all metadata.</param>
         /// <returns>DamageResult with DealtToShield, DealtToHp, and ShieldBroken flag.</returns>
-        public static DamageResult Calculate(IDamageable target, IStatSource targetStats, DamageInfo info)
+        public static DamageResult Calculate(IShieldable target, IStatSource targetStats, DamageInfo info)
         {
             float damage = info.Damage;
 
@@ -168,17 +168,16 @@ namespace Zephyr.Core.DamageSystem
         /// P = 0 falls under Case A: shield takes 0, HP takes 0.3D.
         /// If target has no shield (IShieldable null or S ≤ 0), all damage goes to HP.
         /// </summary>
-        private static DamageResult ApplyShieldSplit(float D, float P, IDamageable target)
+        private static DamageResult ApplyShieldSplit(float D, float P, IShieldable target)
         {
             // Check if target has a shield
-            var shieldable = target as IShieldable;
-            if (shieldable == null)
+            if (target == null)
             {
                 // No shield implementation — all post-mitigation damage goes to HP
                 return new DamageResult(0f, D, false);
             }
 
-            float S = shieldable.CurrentShield;
+            float S = target.CurrentShield;
             if (S <= 0f)
             {
                 // Shield pool exhausted — all damage goes to HP

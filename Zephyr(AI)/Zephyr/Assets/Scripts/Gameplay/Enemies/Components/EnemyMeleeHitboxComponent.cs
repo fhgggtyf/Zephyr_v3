@@ -24,7 +24,7 @@ namespace Zephyr.Gameplay.Enemies
         [SerializeField] private bool _previewFacingRight = true;
 
         private readonly Collider2D[] _overlapResults = new Collider2D[MaxOverlapResults];
-        private readonly HashSet<IDamageable> _hitTargets = new HashSet<IDamageable>();
+        private readonly HashSet<Component> _hitTargets = new HashSet<Component>();
         private ContactFilter2D _contactFilter;
         private bool _hitWindowOpen;
 
@@ -80,17 +80,17 @@ namespace Zephyr.Gameplay.Enemies
                 Collider2D hit = _overlapResults[i];
                 if (hit == null) continue;
 
-                IDamageable damageable = FindDamageable(hit);
-                if (damageable == null || !_hitTargets.Add(damageable)) continue;
+                Component receiver = FindDamageReceiver(hit);
+                if (receiver == null || !_hitTargets.Add(receiver)) continue;
 
-                Component receiver = damageable as Component;
                 if (receiver != null && receiver.transform.root == transform.root)
                 {
-                    _hitTargets.Remove(damageable);
+                    _hitTargets.Remove(receiver);
                     continue;
                 }
 
-                damageable.TakeDamage(Controller.CurrentDamageInfo);
+                if (receiver is IDamageReceiver damageReceiver)
+                    damageReceiver.ReceiveDamage(Controller.CurrentDamageInfo, center);
             }
         }
 
@@ -111,12 +111,12 @@ namespace Zephyr.Gameplay.Enemies
             _size.y = Mathf.Max(0f, _size.y);
         }
 
-        private static IDamageable FindDamageable(Collider2D hit)
+        private static Component FindDamageReceiver(Collider2D hit)
         {
             foreach (MonoBehaviour behaviour in hit.GetComponentsInParent<MonoBehaviour>(true))
-                if (behaviour is IDamageable damageable) return damageable;
+                if (behaviour is IDamageReceiver) return behaviour;
             foreach (MonoBehaviour behaviour in hit.GetComponentsInChildren<MonoBehaviour>(true))
-                if (behaviour is IDamageable damageable) return damageable;
+                if (behaviour is IDamageReceiver) return behaviour;
             return null;
         }
 

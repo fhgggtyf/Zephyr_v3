@@ -60,10 +60,11 @@ namespace Zephyr.Core.Projectiles
             if (other == null || (_hitLayers.value & (1 << other.gameObject.layer)) == 0) return;
             if (_sourceRoot != null && other.transform.root.gameObject == _sourceRoot) return;
 
-            IDamageable target = FindDamageable(other);
+            Component target = FindDamageReceiver(other);
             if (target != null)
             {
-                target.TakeDamage(_data.DamageOnHit);
+                if (target is IDamageReceiver damageReceiver)
+                    damageReceiver.ReceiveDamage(_data.DamageOnHit, other.ClosestPoint(transform.position));
                 if (_remainingPierces-- <= 0) ReturnToPool();
                 return;
             }
@@ -71,11 +72,11 @@ namespace Zephyr.Core.Projectiles
             if (_returnOnWorldCollision) ReturnToPool();
         }
 
-        private static IDamageable FindDamageable(Collider2D collider)
+        private static Component FindDamageReceiver(Collider2D collider)
         {
             MonoBehaviour[] behaviours = collider.GetComponentsInParent<MonoBehaviour>(true);
             for (int i = 0; i < behaviours.Length; i++)
-                if (behaviours[i] is IDamageable damageable) return damageable;
+                if (behaviours[i] is IDamageReceiver) return behaviours[i];
             return null;
         }
 

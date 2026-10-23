@@ -103,6 +103,7 @@ namespace Zephyr.Core.Buff
 
         [SerializeField] private StatsCore _stats;
         [SerializeField] private HealthComponent _health;
+        private IDamageReceiver _damageReceiver;
         private readonly Dictionary<BuffInstanceId, ActiveBuff> _active = new();
         private int _nextId = 1;
         private ITimerGateway _timer;
@@ -116,6 +117,15 @@ namespace Zephyr.Core.Buff
         {
             _stats ??= GetComponentInParent<StatsCore>();
             _health ??= GetComponentInParent<HealthComponent>();
+            MonoBehaviour[] behaviours = GetComponentsInParent<MonoBehaviour>(true);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is IDamageReceiver damageReceiver)
+                {
+                    _damageReceiver = damageReceiver;
+                    break;
+                }
+            }
         }
 
         public BuffInstanceId AddBuff(BuffApplication application)
@@ -208,7 +218,7 @@ namespace Zephyr.Core.Buff
             var info = new DamageInfo(buff.Config.DamagePerTick * buff.Stacks, buff.Config.DamageType,
                 sourcePosition: buff.Source != null ? buff.Source.transform.position : transform.position,
                 source: buff.Source);
-            _health.TakeDamage(info);
+            _damageReceiver?.ReceiveDamage(info, transform.position);
         }
 
         private void ApplyModifiers(BuffConfigSO config, float stackDelta)

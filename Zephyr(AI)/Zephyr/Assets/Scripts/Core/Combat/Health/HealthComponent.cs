@@ -11,12 +11,13 @@ using Zephyr.Core.Runtime.Stats;
 namespace Zephyr.Core.Health
 {
     /// <summary>
-    /// Central health component. Implements IDamageable, IHealable, IShieldable.
+    /// Central health component. Owns health/shield state and damage settlement,
+    /// while IndividualDamageHandler owns the public incoming-damage boundary.
     /// Wraps StatsCore for stat queries and delegates damage mitigation to
     /// DamageCalculator. Publishes events for UI and audio to subscribe.
     /// </summary>
     [DisallowMultipleComponent]
-    public class HealthComponent : MonoBehaviour, IDamageable, IHealable, IShieldable, IStatSource, IMetaStatSource
+    public class HealthComponent : MonoBehaviour, IHealable, IShieldable, IStatSource, IMetaStatSource
     {
         [Header("Dependencies")]
         [SerializeField] private StatsCore _statsCore;
@@ -62,12 +63,10 @@ namespace Zephyr.Core.Health
             if (CurrentHp <= 0f) CurrentHp = MaxHp;
         }
 
-        public void TakeDamage(DamageInfo damageInfo)
+        internal DamageResolution ApplyDamage(DamageInfo damageInfo)
         {
             if (CurrentHp <= 0f || IsDamageBlocked(damageInfo))
-            {
-                return;
-            }
+                return DamageResolution.Blocked;
 
             DamageResult result = DamageCalculator.Calculate(this, _statsCore, damageInfo);
 
@@ -101,6 +100,8 @@ namespace Zephyr.Core.Health
             {
                 Died?.Invoke();
             }
+
+            return new DamageResolution(true, result);
         }
 
         public void Heal(float amount)

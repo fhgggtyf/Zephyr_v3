@@ -36,6 +36,7 @@ namespace Zephyr.Gameplay.Enemies.Testing
 private IPlayerTargetContext _targetContext;
         private ICombatFeedbackGateway _feedback;
         private HealthComponent _targetHealth;
+        private IDamageReceiver _targetDamageReceiver;
         private float _nextComboAt;
         private float _nextHitAt;
         private int _hitsDone;
@@ -134,12 +135,24 @@ private void FaceTarget()
                     _feedbackPriority,
                     _feedbackCooldownGroup));
 
-            _targetHealth.TakeDamage(info);
+            _targetDamageReceiver?.ReceiveDamage(info, transform.position);
         }
 
         private void HandleTargetChanged(PlayerTargetChangedEvent change)
         {
             _targetHealth = change.Target != null ? change.Target.GetComponentInParent<HealthComponent>() : null;
+            _targetDamageReceiver = null;
+            if (_targetHealth == null) return;
+
+            MonoBehaviour[] behaviours = _targetHealth.GetComponentsInParent<MonoBehaviour>(true);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is IDamageReceiver damageReceiver)
+                {
+                    _targetDamageReceiver = damageReceiver;
+                    break;
+                }
+            }
         }
 
         private void OnDrawGizmosSelected()
