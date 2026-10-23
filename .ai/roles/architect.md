@@ -10,7 +10,7 @@
 - `D:\GitHub\Zephyr_v3\AGENTS.md`，重点 §4.5、§4.6、§5、§7
 - `Zephyr(AI)\Zephyr\Assets\Scripts\Tests\Architecture\ArchitecturePolicy.json`
 - 相关 `Documents/`、代码、asmdef、场景、Prefab、SO
-- UI 任务：先用 `read_image` 看 `screenshots`；列出要改的 Prefab/场景/本地化 Key，写清 `960x540` 验收
+- UI 任务：先用 `read_image` 看 `screenshots`；列出要改的 Prefab/场景/本地化 Key，写清 `960x540` 验收和 `resultsDir`
 - `git status --short`（确认哪些是用户未提交改动，不要把它们算进你的方案）
 
 ## 必须先做的分级

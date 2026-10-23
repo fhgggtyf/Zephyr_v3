@@ -1,7 +1,7 @@
 # §〇 当前交接
 
 - **我是谁**：Zephyr 多模型 AI 工作流的指挥（**本家 DeepSeek `deepseek-account / deepseek-flash` · max**）。
-- **干到哪**：已在 `D:\GitHub\Zephyr_v3\.ai\` 建立整套编排（角色 / 三档 workflow / 检查清单 / 快照 / 静态门禁 / 台账 / Tier 指标 / 常驻 worker 协议）；**Tier 1 已改为 lean**：控制器自己写计划 + 审 diff + 门禁，workflow 只跑 Claude；Tier 2 保持 GPT 架构 + Claude + GPT 评审。**测试路由已定**：`mcp__unityMCP__run_tests` 是 AGENTS.md §10 的明确例外；其他 Unity 操作仍用旧 MCP。**多模态已验证**：本家 DeepSeek / Claude / GPT-6.1 都能 `read_image`；workflow 支持 `screenshots`，UI 任务默认 Tier 2。文本烟测、工具读文件、结构化 schema、本家 DeepSeek 工具调用均已通过；Tier 0/Tier 1 lean 分支尚未实跑真实任务。
+- **干到哪**：已在 `D:\GitHub\Zephyr_v3\.ai\` 建立整套编排（角色 / 三档 workflow / 检查清单 / 快照 / 静态门禁 / 台账 / Tier 指标 / 常驻 worker 协议）；**Tier 1 已改为 lean**：控制器自己写计划 + 审 diff + 门禁，workflow 只跑 Claude；Tier 2 保持 GPT 架构 + Claude + GPT 评审。**测试路由已定**：`mcp__unityMCP__run_tests` 是 AGENTS.md §10 的明确例外；其他 Unity 操作仍用旧 MCP。**多模态已验证**：本家 DeepSeek / Claude / GPT-6.1 都能 `read_image`；workflow 支持 `screenshots`，UI 任务默认 Tier 2。**截图规则已定**：输入图只读；AI 结果写 `<任务文件夹>/results/`（不存在就建），命名 `[yyyyMMdd_HHmmss]_[stage]_[场景]_[说明].png`。文本烟测、工具读文件、结构化 schema、本家 DeepSeek 工具调用均已通过；Tier 0/Tier 1 lean 分支尚未实跑真实任务。
 - **下一步**：跑第一个 **Tier 1 lean** 真实任务——
   1. `preflight.ps1` 快照；
   2. 控制器写 `plan`（classification/files/acceptance/needsApproval）；
@@ -20,8 +20,10 @@
   - 入口：`.ai/README.md`
   - 定档：`.ai/checklists/tiers.md`
   - 模型：`.ai/config/models.md`
+  - 细节：`.ai/config/models.md`
+  - 截图规则：`AGENTS.md §6.2` · `.ai/checklists/unity-acceptance.md`
   - 流程：`.ai/workflows/unity-task.workflow.js`
   - 常驻 worker：`.ai/roles/worker.md`
   - Tier 记录/复盘：`.ai/scripts/tier-record.ps1` · `.ai/scripts/tier-report.ps1` · `.ai/ledger/tier-metrics.jsonl`
-  - 快照：`.ai/snapshots/20261023-222439-setup3/`
+  - 快照：`.ai/snapshots/` 最新（当前 `20261023-224950-before-weapon-pickup-bounce-analysis/`）
   - 台账：`.ai/ledger/dispatch-ledger.jsonl`

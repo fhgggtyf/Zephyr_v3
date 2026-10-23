@@ -25,6 +25,15 @@ const issues = Array.isArray(args && args.issues) ? args.issues.map(String) : []
 const gptPlan = Boolean(args && args.gptPlan);
 const gptReview = Boolean(args && args.gptReview);
 const screenshots = Array.isArray(args && args.screenshots) ? args.screenshots.map(String) : [];
+const firstShot = screenshots[0] || '';
+const derivedScreenshotDir = firstShot.includes('\\') || firstShot.includes('/')
+  ? firstShot.replace(/[\\/][^\\/]+$/, '')
+  : '';
+const screenshotDir = args && args.screenshotDir ? String(args.screenshotDir) : derivedScreenshotDir;
+const sep = screenshotDir.includes('\\') ? '\\' : '/';
+const resultsDir = args && args.resultsDir
+  ? String(args.resultsDir)
+  : (screenshotDir ? screenshotDir + sep + 'results' : '');
 
 if (!task) {
   return { ok: false, error: 'args.task is required' };
@@ -59,7 +68,8 @@ AI 目录：${AI}
 Unity 工具路由：测试运行用 mcp__unityMCP__run_tests；其他 Unity 操作只用 mcp__unity_mcp__*；图片生成用 mcp__unityMCP__*，但当前禁用。
 安全：不 git reset / checkout / clean / stash；不 commit；不改任务外文件；保留用户已有未提交改动。
 路径：读写可以用绝对路径；返回的 files/changedFiles 必须用仓库相对路径（从 ${ROOT} 起），不要绝对路径。
-视觉证据：${screenshots.length ? screenshots.join(' | ') : '(未提供)'}。涉及 UI/画面时先用 read_image 看这些路径；不要修改截图文件。`;
+视觉证据：${screenshots.length ? screenshots.join(' | ') : '(未提供)'}。涉及 UI/画面时先用 read_image 看这些路径；输入图只读，不要修改/移动/覆盖。
+截图规则：AI 生成图必须存到 ${resultsDir || '(未提供；有任务文件夹时用 <任务文件夹>/results)'}（不存在就创建）；命名 [yyyyMMdd_HHmmss]_[stage]_[场景名]_[说明].png，stage 用 audit/before/after/review/final。`;
 
 const planSchema = {
   type: 'object',
@@ -133,7 +143,7 @@ function implementationPrompt(plan) {
 你是实现者。先读 ${AI}\\roles\\implementer.md 和 ${ROOT}\\AGENTS.md。
 按下面计划实现；只改计划列出的文件；保持最小 diff；不要 commit。
 Unity 资产/场景操作只用 mcp__unity_mcp__*，并在每次操作后查 Console、必要时截图。
-如果任务涉及 UI/画面：先 read_image 看视觉证据；改完后用 Unity MCP 截图，把 PNG 路径写进 evidence；不要手写 Unity 序列化 YAML。
+如果任务涉及 UI/画面：先 read_image 看视觉证据；改完后用 Unity MCP 截图，存到 resultsDir（不存在就创建），把 PNG 路径写进 evidence；不要手写 Unity 序列化 YAML。
 ${mode === 'fix' ? `这是修复轮。上一轮的问题（逐条修复）：\n- ${issues.join('\n- ')}\n不要扩大范围。\n` : ''}
 计划：
 ${JSON.stringify(plan, null, 2)}`;
@@ -217,7 +227,7 @@ if (tier === '1') {
 
 你是独立评审。先读 ${AI}\\roles\\reviewer.md 和 ${ROOT}\\AGENTS.md。
 只根据任务、计划、实现结果和证据评审；不要看实现者的解释或思维过程；不要改文件、不要提交。
-如果实现 evidence 里有截图路径，先用 read_image 看 before/after；检查 960x540、裁切、本地化、层级。
+如果实现 evidence 里有截图路径，先用 read_image 看 before/after；确认路径在 resultsDir，输入图只读；检查 960x540、裁切、本地化、层级。
 实现结果：
 ${JSON.stringify(implementation, null, 2)}
 
@@ -286,7 +296,7 @@ while (round < maxRounds) {
 你是实现者。先读 ${AI}\\roles\\implementer.md 和 ${ROOT}\\AGENTS.md。
 按下面架构计划实现；只改计划列出的文件；保持最小 diff；不要 commit。
 Unity 资产/场景操作只用 mcp__unity_mcp__*，并在每次操作后查 Console、必要时截图。
-如果任务涉及 UI/画面：先 read_image 看视觉证据；改完后用 Unity MCP 截图，把 PNG 路径写进 evidence；不要手写 Unity 序列化 YAML。
+如果任务涉及 UI/画面：先 read_image 看视觉证据；改完后用 Unity MCP 截图，存到 resultsDir（不存在就创建），把 PNG 路径写进 evidence；不要手写 Unity 序列化 YAML。
 ${reviewIssues.length ? `上一轮评审的阻塞问题（逐条修复）：\n- ${reviewIssues.join('\n- ')}\n` : ''}
 架构计划：
 ${JSON.stringify(plan, null, 2)}`, {
@@ -322,7 +332,7 @@ ${JSON.stringify(plan, null, 2)}`, {
 
 你是独立评审。先读 ${AI}\\roles\\reviewer.md 和 ${ROOT}\\AGENTS.md。
 只根据任务、架构计划、实现结果和证据评审；不要看实现者的解释或思维过程；不要改文件、不要提交。
-如果实现 evidence 里有截图路径，先用 read_image 看 before/after；检查 960x540、裁切、本地化、层级。
+如果实现 evidence 里有截图路径，先用 read_image 看 before/after；确认路径在 resultsDir，输入图只读；检查 960x540、裁切、本地化、层级。
 实现结果：
 ${JSON.stringify(implementation, null, 2)}
 

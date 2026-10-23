@@ -37,7 +37,9 @@
 ## 4. 场景 / Prefab / SO
 
 - [ ] 场景：打开 → 改 → 保存 → 刷新 → Console → `Unity_SceneView_Capture2DScene`
-- [ ] 截图导出到 `Assets/MCPTest/Screenshots/[时间戳]_[场景名].png`，汇报绝对路径
+- [ ] 有任务文件夹时：结果图存 `<任务文件夹>/results/`（不存在就建）；无任务文件夹才用全局 `Assets/MCPTest/Screenshots/`
+- [ ] 输入图只读；结果命名 `[yyyyMMdd_HHmmss]_[stage]_[场景名]_[说明].png`（stage: audit/before/after/review/final）
+- [ ] 汇报 results 下 PNG 的绝对路径
 - [ ] 检查相机 framing、层级、Collider、Spawner、CameraBounds、UI 锚点、`960 x 540`、裁切/重叠
 - [ ] Prefab：根对象、组件、引用、Animator、Collider、材质、GUID
 - [ ] SO：只读共享配置；没有运行时状态写回；引用可解析

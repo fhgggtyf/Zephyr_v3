@@ -185,6 +185,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\GitHub\Zephyr_v3\.ai\scri
 - 本家 DeepSeek、Claude Opus 5.5、GPT-6.1-sol 都已声明 `input: [text, image]`，实测都能用 `read_image` 看截图。
 - UI 任务默认 **Tier 2**（碰 Prefab/场景/本地化/`960x540`）；只有纯 UI 脚本、不碰这些，才可能 Tier 1。
 - 流程：控制器抓当前截图 → `args.screenshots` → 架构/实现/评审 `read_image` → 实现后截图 → 控制器/评审对比 → 验收。
+- **截图目录**：用户在 `Assets/MCPTest/Screenshots/<任务文件夹>/` 放输入图；AI 只读输入图，结果写 `<任务文件夹>/results/`（不存在就建）；命名 `[yyyyMMdd_HHmmss]_[stage]_[场景]_[说明].png`，stage 用 `audit/before/after/review/final`。
+- `screenshots` 传输入图路径；`screenshotDir` 可省略（默认第一张图的父目录）；`resultsDir` 默认 `<screenshotDir>/results`。
 - 第一单建议先做 **Tier 0 UI 审计**（只看不改，输出具体改动 spec），再做小范围 Tier 2，别一上来做整页重排。
 
 ---

@@ -21,7 +21,7 @@
 ## Unity 资产与场景（硬规则）
 
 - **Unity 路由**：测试运行用 `mcp__unityMCP__run_tests`；其他 Unity 操作只用 `mcp__unity_mcp__*`；图片生成用 `mcp__unityMCP__*`，但当前禁用。
-- **UI 任务**：先 `read_image` 看 `screenshots`；改完用 Unity MCP 截图，把 before/after PNG 路径写进 `evidence`；不要手写 Unity 序列化 YAML。
+- **UI 任务**：先 `read_image` 看 `screenshots`；改完用 Unity MCP 截图，存到 `<任务文件夹>/results/`（不存在就建），把 before/after PNG 路径写进 `evidence`；输入图只读；不要手写 Unity 序列化 YAML。
 - 禁止手写 `.unity` / `.prefab` / `.asset` / `.controller` / `.anim` / `.meta` 的 YAML。
 - 场景修改顺序：打开并读层级 → 改对象/组件/引用 → 保存 + 刷新 → `Unity_GetConsoleLogs` → `Unity_SceneView_Capture2DScene` → 导出 PNG 到 `Assets/MCPTest/Screenshots/[时间戳]_[场景名].png`。
 - 改 Prefab：打开、检查根对象/组件/引用/Animator/Collider/材质，保存后查 Console。

@@ -293,14 +293,26 @@
 - 必须将当前进展、报错日志、未完成事项写入 `D:\GitHub\Zephyr\Test\_Status.md` 文件中。
 - 写入完成后，直接输出 `[任务已中止，状态已保存]` 并彻底结束本次对话，不得再生成任何新的代码或命令。
 
-### 6.2 SceneView 截图导出规则
+### 6.2 截图目录与导出规则
 
-每次调用 `Unity_SceneView_Capture2DScene` 后，必须执行以下两步：
+**任务文件夹规则（优先）**：
 
-1. 调用 `Unity_Camera_Capture` 或写 Editor 脚本，将截图导出为 PNG 文件，保存到 `D:\GitHub\Zephyr_v3\Zephyr(AI)\Zephyr\Assets\MCPTest\Screenshots\` 目录下（如果目录不存在则先创建），文件名格式为 `[时间戳]_[场景名].png`。
-2. 在最终汇报中，必须输出该 PNG 文件的完整绝对路径，并附带你的文字描述。
+1. 每次截图相关任务，用户会在 `Assets/MCPTest/Screenshots/` 下新建一个任务文件夹，并把输入截图放进去。
+   例：`Assets/MCPTest/Screenshots/20261024-001-player-status-ui/`。
+2. 输入截图是**只读**：AI 不得修改、移动、删除、覆盖，也不要在该任务文件夹根目录下写新图。
+3. AI 生成的审计/改前/改后/评审截图，一律写到该任务文件夹下的 `results/`：
+   `Assets/MCPTest/Screenshots/<任务文件夹>/results/`
+   `results/` 不存在就创建；优先用 Unity MCP 的建目录/刷新完成，不要手写 `.meta`。
+4. 命名：`[yyyyMMdd_HHmmss]_[stage]_[场景名]_[说明].png`；
+   `stage` 使用 `audit` / `before` / `after` / `review` / `final`。
+5. 最终汇报必须给出 `results/` 下每张 PNG 的**完整绝对路径**；没有截图文件等于没做视觉验证。
 
-禁止只提供文字描述而不保存截图文件！
+**没有任务文件夹时（兜底）**：
+
+- 才退回旧规则：保存到 `Assets/MCPTest/Screenshots/`，文件名 `[时间戳]_[场景名].png`。
+- 有任务文件夹时，禁止把结果图写到全局 `Screenshots/` 根目录。
+
+每次调用 `Unity_SceneView_Capture2DScene` 后，仍必须用 `Unity_Camera_Capture` 或 Editor 脚本导出 PNG；禁止只提供文字描述而不保存截图文件。
 
 ## 7. 自测门禁
 

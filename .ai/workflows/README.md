@@ -35,11 +35,20 @@
 | `plan` | Tier 1 ✅ | 指挥写的计划：`classification` / `files[]` / `acceptance[]` / `needsApproval`。Tier 2 不需要 |
 | `mode` | | `implement`（默认）或 `fix`（修复轮） |
 | `issues` | | `mode: "fix"` 时的阻塞项数组；逐条回给 Claude。**fix 模式必须非空** |
-| `screenshots` | | UI/画面任务的截图路径数组；架构/实现/评审都能 `read_image` |
+| `screenshots` | | UI/画面任务的输入截图路径数组；架构/实现/评审都能 `read_image`。输入图只读 |
+| `screenshotDir` | | 任务文件夹；省略时取第一张输入图的父目录 |
+| `resultsDir` | | AI 结果图目录；省略时为 `<screenshotDir>/results`（不存在由执行方创建） |
 | `gptPlan` | | Tier 1 没把握时让 GPT-6-astra 只出计划；仍由控制器验收 |
 | `gptReview` | | Tier 1 关键节点让 GPT-6.1-sol 只审 diff；日常 Tier 1 不开 |
 | `scope` / `acceptance` | | 允许范围 / 验收标准 |
 | `maxRounds` | | Tier 2 实现→评审循环上限，1~3，默认 2 |
+
+### 2.1 截图目录
+
+- 用户建 `Assets/MCPTest/Screenshots/<任务文件夹>/` 并放输入图；输入图**只读**。
+- AI 结果写 `<任务文件夹>/results/`（不存在就建）；`screenshots` 传输入图路径，`screenshotDir` 可省略（默认取第一张图的父目录）。
+- 命名：`[yyyyMMdd_HHmmss]_[stage]_[场景名]_[说明].png`，`stage` 用 `audit/before/after/review/final`。
+- 有任务文件夹时禁止写全局 `Assets/MCPTest/Screenshots/` 根目录；只有没有任务文件夹才走旧兜底。
 
 ## 3. 两档映射
 

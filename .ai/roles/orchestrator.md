@@ -59,10 +59,12 @@
 2. `powershell -NoProfile -ExecutionPolicy Bypass -File .ai\scripts\static-gate.ps1 -Files <implementation.changedFiles>` → 必须 PASS
 3. Unity 编译 / Console：`Unity_GetConsoleLogs`，Error 必须为 0；Warning 逐条说明
 4. EditMode / PlayMode / 架构测试：用 `mcp__unityMCP__run_tests`（不需要申请）；其他 Unity 操作仍用 `mcp__unity_mcp__*`
-5. 场景改动：`Unity_SceneView_Capture2DScene` + 导出 PNG 到 `Assets/MCPTest/Screenshots/`
+5. 场景/UI 截图：有任务文件夹 → `Assets/MCPTest/Screenshots/<任务文件夹>/results/`（不存在就建）；没有才用全局 `Assets/MCPTest/Screenshots/`；输入图只读；命名 `[yyyyMMdd_HHmmss]_[stage]_[场景]_[说明].png`
 6. Prefab/SO：根对象、组件、引用、Animator、Collider、材质、GUID
-7. UI：`960 x 540`、本地化 Key、中英文 fallback
+7. UI：`960 x 540`、本地化 Key、中英文 fallback、before/after 截图
 8. `git diff`：只包含任务文件；无 `Library/Temp/Logs`；无无关 `.meta`
+
+**截图硬规则**：用户的输入图只读；AI 生成图只进 `<任务文件夹>/results/`；有任务文件夹时禁止写全局 `Screenshots/` 根目录。没有 results 图 = 没做视觉验证。
 
 **任何一项没有证据，就写“未验证”，不许写“已完成”。**
 Tier 1 如果自评审或门禁 FAIL：不许 commit；用 `mode: "fix"` 回给 Claude，最多 2 轮；仍失败 → 升 Tier 2 或停。
