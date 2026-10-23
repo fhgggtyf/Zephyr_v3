@@ -4,7 +4,7 @@
 
 伤害反馈由 `DamageInfo` 携带不可变的 `DamageFeedbackSettings` 快照，来源可以是 `WeaponSO`、敌人攻击定义或测试攻击组件。快照只保存强度、持续时间、优先级、冷却组和粒子逻辑 ID，不保存粒子 Prefab 或运行时状态。
 
-`ICombatFeedbackGateway` 是跨领域契约。GameManager 场景中的 `CombatFeedbackCoordinator` 是唯一的运行时协调实现，负责把伤害反馈分发到 Hitstop、GameplayTimePause 和 Gameplay 相机震动。玩家、敌人和武器只提交反馈请求，不直接修改 `Time.timeScale`，也不直接查找或管理相机。
+`ICombatFeedbackGateway` 是跨领域契约。GameManager 场景中的 `CombatFeedbackCoordinator` 是唯一的运行时协调实现，负责把伤害反馈分发到 Hitstop、GameplayTimePause 和 Gameplay 相机震动。协调器通过 `ICameraShakeGateway` 请求震屏；GameManager 组合根将该接口注入协调器，由 `Core.Camera` 中的 `CameraController` 实现它。这样 `Core.Flow` 不直接依赖相机程序集，玩家、敌人和武器也不直接修改 `Time.timeScale` 或查找、管理相机。
 
 普通 Hitstop 使用强度计算持续时间，并通过短冷却与优先级合并请求；更高优先级的请求可以延长当前 Hitstop，低优先级请求在当前窗口内不会反复打断。Hitback 反馈使用更高优先级、独立冷却和更长上限。玩家的一个 Hitback Episode 只发送一次大 Hitstop，连续命中由 PlayerImpactController 的累计硬直和 Hitback 状态边界统一收口。
 

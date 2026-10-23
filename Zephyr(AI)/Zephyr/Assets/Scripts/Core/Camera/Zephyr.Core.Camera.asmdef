@@ -1,7 +1,9 @@
 {
     "name": "Zephyr.Core.Camera",
     "rootNamespace": "Zephyr.Core.Camera",
-    "references": [],
+    "references": [
+        "Zephyr.Core.Contracts"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

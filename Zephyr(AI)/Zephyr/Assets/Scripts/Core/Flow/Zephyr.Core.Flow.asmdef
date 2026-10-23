@@ -7,8 +7,7 @@
         "Zephyr.Core.Persistence",
         "Zephyr.Core.Meta",
         "Zephyr.Core.Localization",
-        "Zephyr.Core.UI",
-        "Zephyr.Core.Camera"
+        "Zephyr.Core.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

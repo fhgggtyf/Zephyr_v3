@@ -15,6 +15,8 @@
 ## 写入范围
 
 - 只改计划 `files` 列出的文件；需要额外文件时，先在返回的 `blockers` 里说明，不要擅自扩大。
+- **编排文件只读**：禁止修改 `.ai/workflows/**`、`.ai/scripts/**`、`.ai/roles/**`、`.ai/checklists/**`、`.ai/config/**`、`AGENTS.md`；违反会被 `workflow-guard` 还原。
+- 只按任务消息里的 **brief + 紧凑计划** 做；不要复述审计全文；需要细节只读 `plan.files` 里的文件。
 - 代码用 apply_patch / edit 类工具；保持最小 diff；不顺手重构、不升级包、不改版本号。
 - 不删无关文件、不改无关 `.meta`、不动 `Library/`、`Temp/`、`Logs/`。
 

@@ -5,13 +5,53 @@
 param(
     [string]$Root = 'D:\GitHub\Zephyr_v3',
     [string[]]$Files = @(),
-    [string]$Baseline = ''
+    [string]$FilesFile = '',
+    [string]$Baseline = '',
+    [switch]$SelfTest
 )
 
 $ErrorActionPreference = 'Continue'
+
+# Legacy host dependency: only the exact root namespace counts.
+# Dedicated namespaces such as Zephyr.Core.Localization / .Stats must NOT match.
+$legacyCoreRegex = '(using\s+Zephyr\.Core\s*;|"Zephyr\.Core")'
+
+if ($SelfTest) {
+    $cases = @(
+        @{ Text = 'using Zephyr.Core;';              Expected = $true },
+        @{ Text = 'using Zephyr.Core.Localization;'; Expected = $false },
+        @{ Text = 'using Zephyr.Core.Stats;';        Expected = $false },
+        @{ Text = 'using Zephyr.Core.StateMachine;'; Expected = $false },
+        @{ Text = '"Zephyr.Core"';                   Expected = $true },
+        @{ Text = '"Zephyr.Core.Localization"';      Expected = $false }
+    )
+    $ok = $true
+    foreach ($c in $cases) {
+        $hit = [bool]($c.Text -match $legacyCoreRegex)
+        if ($hit -ne $c.Expected) {
+            $ok = $false
+            Write-Host ("FAIL selftest: '{0}' expected {1} got {2}" -f $c.Text, $c.Expected, $hit) -ForegroundColor Red
+        }
+    }
+    if ($ok) {
+        Write-Host 'static-gate self-test: PASS' -ForegroundColor Green
+        exit 0
+    }
+    exit 1
+}
+
 if (-not (Test-Path -LiteralPath $Root)) { throw "Root not found: $Root" }
 $Root = (Resolve-Path -LiteralPath $Root).Path
 $Unity = Join-Path $Root 'Zephyr(AI)\Zephyr'
+
+if ($FilesFile) {
+    $Files = @(Get-Content -LiteralPath $FilesFile |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ -and -not $_.StartsWith('#') })
+}
+if ($Files.Count -eq 1 -and $Files[0] -match ',') {
+    $Files = @($Files[0] -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+}
 
 $status = @(& git -C $Root status --porcelain=v1 2>$null)
 $changed = @()
@@ -70,7 +110,7 @@ $rules = @(
     @{ Name = 'GameObject.Find';           Regex = 'GameObject\.Find';                         Level = 'FAIL' },
     @{ Name = 'FindObjectOfType';          Regex = 'Find(Object|AnyObject)OfType';             Level = 'FAIL' },
     @{ Name = 'DontDestroyOnLoad';         Regex = 'DontDestroyOnLoad';                        Level = 'FAIL' },
-    @{ Name = 'Zephyr.Core dependency';    Regex = '(using\s+Zephyr\.Core\b|"Zephyr\.Core")'; Level = 'FAIL' },
+    @{ Name = 'Zephyr.Core dependency';    Regex = $legacyCoreRegex;                           Level = 'FAIL' },
     @{ Name = 'direct singleton .Instance'; Regex = '\.Instance\b';                            Level = 'WARN' }
 )
 

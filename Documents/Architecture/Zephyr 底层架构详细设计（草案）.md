@@ -1038,7 +1038,8 @@ knockbackDuration = postMitigationDamage / 100 * (1 - clamp(Tenacity / 100, 0, 0
   bounces from walls/ceilings, and remains invincible after landing.
 - Landing enters a one-second Getup stage. The player sprite flashes throughout Hitback and Getup, then
   the completion transition returns to the authored normal states.
-- Every accepted hit, including a lethal hit, calls `CameraController.ShakeForDamage`; filtered invincible
+- Every accepted hit, including a lethal hit, submits feedback through `ICombatFeedbackGateway`; the
+  coordinator forwards the configured shake request through `ICameraShakeGateway`. Filtered invincible
   hits never reach `DamageTaken` and therefore do not shake.
 
 `CameraController` keeps a separate logical follow position. Damage shake is applied only as a temporary

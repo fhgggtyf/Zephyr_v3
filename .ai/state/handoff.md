@@ -1,22 +1,31 @@
 # §〇 当前交接
 
 - **我是谁**：Zephyr 多模型 AI 工作流的指挥（**本家 DeepSeek `deepseek-account / deepseek-flash` · max**）。
-- **干到哪**：已先做完 **Tier 0 审计**（`.ai/audits/2026-10-24-player-status-ui.md`，F1–F6），再按该 spec 做完 **PlayerStatusPanel 的 Tier 2 实施**（未 commit，用户要求）。改了 7 个文件：`PlayerStatusPanel.prefab`、`GameManager.unity`（只删 `Content.m_AnchoredPosition.y=820` 覆盖）、`PlayerStatusPanelController.cs`、`WeaponStatsTooltipView.cs`、`WeaponSlotHover.cs`、`strings.en_US.json`、`strings.zh_CN.json`（en/zh 各 104 key）。
-- **本单结论**：F1–F6 全部落地，960×540 Play Mode 实测与审计 §6 数值逐项吻合（Window 70,45–890,495；Left/Right 90,65–460,475 / 490,65–880,475；Close 785,463–865,491；handle 8×71.27 且 value=0/1 都在 12×280 轨道内；tooltip 280×210、四角 clamp、中英 5 行不截断；Potential 无 scrollbar 且 10 行从顶部；Stats 41 行可滚到 `传奇`）。
-- **门禁实况**：
-  - `LocalizationTablesHaveMatchingKeySets`、`UiLocalizationConsumersUseTheSharedGatewayBoundary`、`Zephyr.Tests.EditMode.*` 全通过；EditMode 总计 59 passed / 3 failed，3 个失败是未触碰文件的历史债（`MetaUpgradeSO` 的 `using Zephyr.Core;`、`Zephyr.Core.Flow` 多出 `Zephyr.Core.Camera`、bootstrap 的 `.Instance`/`UnloadSceneAsync`）。
-  - `static-gate.ps1 -Files <7 文件>` = **FAIL 3 / WARN 2**；3 个 FAIL 全是 `using Zephyr.Core.Localization;` —— 正则 `using\s+Zephyr\.Core\b` 把 `Zephyr.Core.*` **专用程序集**误判成 legacy `Zephyr.Core` 宿主（HEAD 已有 13 个文件这样写、`Zephyr.Player.asmdef` 本来就引用它）。**这是该脚本的规则 bug，不是架构债**，下次动 `static-gate.ps1` 时把正则收紧成 `using\s+Zephyr\.Core\s*;`。
-  - `mcp__unityMCP__run_tests` 本会话连续 2 次请求超时（新 MCP 不可用）；按 acceptance 允许的兜底用旧 MCP 里的一次性 Editor 脚本调 `UnityEditor.TestTools.TestRunner.Api` 跑 EditMode。
-- **本轮流程偏差（要记住）**：Tier 2 的 **Claude 实现连续失败两次**（workflow implementer 返回 null；直接 subagent 中途 fail），按 `.ai/roles/orchestrator.md` §6 回退 **DeepSeek 指挥自己实现**；GPT-6-astra 架构、GPT-6.1-sol 评审照常。评审 verdict=FAIL，但 blocking 只有“工作区超出 7 文件范围”（= `.ai/ledger` 写回 + `results/` 验收图，属 AGENTS §6.2 与 `.ai` §5 强制产物），功能项全部 non-blocking。
+- **干到哪**：PlayerStatusPanel F1–F6 已按审计完成，**7 个游戏文件已提交 `ce7c123 Fixed some UI`**；EditMode 59 passed / 3 failed（3 个是历史失败，正在修，不算本单回归）；960×540 probe 与审计 §6 吻合；本地化 104=104；before/after 截图与 `probe_rects.txt` / `probe_tests.txt` 已随提交入库。
+- **当前工作树**：`.ai` 流程改动 + `AGENTS.md` 未提交；另有 `MetaUpgradeSO.cs` 删 `using Zephyr.Core;` 的 1 行（不在本单 7 文件内，待确认保留/还原）。
+- **本单路径**：审计（Tier 0）→ GPT-6-astra 架构 → Claude 实现连续失败两次（中转 524 / 120s）→ 按失败规则回退 DeepSeek 实现 → GPT-6.1-sol 评审（功能 non-blocking；blocking 只有流程产物越界）→ 7 个 UI 文件已提交 `ce7c123`；本轮流程改动未提交。
+- **已修/已调**：
+  - `static-gate.ps1` 的 `Zephyr.Core.*` 误报已修（只匹配 `using Zephyr.Core;`），并加 `-SelfTest`；7 文件复跑 = PASS / WARN 2。
+  - 新增 `workflow-guard.ps1`：workflow 前后哨兵，子代理改 `.ai/workflows` 会还原。
+  - Tier 2 支持 `args.plan` 跳过 Astra；有审计/spec 时不要再跑 GPT 架构。
+  - 新增 `brief` 参数 + `compactPlan`：实现者只收 ≤10 行 brief + 紧凑计划，不再吞审计全文。
+  - 新增 `reports/` 总结模板与本单总结；新增 `checklists/ui-recon.md` 收敛 UI 侦察。
 - **下一步**：
-  1. 用户确认后 commit 这 7 个文件（**不要** `git add -A`；`results/` 截图与 `.ai/ledger` 是否入库另定）。
-  2. 若要消掉 static-gate 误报：单独开一单改 `.ai/scripts/static-gate.ps1` 的正则并复跑（属工具改动，不混进 UI 单）。
-  3. P2 待办（本单明确不做）：面板打开时隐藏 HUD、element/category 中文化、`Update()` 里每帧 `Refresh()` 事件化、模态栈、Prefab 根 `m_LocalScale=(0,0,0)`。
-- **卡点 / 已知坑**：
-  - `static-gate.ps1` 必须用 `-Files` 任务范围模式（全量扫描会被历史 `Zephyr.Core` 依赖误伤）；且不能用 `powershell -File script.ps1 -Files @(...)` 传数组，要 `powershell -Command "& '<script>' -Files @('a','b')"`。
-  - `Unity_RunCommand` 的动态脚本沙箱：**禁 `using System.Reflection;` / `using System.IO;` / `System.Reflection.BindingFlags`**（但全限定 `System.Reflection.Assembly`、`GetType` 可用）；`Image` 会被解析成命名空间，必须写 `UnityEngine.UI.Image`；if/else 必须带完整大括号。
-  - `PrefabUtility.RevertPropertyOverride` 在 Unity 6 只接受 `SerializedProperty`（传 `PropertyModification` 编不过）；场景覆盖要用 `new SerializedObject(rt).FindProperty("m_AnchoredPosition.y")` 再回退。
-  - `Scrollbar.UpdateVisuals()` 会在 OnEnable 用 `m_Value/m_Size` 重写 Handle 的 anchors，所以“序列化 anchors (0,0)-(1,1)”无法稳定落盘；正解是 `sizeDelta=(-4,0)`（高度由 Scrollbar 驱动）。
-  - `ScreenCapture.CaptureScreenshotAsTexture()` 在菜单项里会卡死并导致退出 Play Mode；改用 `ScreenCapture.CaptureScreenshot(path)`（异步、下一帧落盘）。
-  - Play Mode 要在 960×540 下验收：先 `GameViewSizes` 反射加自定义尺寸并设 `selectedSizeIndex`，再 Play；多场景 Play（Initializer → MainMenu → `StartSelectedProfile`）才能拿到真实 HUD+面板+Localization。
-- **细节在哪**：入口 `.ai/README.md` · 定档 `.ai/checklists/tiers.md` · 模型 `.ai/config/models.md` · 截图规则 `AGENTS.md §6.2` · 流程 `.ai/workflows/unity-task.workflow.js` · 台账 `.ai/ledger/dispatch-ledger.jsonl` · Tier 指标 `.ai/ledger/tier-metrics.jsonl` · 快照 `.ai/snapshots/20261024-003956-before-player-status-ui/`
+  1. 决定 `MetaUpgradeSO.cs` 1 行：有意修这个历史失败就保留并复跑确认；否则还原。
+  2. `.ai` 流程改动单独提交（不混 UI 单）；禁止 `git add -A`。
+  3. 下个 Tier 2 有审计/spec：传紧凑 `plan` + `brief`，跳过 Astra；Claude 失败按 524 规则等 120s/回退。
+  4. P2 另开单：HUD 遮挡、element/category 中文化、`Refresh()` 事件化、模态栈、Prefab 根 scale。
+- **卡点**：
+  - Claude 524 / Cloudflare 120s：等 120s 重试 1 次；仍失败 fallback GPT-astra/DeepSeek，不要原样连撞。
+  - `run_tests` 新 MCP 本会话超时；兜底旧 MCP + Editor `TestRunnerApi`，记录 `probe_tests.txt`。
+  - `subagent` 没有 `model` 参数：常驻 worker 只对 DeepSeek 成立。
+  - `static-gate` 历史 `gate=fail` 是修复前的记录；以 `-SelfTest` + 7 文件复跑为准。
+- **细节在哪**：
+  - 总结：`.ai/reports/2026-10-24-player-status-ui.md`
+  - 审计：`.ai/audits/2026-10-24-player-status-ui.md`
+  - 定档：`.ai/checklists/tiers.md`
+  - UI 侦察：`.ai/checklists/ui-recon.md`
+  - 模型：`.ai/config/models.md`
+  - 流程：`.ai/workflows/unity-task.workflow.js`
+  - 台账：`.ai/ledger/dispatch-ledger.jsonl` · `.ai/ledger/tier-metrics.jsonl`
+  - 快照：`.ai/snapshots/20261024-003956-before-player-status-ui/`

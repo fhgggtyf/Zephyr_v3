@@ -25,5 +25,6 @@ namespace Zephyr.Core.Flow
         IDropSpawnGateway DropSpawn { get; }
         IStoryProgressionGateway StoryProgression { get; }
         ICombatFeedbackGateway CombatFeedback { get; }
+        ICameraShakeGateway CameraShake { get; }
     }
 }

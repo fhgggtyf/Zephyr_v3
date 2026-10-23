@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Zephyr.Contracts.Damage;
 using Zephyr.Contracts.Interfaces;
-using Zephyr.Core.Camera;
 using Zephyr.Core.Flow;
 using Zephyr.Core.UI;
 
@@ -23,21 +22,24 @@ namespace Zephyr.Core.Combat.Feedback
         [Header("Camera")]
         [SerializeField, Min(0f)] private float _shakePerIntensity = 1f;
 
+        private ICameraShakeGateway _cameraShake;
         private float _hitstopEndsAt;
         private readonly Dictionary<int, float> _lastNormalRequestByGroup = new Dictionary<int, float>();
         private readonly Dictionary<int, float> _lastHitbackRequestByGroup = new Dictionary<int, float>();
         private int _activePriority = int.MinValue;
         private bool _hitstopActive;
 
-        public void Configure(IGameManagerServices services) { }
+        public void Configure(IGameManagerServices services)
+        {
+            _cameraShake = services?.CameraShake;
+        }
 
         public void RequestDamageFeedback(DamageInfo info, DamageResult result, Vector2 impactPoint, bool isHitback = false, float hitbackIntensity = 0f)
         {
             float actualDamage = Mathf.Max(0f, result.TotalDamage);
             if (actualDamage <= 0f) return;
-            CameraController camera = CameraController.FindForGameplay(gameObject.scene);
-            if (camera != null && info.Feedback.ShakeIntensity > 0f)
-                camera.ShakeForDamage(actualDamage * info.Feedback.ShakeIntensity * _shakePerIntensity);
+            if (info.Feedback.ShakeIntensity > 0f)
+                _cameraShake?.ShakeForDamage(actualDamage * info.Feedback.ShakeIntensity * _shakePerIntensity);
             float intensity = Mathf.Max(info.Feedback.HitstopIntensity, actualDamage / 20f);
             if (isHitback) RequestHitbackFeedback(info, impactPoint, Mathf.Max(intensity, hitbackIntensity));
             else RequestNormalHitstop(info, intensity);

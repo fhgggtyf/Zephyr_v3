@@ -371,6 +371,9 @@
 - 本仓库新增 `.ai/` **三档**多模型编排：**Tier 0/1 的指挥用本家 DeepSeek（`deepseek-account / deepseek-flash`）**；Tier 2 才让 GPT-6-astra 看架构、Claude Opus 5.5 实现、GPT-6.1-sol 评审。档位由 DeepSeek 指挥按 `.ai/checklists/tiers.md` 判断，不确定时升一档。
 - Tier 0/1 的机械段可交常驻 `worker-deepseek`（复用同一会话，减少重复上下文）；GPT/Claude 只在 Tier 2、`gptPlan` 或 `gptReview` 时按需调用。
 - Tier 1 采用 lean：控制器自己写计划/审 diff + 跑门禁，workflow 只跑 Claude；用 `tier-report.ps1` 盯门禁失败率/回滚率/平均返工，超阈值就把该 pattern 升到 Tier 2。
+- Tier 2 有审计/spec：控制器写紧凑 `plan` 传给 workflow，**跳过 Astra**；实现者只收 `brief` + 紧凑 plan，不再吞审计全文。
+- 子代理**禁止修改** `.ai/workflows/**`、`.ai/scripts/**`、`.ai/roles/**`、`.ai/checklists/**`、`.ai/config/**` 和本文件；指挥在 workflow 前后跑 `workflow-guard.ps1`。
+- 每单收工写 `.ai/reports/<date>-<task>.md` 总结；`static-gate.ps1` 先跑 `-SelfTest`。
 - 使用该流程前，先读 [`.ai/README.md`](.ai/README.md) 与 [`.ai/roles/orchestrator.md`](.ai/roles/orchestrator.md)。
 - 该流程是**编排层**，不替代本文件；冲突时以本文件为准。
 - 该流程不改变第 10 节的 Unity MCP 路由：测试运行固定用 `mcp__unityMCP__run_tests`，其他 Unity 操作仍只用 `mcp__unity_mcp`。

@@ -937,6 +937,33 @@ StringAssert.Contains("new MetaGateway(services.SaveData)", controller);
             StringAssert.DoesNotContain("\"Zephyr.Core\"", cameraAsmdef);
         }
 
+        [Test]
+        public void CombatFeedbackUsesCameraShakeContractWithoutFlowCameraDependency()
+        {
+            string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");
+            string contract = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Contracts", "Interfaces", "ICameraShakeGateway.cs"));
+            string cameraController = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Camera", "CameraController.cs"));
+            string coordinator = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Flow", "Feedback", "CombatFeedbackCoordinator.cs"));
+            string flowServices = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Flow", "Bootstrap", "IGameManagerDependencyConsumer.cs"));
+            string cameraAsmdef = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Camera", "Zephyr.Core.Camera.asmdef"));
+            string flowAsmdef = File.ReadAllText(Path.Combine(
+                scriptsRoot, "Core", "Flow", "Zephyr.Core.Flow.asmdef"));
+
+            StringAssert.Contains("interface ICameraShakeGateway", contract);
+            StringAssert.Contains("ICameraShakeGateway", cameraController);
+            StringAssert.Contains("ICameraShakeGateway CameraShake", flowServices);
+            StringAssert.Contains("ICameraShakeGateway", coordinator);
+            StringAssert.DoesNotContain("CameraController", coordinator);
+            StringAssert.DoesNotContain("Zephyr.Core.Camera", coordinator);
+            StringAssert.Contains("\"Zephyr.Core.Contracts\"", cameraAsmdef);
+            StringAssert.DoesNotContain("\"Zephyr.Core.Camera\"", flowAsmdef);
+        }
+
         private static void AssertAssemblyReferences(string assemblyName, params string[] expectedReferences)
         {
             string scriptsRoot = Path.Combine(Application.dataPath, "Scripts");

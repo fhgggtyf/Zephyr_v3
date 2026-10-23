@@ -29,6 +29,7 @@
 - [ ] Console Error 为 0；场景改动有截图；测试结果有输出
 - [ ] 架构专项已获批准；普通功能没有夹带架构改动
 - [ ] UI 任务：`read_image` 看 before/after；确认路径在 `<任务文件夹>/results/`，输入图只读；检查 `960x540`、裁切、本地化、层级
+- [ ] 流程产物（`.ai/ledger/**`、`.ai/state/**`、`.ai/reports/**`、`.ai/audits/**`、`Assets/MCPTest/Screenshots/<任务文件夹>/results/**`）不算越界；只审 `plan.files` 里的任务文件
 
 ## 判定
 

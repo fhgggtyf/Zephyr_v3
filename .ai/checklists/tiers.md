@@ -9,7 +9,9 @@
 |---|---|---|---|---|
 | **Tier 0** | 单文件；机械修改；文档/配置/日志；<30 分钟；无跨模块、无场景/Prefab/SO/asmdef | 指挥自己做 | 指挥或常驻 worker（DeepSeek） | 指挥自检 |
 | **Tier 1** | 2–5 个文件；单模块；普通功能；有现成测试；不改场景/Prefab/asmdef/存档/本地化 | **指挥自己写计划** | **Claude Opus 5.5** | **指挥审 diff + 门禁**；可选 GPT 关键节点评审 |
-| **Tier 2** | 跨模块；3+ 模块；架构专项；改 asmdef/场景/Prefab/存档/本地化/StateMachine/生命周期；>5 文件 | **GPT-6-astra** | **Claude Opus 5.5** | **GPT-6.1-sol** |
+| **Tier 2** | 跨模块；3+ 模块；架构专项；改 asmdef/场景/Prefab/存档/本地化/StateMachine/生命周期；>5 文件 | **有审计/spec：紧凑 plan 跳过 Astra；无 plan 才 GPT-6-astra** | **Claude Opus 5.5** | **GPT-6.1-sol** |
+
+> **Tier 2 的 plan 来源只能有一个**：有审计/spec → 控制器写紧凑 plan（`args.plan`），跳过 Astra；没有才让 GPT-6-astra 架构。不要“审计 plan + Astra plan”两边都跑。
 
 ## 2. Tier 1 的风险触发器（满足任一 → `gptReview: true`）
 

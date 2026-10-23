@@ -18,6 +18,8 @@
 ## 规则
 
 - 只改任务消息里列出的文件；不 commit、不 reset、不 checkout、不 clean、不 stash。
+- **编排文件只读**：禁止修改 `.ai/workflows/**`、`.ai/scripts/**`、`.ai/roles/**`、`.ai/checklists/**`、`.ai/config/**`、`AGENTS.md`。
+- 只按 brief + 紧凑计划做；不要复述审计全文。
 - Unity 路由：测试运行用 `mcp__unityMCP__run_tests`；其他 Unity 操作只用 `mcp__unity_mcp__*`；图片生成用 `mcp__unityMCP__*`，但当前禁用。
 - 不手写 Unity 序列化 YAML。
 - 保持最小 diff；不顺手重构、不升级包、不改无关 `.meta`。

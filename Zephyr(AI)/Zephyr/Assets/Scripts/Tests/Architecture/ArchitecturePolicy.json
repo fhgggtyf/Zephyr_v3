@@ -14,7 +14,9 @@
     },
     {
       "name": "Zephyr.Core.Camera",
-      "references": []
+      "references": [
+        "Zephyr.Core.Contracts"
+      ]
     },
     {
       "name": "Zephyr.Core.Combat",
@@ -107,7 +109,8 @@
         "Zephyr.Core.Contracts",
         "Zephyr.Core.Runtime",
         "Zephyr.Core.Combat",
-        "Zephyr.Core.StateMachine"
+        "Zephyr.Core.StateMachine",
+        "Zephyr.Core.Flow"
       ]
     },
     {
@@ -181,7 +184,12 @@
       "references": [
         "Zephyr.Core.Contracts",
         "Zephyr.Core.Runtime",
-        "Zephyr.Core.Flow"
+        "Zephyr.Core.Flow",
+        "Zephyr.Core.Camera",
+        "Zephyr.Core.Dialogue",
+        "Zephyr.Core.Meta",
+        "Zephyr.Core.Persistence",
+        "Zephyr.Core.UI"
       ]
     },
     {
@@ -403,6 +411,17 @@
     },
     {
       "caller": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "target": "Zephyr.Core.Flow.SceneLoader::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
+      "reason": "Reviewed composition-root allowance for resolving the Persistent scene-loading gateway.",
+      "removalCondition": "Remove this allowance when GameManagerBootstrap receives scene loading through an explicit composition-root dependency.",
+      "risk": "The composition root still resolves the scene loader singleton while constructing GameManager services.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.GameManagerBootstrap::Awake()",
       "target": "Zephyr.Core.Flow.GameFlow::get_Instance",
       "rule": "Singleton",
       "maxCount": 1,
@@ -502,6 +521,28 @@
     },
     {
       "caller": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "target": "Zephyr.Core.Flow.GameFlow::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "reason": "Reviewed Persistent composition-root allowance for resolving the flow service during startup.",
+      "removalCondition": "Remove this allowance when PersistentBootstrap receives GameFlow through an explicit composition-root dependency.",
+      "risk": "Persistent startup still resolves the flow singleton directly at its lifecycle boundary.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "target": "Zephyr.Core.Localization.LocalizationManager::get_Instance",
+      "rule": "Singleton",
+      "maxCount": 1,
+      "owner": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
+      "reason": "Reviewed Persistent composition-root allowance for resolving localization during startup.",
+      "removalCondition": "Remove this allowance when PersistentBootstrap receives localization through an explicit composition-root dependency.",
+      "risk": "Persistent startup still resolves the localization singleton directly at its lifecycle boundary.",
+      "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
+    },
+    {
+      "caller": "Zephyr.Core.Flow.PersistentBootstrap::Awake()",
       "target": "Zephyr.Core.ObjectPool.PoolRegistry::get_Instance",
       "rule": "Singleton",
       "maxCount": 1,
@@ -567,14 +608,14 @@
       "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
     },
     {
-      "caller": "Zephyr.Core.Flow.SceneLoader::UnloadSceneAsync(Zephyr.Core.Flow.SceneSO)",
+      "caller": "Zephyr.Core.Flow.SceneLoader::UnloadSceneAsync(Zephyr.Core.Flow.SceneSO,Zephyr.Core.Flow.SceneSO)",
       "target": "UnityEngine.SceneManagement.SceneManager::UnloadSceneAsync",
       "rule": "SceneLoad",
       "maxCount": 1,
-      "owner": "Zephyr.Core.Flow.SceneLoader::UnloadSceneAsync(Zephyr.Core.Flow.SceneSO)",
-      "reason": "Reviewed boundary allowance for SceneLoad.",
-      "removalCondition": "Remove this allowance when the boundary is replaced and affected Architecture/EditMode/PlayMode checks pass.",
-      "risk": "The reviewed SceneLoad remains an explicit architectural boundary or infrastructure entry point.",
+      "owner": "Zephyr.Core.Flow.SceneLoader::UnloadSceneAsync(Zephyr.Core.Flow.SceneSO,Zephyr.Core.Flow.SceneSO)",
+      "reason": "Reviewed SceneLoader boundary allowance for unloading the previous gameplay scene through Unity's scene API.",
+      "removalCondition": "Remove this allowance when scene unloading is routed through the owning scene service without a direct Unity API call.",
+      "risk": "The scene service remains the explicit owner of the direct unload operation.",
       "replacementBoundary": "Explicit gateway, composition root, or owning infrastructure service"
     },
     {

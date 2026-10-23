@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Zephyr.Contracts.Interfaces;
 
 namespace Zephyr.Core.Camera
 {
@@ -12,7 +13,7 @@ namespace Zephyr.Core.Camera
     /// selects the gameplay virtual camera and applies scene-owned settings.
     /// </summary>
     [DefaultExecutionOrder(1000)]
-    public sealed class CameraController : MonoBehaviour
+    public sealed class CameraController : MonoBehaviour, ICameraShakeGateway
     {
         private static readonly List<CameraController> Controllers = new List<CameraController>();
         private const string CinemachineNamespace = "Unity.Cinemachine.";
