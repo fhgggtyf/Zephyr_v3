@@ -1,0 +1,39 @@
+[Probe] screen=960x540 canvasScale=1.0000 canvasRect=(960.0, 540.0)
+  Window active=True size=(820.0, 450.0) pos=(0.0, 0.0) screen=[(70, 45)..(890, 495)]
+  Window/Background active=True size=(820.0, 450.0) pos=(0.0, 0.0) screen=[(70, 45)..(890, 495)]
+      image color=RGBA(0.035, 0.050, 0.070, 0.985)
+  Window/LeftHalf active=True size=(370.0, 410.0) pos=(-205.0, 0.0) screen=[(90, 65)..(460, 475)]
+  Window/LeftHalf/PlayerName active=True size=(300.0, 32.0) pos=(0.0, 165.0) screen=[(125, 419)..(425, 451)]
+  Window/LeftHalf/Portrait active=True size=(250.0, 190.0) pos=(0.0, 54.0) screen=[(150, 229)..(400, 419)]
+      image color=RGBA(1.000, 1.000, 1.000, 1.000)
+  Window/LeftHalf/WeaponsTitle active=True size=(300.0, 28.0) pos=(0.0, -75.0) screen=[(125, 181)..(425, 209)]
+  Window/RightHalf active=True size=(390.0, 410.0) pos=(205.0, 0.0) screen=[(490, 65)..(880, 475)]
+  Window/RightHalf/Title active=True size=(350.0, 32.0) pos=(0.0, 175.0) screen=[(510, 429)..(860, 461)]
+  Window/RightHalf/PotentialButton active=True size=(145.0, 34.0) pos=(-92.0, 135.0) screen=[(521, 388)..(666, 422)]
+      image color=RGBA(0.200, 0.340, 0.480, 1.000)
+  Window/RightHalf/StatsButton active=True size=(145.0, 34.0) pos=(92.0, 135.0) screen=[(705, 388)..(850, 422)]
+      image color=RGBA(0.200, 0.340, 0.480, 1.000)
+  Window/RightHalf/CloseButton active=True size=(80.0, 28.0) pos=(140.0, -207.0) screen=[(785, 49)..(865, 77)]
+      image color=RGBA(0.200, 0.340, 0.480, 1.000)
+  Window/RightHalf/StatsViewport active=True size=(350.0, 280.0) pos=(0.0, -35.0) screen=[(510, 95)..(860, 375)]
+      image color=RGBA(0.055, 0.080, 0.100, 0.960)
+      mask showMaskGraphic=True
+  Window/RightHalf/StatsViewport/Content active=True size=(350.0, 1100.0) pos=(0.0, 0.0) screen=[(510, -725)..(860, 375)]
+  Window/RightHalf/StatsScrollbar active=True size=(12.0, 280.0) pos=(183.0, -35.0) screen=[(862, 95)..(874, 375)]
+      image color=RGBA(0.120, 0.160, 0.190, 0.850)
+      scrollbar value=1.000 size=0.2545 handle=(8.0, 71.3)
+  Window/RightHalf/StatsScrollbar/SlidingArea/Handle active=True size=(8.0, 71.3) pos=(0.0, 0.0) screen=[(864, 304)..(872, 375)]
+      image color=RGBA(0.320, 0.480, 0.620, 1.000)
+  WeaponTooltip active=True size=(280.0, 210.0) pos=(-94.5, -165.0) screen=[(245, 0)..(525, 210)]
+  WeaponTooltip/Background active=True size=(280.0, 210.0) pos=(0.0, 0.0) screen=[(245, 0)..(525, 210)]
+      image color=RGBA(0.030, 0.040, 0.060, 0.980)
+  WeaponTooltip/Name active=True size=(240.0, 28.0) pos=(0.0, 82.0) screen=[(265, 173)..(505, 201)]
+  WeaponTooltip/Icon active=True size=(56.0, 56.0) pos=(-108.0, 14.0) screen=[(249, 91)..(305, 147)]
+      image color=RGBA(1.000, 1.000, 1.000, 1.000)
+  WeaponTooltip/Details active=True size=(200.0, 120.0) pos=(24.0, -38.0) screen=[(309, 7)..(509, 127)]
+  scrollRect vertical=True vPos=1.000
+  scrollbar active=True
+  rows active=41 firstY=-14 lastY=-1039
+    row[0] AttackRow_1 active=False label='Attack' value='10'
+    row[1] MagicAttackRow_1 active=False label='Magic Attack' value='10'
+    row[2] ArmorRow_1 active=False label='Armor' value='10'

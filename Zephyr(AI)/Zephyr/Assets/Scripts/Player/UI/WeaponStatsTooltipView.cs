@@ -1,12 +1,16 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Zephyr.Core.Localization;
 using Zephyr.Core.Weapons;
 
 namespace Zephyr.Gameplay.Player.UI
 {
     public sealed class WeaponStatsTooltipView : MonoBehaviour
     {
+        private const string StatsFallback =
+            "Damage {0} x{1}\nSpeed {2}\nCrit {3}  Crit Dmg {4}\nPen {5} / {6}\n{7} | {8}";
+
         [SerializeField] private RectTransform _panel;
         [SerializeField] private Image _icon;
         [SerializeField] private Text _name;
@@ -14,6 +18,17 @@ namespace Zephyr.Gameplay.Player.UI
         [SerializeField] private Canvas _canvas;
 
         private Camera _uiCamera;
+        private ILocalizationGateway _localization;
+        private WeaponSO _currentWeapon;
+
+        public void Configure(ILocalizationGateway localization)
+        {
+            if (_localization == localization) return;
+            if (_localization != null) _localization.OnLocaleChanged -= HandleLocaleChanged;
+            _localization = localization;
+            if (_localization != null) _localization.OnLocaleChanged += HandleLocaleChanged;
+            if (gameObject.activeSelf && _currentWeapon != null) Show(_currentWeapon);
+        }
 
         private void Awake()
         {
@@ -23,6 +38,11 @@ namespace Zephyr.Gameplay.Player.UI
                 ? _canvas.worldCamera
                 : null;
             Hide();
+        }
+
+        private void OnDestroy()
+        {
+            if (_localization != null) _localization.OnLocaleChanged -= HandleLocaleChanged;
         }
 
         private void Update()
@@ -38,16 +58,30 @@ namespace Zephyr.Gameplay.Player.UI
                 return;
             }
 
+            _currentWeapon = weapon;
             if (_icon != null) _icon.sprite = weapon.Icon;
-            if (_name != null) _name.text = weapon.DisplayName;
+            if (_name != null)
+            {
+                _name.text = !string.IsNullOrWhiteSpace(weapon.DisplayNameLocalizationKey)
+                    ? (_localization?.GetOrFallback(weapon.DisplayNameLocalizationKey, weapon.DisplayName)
+                        ?? weapon.DisplayName)
+                    : weapon.DisplayName;
+            }
             if (_details != null)
             {
-                _details.text =
-                    $"Damage {weapon.BaseFlatDamage:F0}  x{weapon.BasePercentDamage:F2}\n" +
-                    $"Speed {weapon.BaseAttackSpeed:F2}\n" +
-                    $"Crit {weapon.BaseCritChance:P0}  Crit Dmg {weapon.BaseCritMultiplier:F2}\n" +
-                    $"Pen {weapon.BaseFlatPen:F0}  {weapon.BasePercentPen:P0}\n" +
-                    $"Element {weapon.ElementalType}  {weapon.Category}";
+                string flatDamage = weapon.BaseFlatDamage.ToString("F0");
+                string percentDamage = weapon.BasePercentDamage.ToString("F2");
+                string attackSpeed = weapon.BaseAttackSpeed.ToString("F2");
+                string critChance = weapon.BaseCritChance.ToString("P0");
+                string critMultiplier = weapon.BaseCritMultiplier.ToString("F2");
+                string flatPen = weapon.BaseFlatPen.ToString("F0");
+                string percentPen = weapon.BasePercentPen.ToString("P0");
+                _details.text = _localization != null
+                    ? _localization.Format("ui.weapon.tooltip.stats", StatsFallback,
+                        flatDamage, percentDamage, attackSpeed, critChance, critMultiplier,
+                        flatPen, percentPen, weapon.ElementalType, weapon.Category)
+                    : string.Format(StatsFallback, flatDamage, percentDamage, attackSpeed, critChance,
+                        critMultiplier, flatPen, percentPen, weapon.ElementalType, weapon.Category);
             }
 
             gameObject.SetActive(true);
@@ -55,6 +89,11 @@ namespace Zephyr.Gameplay.Player.UI
         }
 
         public void Hide() => gameObject.SetActive(false);
+
+        private void HandleLocaleChanged(LocaleId _)
+        {
+            if (gameObject.activeSelf && _currentWeapon != null) Show(_currentWeapon);
+        }
 
         private void FollowPointer()
         {

@@ -1,0 +1,128 @@
+Passed AddressableAssets.DocExampleCode.TestStub.RequiredTest (0.006s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.AudioAndCameraAssembliesAreIndependentFromLegacyCoreHost (0.003s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.DomainMigrationBridgesAreRemoved (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.EnemyDropsUseRoomGatewayAndSharedPoolContracts (0.002s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.LevelsAndInteractionDoNotReferenceConcretePlayerOrEnemyTypes (0.004s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.LocalizationTablesHaveMatchingKeySets (0.006s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.MainMenuViewConsumesPresentationDataInsteadOfLocalizationKeys (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.MetaHubInteractionsReceiveMetaGatewayFromSceneCompositionRoot (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.MigratedManagedReferencesDoNotUseLegacyAssemblies (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseABConsumersReferenceContractsDirectly (0.031s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseABContractsAssemblyIsExplicitAndDoesNotDependOnLegacyCore (0.009s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseCRuntimeAssemblyHasOnlyContractsDependency (0.007s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseCRuntimeConsumersReferenceRuntimeDirectly (0.021s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseDCombatAssemblyHasOnlyStableDependencies (0.007s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseDStatModifierBridgeLivesOutsideCombatImplementation (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseEFlowAndPersistenceSourceTreesRemainSeparated (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseEFlowAssemblyOwnsSceneIntegrationAndDependsDownward (0.003s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseEPersistenceAssemblyIsolatedFromRuntimeImplementations (0.004s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseFMetaAssemblyDependsOnlyOnStableCoreLayers (0.008s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseFMetaConsumersReferenceMetaDirectly (0.008s)
+Failed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseFMetaSourceDoesNotDependOnLegacyCoreImplementation (0.004s) ->   D:/GitHub/Zephyr_v3/Zephyr(AI)/Zephyr/Assets\Scripts\Core\Meta\MetaUpgradeSO.cs
+  Expected: not String containing "using Zephyr.Core;"
+  But was:  "using Zephyr.Core;
+using Zephyr.Core.Stats;
+using UnityEngine;
+
+namespace Zephyr.Core.Meta
+{
+    public enum MetaUpgradeTarget
+    {
+        BaseStat,
+        Combat,
+        PotentialBudget,
+        PotentialAllocatable
+    }
+
+    [CreateAssetMenu(fileName = "MetaUpgrade", menuName = "Zephyr/Meta/Upgrade")]
+    public sealed class MetaUpgradeSO : ScriptableObject
+    {
+        [SerializeField] private string _id;
+        [SerializeField] private string _displayNameKey;
+        [SerializeField] private string _descriptionKey;
+        [Min(0)] [SerializeField] private long _cost;
+        [SerializeField] private MetaUpgradeTarget _target;
+        [SerializeField] private StatModifierOperation _operation = StatModifierOperation.Add;
+        [SerializeField] private StatType _baseStatType = StatType.Attack;
+        [SerializeField] private MetaStatType _metaStatType = MetaStatType.CritChance;
+        [Tooltip("Legacy key for existing assets. Leave empty for new upgrades; the enum above will be used.")]
+        [SerializeField] private string _targetKey;
+        [SerializeField] private float _amount = 1f;
+        [SerializeField] private bool _repeatable;
+
+        public string Id => string.IsNullOrWhiteSpace(_id) ? name : _id;
+        public string DisplayNameKey => _displayNameKey;
+        public string DescriptionKey => _descriptionKey;
+        public long Cost => _cost;
+        public MetaUpgradeTarget Target => _target;
+        public StatModifierOperation Operation => _operation;
+        public StatType BaseStatType => _baseStatType;
+        public MetaStatType MetaStatType => _metaStatType;
+        public string TargetKey
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(_targetKey) && _targetKey != "default")
+                    return _targetKey;
+
+                if (_target == MetaUpgradeTarget.BaseStat)
+                    return _baseStatType.ToString();
+                if (_target == MetaUpgradeTarget.Combat)
+                    return _metaStatType.ToString();
+                return _targetKey;
+            }
+        }
+        public float Amount => _amount;
+        public bool Repeatable => _repeatable;
+    }
+}
+"
+
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseGCoreSplitCloseoutHasNoImplicitRuntimeCoreConsumers (0.097s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseGLegacyCoreHostHasBeenRemovedAndHasNoConsumers (0.005s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseOneLegacyCoreHostHasNoImplementationReferences (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseThreeContractNamespacesAreSemanticAndLegacyInterfaceNamespaceIsUnused (0.033s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseThreeOrchestratorsAreSeparatedFromControllerFacades (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseThreeUiAndSingletonBoundariesAreExplicit (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseTwoDomainAssembliesExistWithExpectedDirection (0.015s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseTwoEventBusGatewayKeepsRuntimeContractIndependent (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PhaseTwoGameManagerConsumersUseInjectedServicesOnly (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PickupAndDropBoundariesUseRuntimeContextsAndSharedPools (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PlayerSpawnerResolvesGameFlowOnceAtCompositionBoundary (0.000s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.PlayerTargetLifecycleContractIsPresent (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.RuntimeResourcesLoadIsNotUsedForServiceDependencies (0.038s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.RuntimeSceneLoadingHasOnlyApprovedAuthorities (0.081s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.RuntimeScriptsDoNotImportUnityEditorOutsideEditorFolders (0.119s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.RuntimeScriptsDoNotUseGlobalPlayerTagLookup (0.037s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.RuntimeScriptsDoNotUseLegacyGlobalGameObjectFind (0.037s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.SaveAndMetaGatewayBoundariesRemainNarrow (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.SaveMetaConsumersCacheInterfacesAtCompositionBoundaries (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.SceneLoaderDoesNotReferenceGameFlowBusinessLogic (0.000s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.SceneProgressionConsumersUseGatewayInsteadOfSingleton (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.SingletonOwnerScenesContainTheirDeclaredServiceObjects (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.SingletonServicesDeclareOwnerLifetimeAndReleaseStaticReferences (0.003s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.TutorialAndMetaHubEntrancesUseAuthoredBoundaries (0.001s)
+Passed Zephyr.Architecture.Tests.RuntimeEditorDependencyTests.UiLocalizationConsumersUseTheSharedGatewayBoundary (0.005s)
+Passed Zephyr.Architecture.Tests.StructuralArchitectureTests.AssemblyJsonParsingIgnoresFormattingAndUnrelatedStrings (0.002s)
+Passed Zephyr.Architecture.Tests.StructuralArchitectureTests.CallBudgetsRejectNewMethodsAndIncreasedCounts (0.004s)
+Passed Zephyr.Architecture.Tests.StructuralArchitectureTests.CallInspectionDetectsAliasesButIgnoresCommentsAndStrings (0.003s)
+Passed Zephyr.Architecture.Tests.StructuralArchitectureTests.CompiledScriptsHaveExplicitOwnersAndNoRuntimeEditorEdges (0.123s)
+Passed Zephyr.Architecture.Tests.StructuralArchitectureTests.DependencyGraphDetectsLongCyclesAndSelfReferences (0.001s)
+Passed Zephyr.Architecture.Tests.StructuralArchitectureTests.GuidAssemblyReferencesResolveToDeclaredNames (0.074s)
+Passed Zephyr.Architecture.Tests.StructuralArchitectureTests.IteratorCallsAreAttributedToTheirAuthoredMethod (0.002s)
+Failed Zephyr.Architecture.Tests.StructuralArchitectureTests.ProjectAssemblyGraphIsExplicitAcyclicAndReviewed (0.050s) ->   Dependency policy changed for Zephyr.Core.Flow; review the boundary and update the ledger.
+  Expected: equivalent to < "Zephyr.Core.Contracts", "Zephyr.Core.Runtime", "Zephyr.Core.Persistence", "Zephyr.Core.Meta", "Zephyr.Core.Localization", "Zephyr.Core.UI" >
+  But was:  < "Zephyr.Core.Contracts", "Zephyr.Core.Runtime", "Zephyr.Core.Persistence", "Zephyr.Core.Meta", "Zephyr.Core.Localization", "Zephyr.Core.UI", "Zephyr.Core.Camera" >
+
+Failed Zephyr.Architecture.Tests.StructuralArchitectureTests.RestrictedRuntimeCallsMatchReviewedMethodBudgets (0.084s) ->   Expected: <empty>
+  But was:  < "Unapproved call: Zephyr.Core.Flow.GameManagerBootstrap::Awake() -> Zephyr.Core.Flow.SceneLoader::get_Instance [Singleton] IL=81", "Unapproved call: Zephyr.Core.Flow.PersistentBootstrap::Awake() -> Zephyr.Core.Flow.GameFlow::get_Instance [Singleton] IL=72", "Unapproved call: Zephyr.Core.Flow.PersistentBootstrap::Awake() -> Zephyr.Core.Localization.LocalizationManager::get_Instance [Singleton] IL=84", "Unapproved call: Zephyr.Core.Flow.SceneLoader::UnloadSceneAsync(Zephyr.Core.Flow.SceneSO,Zephyr.Core.Flow.SceneSO) -> UnityEngine.SceneManagement.SceneManager::UnloadSceneAsync [SceneLoad] IL=85" >
+
+Passed Zephyr.Tests.EditMode.MainMenuUseCaseTests.ContinueGoesToTutorialBeforeTutorialCompletion (0.001s)
+Passed Zephyr.Tests.EditMode.MainMenuUseCaseTests.ContinueResumesRunAfterTutorialCompletion (0.000s)
+Passed Zephyr.Tests.EditMode.MainMenuUseCaseTests.MissingGatewayReturnsMainMenu (0.000s)
+Passed Zephyr.Tests.EditMode.StateTransitionTests.TransitionWithoutConditionsIsUnconditional (0.003s)
+Passed Zephyr.Tests.EditMode.StatsCoreTests.FourLayerFormulaAddsNumbersBeforeSummingPercentages (0.005s)
+Passed Zephyr.Tests.EditMode.StatsCoreTests.RunModifiersAreIncludedAndClearedAtRunStart (0.001s)
+Passed Zephyr.Tests.EditMode.StatsCoreTests.RuntimeStateRestoresRunLayersAndPotentialWithoutTemporaryModifiers (0.003s)
+
+TOTAL passed=59 failed=3 skipped=0 inconclusive=0

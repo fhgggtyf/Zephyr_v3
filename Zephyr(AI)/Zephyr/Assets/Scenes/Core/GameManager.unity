@@ -783,10 +783,6 @@ PrefabInstance:
       propertyPath: m_PreserveAspect
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 6830896662843507431, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 820
-      objectReference: {fileID: 0}
     - target: {fileID: 6880600478297990968, guid: 5f931376d8c98074bb274823cb69c20d, type: 3}
       propertyPath: m_Name
       value: PlayerStatusPanel

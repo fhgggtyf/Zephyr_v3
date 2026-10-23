@@ -9,6 +9,7 @@ using Zephyr.Core;
 using Zephyr.Core.Events;
 using Zephyr.Core.Flow;
 using Zephyr.Core.Health;
+using Zephyr.Core.Localization;
 using Zephyr.Core.Stats;
 using Zephyr.Core.UI;
 using Zephyr.Core.Weapons;
@@ -27,20 +28,44 @@ namespace Zephyr.Gameplay.Player.UI
         [SerializeField] private WeaponSlotHover _secondaryWeapon;
         [SerializeField] private WeaponStatsTooltipView _tooltip;
         [SerializeField] private Sprite _portraitSprite;
+        [SerializeField] private ScrollRect _scrollRect;
+        [SerializeField] private Scrollbar _scrollbar;
+        [SerializeField] private Text _title;
+        [SerializeField] private Text _potentialLabel;
+        [SerializeField] private Text _statsLabel;
+        [SerializeField] private Text _closeLabel;
+        [SerializeField] private Text _weaponsTitle;
         [SerializeField] private List<PlayerStatusValueRow> _rows = new List<PlayerStatusValueRow>();
 
         private IEventBusGateway _eventBus;
+        private ILocalizationGateway _localization;
         private StatsCore _stats;
         private HealthComponent _health;
         private PlayerResourceController _resources;
         private WeaponController _weapons;
         private bool _subscribed;
         private bool _isOpen;
+        private readonly Dictionary<PlayerStatusValueRow, string> _rowLabels = new Dictionary<PlayerStatusValueRow, string>();
 
         public void Configure(IGameManagerServices services)
         {
             if (_subscribed) _eventBus?.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerChanged);
+            _subscribed = false;
             _eventBus = services?.EventBus;
+
+            _localization = services?.Localization;
+            if (_localization != null)
+            {
+                _localization.OnLocaleChanged -= HandleLocaleChanged;
+                _localization.OnLocaleChanged += HandleLocaleChanged;
+            }
+
+            _primaryWeapon?.Configure(_localization);
+            _secondaryWeapon?.Configure(_localization);
+            _tooltip?.Configure(_localization);
+            RefreshRowLabels();
+            RefreshStaticText();
+
             if (_eventBus == null) return;
             _eventBus.Subscribe<PlayerTargetChangedEvent>(HandlePlayerChanged);
             _subscribed = true;
@@ -52,6 +77,7 @@ namespace Zephyr.Gameplay.Player.UI
             if (_portrait != null) _portrait.sprite = _portraitSprite;
             _rows.Clear();
             _rows.AddRange(GetComponentsInChildren<PlayerStatusValueRow>(true));
+            RefreshRowLabels();
             _potentialButton?.onClick.AddListener(ShowPotential);
             _statsButton?.onClick.AddListener(ShowStats);
             _closeButton?.onClick.AddListener(Close);
@@ -67,7 +93,44 @@ namespace Zephyr.Gameplay.Player.UI
         private void OnDestroy()
         {
             if (_subscribed) _eventBus?.Unsubscribe<PlayerTargetChangedEvent>(HandlePlayerChanged);
+            if (_localization != null) _localization.OnLocaleChanged -= HandleLocaleChanged;
             GameplayTimePause.SetModalOpen(this, false);
+        }
+
+        private void HandleLocaleChanged(LocaleId _)
+        {
+            RefreshRowLabels();
+            RefreshStaticText();
+            RefreshWeapons();
+            Refresh();
+        }
+
+        private void RefreshStaticText()
+        {
+            SetLabel(_title, "ui.player_status.title", "Player Status");
+            SetLabel(_potentialLabel, "ui.player_status.tab.potential", "Potential");
+            SetLabel(_statsLabel, "ui.player_status.tab.stats", "Stats");
+            SetLabel(_closeLabel, "common.close", "Close");
+            SetLabel(_weaponsTitle, "ui.player_status.weapons", "Weapons");
+        }
+
+        private void SetLabel(Text target, string key, string fallback)
+        {
+            if (target == null) return;
+            target.text = _localization != null ? _localization.GetOrFallback(key, fallback) : fallback;
+        }
+
+        private void RefreshRowLabels()
+        {
+            _rowLabels.Clear();
+            for (int i = 0; i < _rows.Count; i++)
+            {
+                PlayerStatusValueRow row = _rows[i];
+                if (row == null) continue;
+                _rowLabels[row] = _localization != null
+                    ? _localization.GetOrFallback("stat." + row.Key, row.Key)
+                    : row.Key;
+            }
         }
 
         private void HandlePlayerChanged(PlayerTargetChangedEvent change)
@@ -132,10 +195,18 @@ namespace Zephyr.Gameplay.Player.UI
         {
             foreach (PlayerStatusValueRow row in _rows)
             {
+                if (row == null) continue;
                 bool visible = potential ? row.Kind == PlayerStatusValueKind.Potential
                     : row.Kind != PlayerStatusValueKind.Potential;
                 row.gameObject.SetActive(visible);
             }
+
+            if (_scrollRect != null)
+            {
+                _scrollRect.vertical = !potential;
+                _scrollRect.verticalNormalizedPosition = 1f;
+            }
+            if (_scrollbar != null) _scrollbar.gameObject.SetActive(!potential);
         }
 
         private void Refresh()
@@ -144,7 +215,8 @@ namespace Zephyr.Gameplay.Player.UI
             {
                 if (row == null) continue;
                 float value = ReadValue(row);
-                row.Set(row.Key, value.ToString("0.##"));
+                string label = _rowLabels.TryGetValue(row, out string cached) ? cached : row.Key;
+                row.Set(label, value.ToString("0.##"));
             }
         }
 
