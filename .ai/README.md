@@ -157,6 +157,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\GitHub\Zephyr_v3\.ai\scri
 | `checklists/preflight.md` | 开工前检查 |
 | `checklists/unity-acceptance.md` | 编译/Console/测试/截图/UI/战斗 |
 | `checklists/architecture.md` | AGENTS.md §4.5/§4.6 浓缩门禁 |
+| `audits/` | UI/架构审计报告（实施依据） |
 | `templates/task-brief.md` | 任务简报（四件套 + 架构六问） |
 | `templates/dispatch.md` | 派单/回执/台账格式 |
 | `templates/handoff.md` | `§〇` 模板（≤4 KB） |

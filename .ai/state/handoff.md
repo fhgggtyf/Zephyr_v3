@@ -8,6 +8,7 @@
   3. `workflow(tier:1, plan, mode:'implement')` 只跑 Claude；
   4. 控制器审 diff + static-gate + `mcp__unityMCP__run_tests`；FAIL 用 `mode:'fix'` + `issues`；
   5. 收工跑 `tier-record.ps1` 记一行。
+- **当前待实施**：`.ai/audits/2026-10-24-player-status-ui.md`（PlayerStatusPanel UI，Tier 2，F1–F6；先按审计 §7 执行，不要做 P2）。
 - **UI 任务**：先做 Tier 0 审计（只看截图不改文件，输出具体 spec），再做小范围 Tier 2；传 `screenshots`，控制器/Claude/GPT 都能 `read_image`。
 - **卡点**：
   - 工作树有 100+ 未提交改动；`static-gate.ps1` 默认扫描全部改动时会被现有新敌人脚本的 `Zephyr.Core` 依赖误伤 ⇒ **必须用 `-Files` 任务范围模式**。
