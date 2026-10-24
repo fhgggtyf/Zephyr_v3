@@ -1,0 +1,3 @@
+Zephyr(AI)/Zephyr/Assets/Scenes/MainMenu/MainMenu.unity
+Zephyr(AI)/Zephyr/Assets/Resources/Localization/strings.en_US.json
+Zephyr(AI)/Zephyr/Assets/Resources/Localization/strings.zh_CN.json

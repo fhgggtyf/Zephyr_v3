@@ -21,6 +21,9 @@ const tier = args && args.tier !== undefined ? String(args.tier) : '';
 const scope = args && args.scope ? String(args.scope) : '(未提供，由计划推导)';
 const acceptance = args && args.acceptance ? String(args.acceptance) : '(未提供，按 AGENTS.md 第 7 节)';
 const brief = args && args.brief ? String(args.brief) : '';
+if (brief.length > 4000) {
+  return { ok: false, error: 'args.brief too long (max 4000 chars); compress it to <=10 lines' };
+}
 const maxRounds = Math.min(Math.max(Number(args && args.maxRounds) || 2, 1), 3);
 const mode = args && args.mode === 'fix' ? 'fix' : 'implement';
 const issues = Array.isArray(args && args.issues) ? args.issues.map(String) : [];
@@ -73,7 +76,7 @@ ${brief || '(未提供；实现者只按下面的紧凑计划执行)'}
 Unity 工具路由：测试运行用 mcp__unityMCP__run_tests；其他 Unity 操作只用 mcp__unity_mcp__*；图片生成用 mcp__unityMCP__*，但当前禁用。
 安全：不 git reset / checkout / clean / stash；不 commit；不改任务外文件；保留用户已有未提交改动。
 路径：读写可以用绝对路径；返回的 files/changedFiles 必须用仓库相对路径（从 ${ROOT} 起），不要绝对路径。
-视觉证据：${screenshots.length ? screenshots.join(' | ') : '(未提供)'}。涉及 UI/画面时先用 read_image 看这些路径；输入图只读，不要修改/移动/覆盖。
+视觉证据：${screenshots.length ? screenshots.join(' | ') : '(未提供)'}。涉及 UI/画面时先用 read_image 看这些路径；输入图只读，不要修改/移动/覆盖。图片预算：实现者最多 2 张（input + 1 张 before），评审最多 4 张；不要读 results 下全部截图。
 截图规则：AI 生成图必须存到 ${resultsDir || '(未提供；有任务文件夹时用 <任务文件夹>/results)'}（不存在就创建）；命名 [yyyyMMdd_HHmmss]_[stage]_[场景名]_[说明].png，stage 用 audit/before/after/review/final。
 流程产物白名单：.ai/ledger/**、.ai/state/**、.ai/snapshots/**、.ai/reports/**、.ai/audits/**、Assets/MCPTest/Screenshots/<任务文件夹>/results/** 是强制流程产物，不算实现范围；只有 plan.files 之外的其他文件才算越界。`;
 
@@ -157,8 +160,8 @@ function compactPlan(plan) {
 function implementationPrompt(plan) {
   return `${common}
 
-你是实现者。先读 ${AI}\\roles\\implementer.md 和 ${ROOT}\\AGENTS.md。
-只按任务简报 + 紧凑计划实现；不要复述审计，不要扩大范围；需要细节只读计划列出的文件。
+你是实现者。先读 ${AI}\\roles\\implementer.md；AGENTS.md 只读 §4.4/§6.2/§10/§11（用 grep/offset，不要全文读）。
+只按任务简报 + 紧凑计划实现；不要复述审计；只读 plan.files 相关段，不读全仓；不要扩大范围；需要细节只读计划列出的文件。
 保持最小 diff；不要 commit。
 Unity 资产/场景操作只用 mcp__unity_mcp__*，并在每次操作后查 Console、必要时截图。
 如果任务涉及 UI/画面：先 read_image 看视觉证据；改完后用 Unity MCP 截图，存到 resultsDir（不存在就创建），把 PNG 路径写进 evidence；不要手写 Unity 序列化 YAML。
@@ -170,7 +173,7 @@ ${JSON.stringify(compactPlan(plan), null, 2)}`;
 function reviewPrompt(plan, implementation) {
   return `${common}
 
-你是独立评审。先读 ${AI}\\roles\\reviewer.md 和 ${ROOT}\\AGENTS.md。
+你是独立评审。先读 ${AI}\\roles\\reviewer.md；AGENTS.md 只读 §4.4/§6.2/§9/§10/§11（grep/offset，不要全文）。
 只根据任务简报、紧凑计划、实现结果和证据评审；不要看实现者的解释或思维过程；不要改文件、不要提交。
 范围判定：只把 plan.files 里的任务文件算实现范围；process artifacts（ledger/state/reports/results）不算越界。不要用 git status 把流程产物当阻塞项。
 如果实现 evidence 里有截图路径，先用 read_image 看 before/after；确认路径在 resultsDir，输入图只读；检查 960x540、裁切、本地化、层级。
@@ -334,8 +337,8 @@ while (round < maxRounds) {
 
   implementation = await agent(`${common}
 
-你是实现者。先读 ${AI}\\roles\\implementer.md 和 ${ROOT}\\AGENTS.md。
-只按任务简报 + 紧凑计划实现；不要复述审计，不要扩大范围；需要细节只读计划列出的文件。
+你是实现者。先读 ${AI}\\roles\\implementer.md；AGENTS.md 只读 §4.4/§6.2/§10/§11（用 grep/offset，不要全文读）。
+只按任务简报 + 紧凑计划实现；不要复述审计；只读 plan.files 相关段，不读全仓；不要扩大范围；需要细节只读计划列出的文件。
 保持最小 diff；不要 commit。
 Unity 资产/场景操作只用 mcp__unity_mcp__*，并在每次操作后查 Console、必要时截图。
 如果任务涉及 UI/画面：先 read_image 看视觉证据；改完后用 Unity MCP 截图，存到 resultsDir（不存在就创建），把 PNG 路径写进 evidence；不要手写 Unity 序列化 YAML。

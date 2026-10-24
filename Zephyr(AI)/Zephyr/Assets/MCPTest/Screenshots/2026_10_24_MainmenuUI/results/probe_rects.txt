@@ -1,0 +1,42 @@
+# MainMenu UI layout probe (960x540 baseline)
+Task: 2026_10_24_MainmenuUI — MainMenuUI layout / newline / background Tier 2 fix
+Tool: Editor probe via mcp__unity_mcp__Unity_RunCommand (read-only), after scene save + AssetDatabase.Refresh
+Scene: Assets/Scenes/MainMenu/MainMenu.unity (Edit Mode)
+
+## RectTransform / Image readback (after)
+
+MainMenuUI            aMin=0.50,0.50 aMax=0.50,0.50 pos=480,270  size=960x540  rect=960x540
+  Background          aMin=0.50,0.50 aMax=0.50,0.50 pos=0,0   size=960x540 | IMG sprite=MainMenuBackground_0 preserveAspect=1 type=0(Simple) color=FFFFFFFF active=1
+    AlothaiPortraitBackdrop  aMin=1.00,0.50 aMax=1.00,0.50 pos=-180,0 size=620x620 | IMG sprite=AlothaiPortrait active=0
+  Menu                aMin=0.50,0.50 aMax=0.50,0.50 pos=0,0   size=380x500
+  SaveSlotOverlay     aMin=0,0 aMax=1,1 size=0x0 rect=960x540 (inactive in edit mode)
+    SaveSlotPanel     aMin=0.50,0.50 aMax=0.50,0.50 pos=0,0  size=900x500
+      Title           aMin=0.50,1.00 aMax=0.50,1.00 pos=0,-34 size=840x42
+      Status          aMin=0.50,0.00 aMax=0.50,0.00 pos=0,100 size=840x44
+      Close           aMin=0.50,0.00 aMax=0.50,0.00 pos=0,32  size=190x38   (unchanged)
+      SaveSlot1       aMin=0.50,0.50 aMax=0.50,0.50 pos=-285,26 size=260x240
+        Title         pos=0,-28  size=230x38
+        Details       pos=0,19   size=224x86
+        Primary       aMin=0.50,0 aMax=0.50,0 pos=0,62  size=214x40
+        Delete        aMin=0.50,0 aMax=0.50,0 pos=0,20  size=214x34
+      SaveSlot2       pos=0,26    size=260x240
+        Details       pos=0,19    size=224x86
+      SaveSlot3       pos=285,26  size=260x240
+        Details       pos=0,19    size=224x86
+
+## Geometry check (canvas 960x540, panel centre 480,270)
+
+Background rect   : 960x540 centred at (480,270) -> Image draws 540x540 (1:1 sprite, preserveAspect), no stretch
+SaveSlot cards    : top y=416, bottom y=176 (before: top 416, bottom 116)
+Details box       : y 272..358 inside card (card bottom 176, card title bottom 369)
+Status text       : y 98..142  (slot cards bottom 176 / Close top 71) -> no overlap with Close, not pinned to bottom
+Close button      : y 33..71 (unchanged)
+
+## Runtime text check (Play Mode, Initializer -> Persistent -> MainMenu)
+
+EN Details (Slot 1): 'Profile 73ac1b3f<LF>No active run<LF>Last played: 2026-10-23 22:48'
+ZH Details (Slot 1): '档案 73ac1b3f<LF>无进行中的冒险<LF>上次游玩：2026-10-23 22:48'
+ZH Status          : '所有存档位均已占用。请先删除一个存档，再创建新存档。'
+=> real line feeds (3 lines), no literal backslash-n
+
+## Console after edits/save: errorCount=0 warningCount=0

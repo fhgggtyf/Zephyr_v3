@@ -19,7 +19,7 @@
   "menu.save.slot": "Slot {0}",
   "menu.save.empty": "Empty Slot",
   "menu.save.create": "Create Save",
-  "menu.save.details": "Profile {0}\\n{1}\\nLast played: {2}",
+  "menu.save.details": "Profile {0}\n{1}\nLast played: {2}",
   "menu.save.run.in_progress": "Run in progress",
   "menu.save.run.none": "No active run",
   "menu.save.delete.title": "Delete Save",

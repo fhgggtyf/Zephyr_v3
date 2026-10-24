@@ -34,7 +34,7 @@
 
 如果 `run_tests` 不可用/超时：记录为阻塞；可以用 `mcp__unity_mcp__Unity_RunCommand` 调项目测试入口兜底，但不得把其他 Unity 操作切到新 MCP。
 
-**已知失败**：当前有 3 个历史失败正在修（`PhaseFMeta...`、`ProjectAssemblyGraph...`、`RestrictedRuntimeCalls...`）。报告里注明“历史、非本单”；不要把它们算成本单新增回归。
+**测试判定**：EditMode 应全绿；PlayMode 若命中已知既有失败，需 A/B 证明不是本单回归；其余失败一律按回归处理，不许写“测试全绿”。
 
 ## 4. 场景 / Prefab / SO
 

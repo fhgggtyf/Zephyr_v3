@@ -115,7 +115,7 @@
 - `tier` 缺失/非法：直接返回，不花模型调用；
 - Tier 1 缺 `plan` 且没开 `gptPlan`：直接返回错误，不花模型调用；
 - `tier: 0`：直接返回，不产生子代理；
-- `agent()` 失败返回 `null`，脚本返回 `ok:false`；
+- `agent()` 失败返回 `null`，脚本返回 `ok:false`；控制器要查原始错误：524 等 120s 重试一次，400 `prompt is too long` 要缩 brief/plan/截图或直接 fallback，不要按 524 连撞；`I'm ready...` 这类退化响应视为失败；
 - Tier 2 架构师判 `architecture-special`：实现前返回，不写文件；
 - 脚本本身不能读文件/跑命令；所有读写由子代理完成。
 

@@ -13,6 +13,7 @@
 
 - [ ] `git diff -- <scene>` 是否为空；若有覆盖，逐条列：`m_AnchoredPosition` / anchors / `m_PreserveAspect` / `m_LocalScale`
 - [ ] 只回退审计明确点名的覆盖；其他“看起来也脏”的覆盖不动，记入残余风险
+- [ ] 场景/Prefab 引用的新 sprite / material / font 是否已跟踪？`plan.files` 必须包含资产 + `.meta` + folder `.meta`；`git ls-files` 为空就是未跟踪，提交会丢引用
 - [ ] Unity 6 的 `PrefabUtility.RevertPropertyOverride` 只接受 `SerializedProperty`：`new SerializedObject(rt).FindProperty("m_AnchoredPosition.y")`
 
 ## 3. Prefab 常见坑
@@ -34,7 +35,7 @@
 - [ ] Prefab/场景/Console 只用旧 `mcp__unity_mcp__*`
 - [ ] `Unity_RunCommand` 动态脚本禁 `using System.Reflection;` / `using System.IO;` / `BindingFlags`；`Image` 写全限定 `UnityEngine.UI.Image`；if/else 必须完整大括号
 - [ ] `mcp__unityMCP__run_tests` 超时 → 旧 MCP 里一次性 Editor `TestRunnerApi`；记录 `probe_tests.txt`
-- [ ] 3 个历史失败正在修；报告里注明，不算本单新增失败
+- [ ] 3 个历史失败已修；`run_tests` 应全绿，失败即回归
 
 ## 6. Recon Brief（≤10 行，写完就派单）
 

@@ -19,7 +19,7 @@
   "menu.save.slot": "存档位 {0}",
   "menu.save.empty": "空存档位",
   "menu.save.create": "创建存档",
-  "menu.save.details": "档案 {0}\\n{1}\\n上次游玩：{2}",
+  "menu.save.details": "档案 {0}\n{1}\n上次游玩：{2}",
   "menu.save.run.in_progress": "冒险进行中",
   "menu.save.run.none": "无进行中的冒险",
   "menu.save.delete.title": "删除存档",

@@ -41,11 +41,11 @@
 
 - `static-gate.ps1 -Files <7 文件>`：本次运行 **FAIL 3 / WARN 2**；3 个 FAIL 全是 `using Zephyr.Core.Localization;` 被旧正则 `using\s+Zephyr\.Core\b` 误判。**已修复**为 `using\s+Zephyr\.Core\s*;`，并加 `-SelfTest`；复跑 7 文件 = PASS / WARN 2。
 - `review` verdict = **FAIL**，但 blocking 只有“工作区超出 7 文件”（`.ai/ledger` + `results/` 强制产物）；功能项全部 non-blocking。评审还纠正了审计的两处 spec 误差：Tooltip Background 实际是 sibling 0；F5 anchors 因 `Scrollbar.UpdateVisuals()` 无法序列化，运行时意图已满足。
-- 已知 3 个历史失败（正在修，不算本单回归）：
+- 本单运行记录（修复前）：59 passed / 3 failed；3 个失败已在工作树修复（`MetaUpgradeSO` + Camera 相关），下次 `run_tests` 应全绿，失败即回归：
   - `PhaseFMetaSourceDoesNotDependOnLegacyCoreImplementation`
   - `ProjectAssemblyGraphIsExplicitAcyclicAndReviewed`
   - `RestrictedRuntimeCallsMatchReviewedMethodBudgets`
-- 注意：工作树里 `MetaUpgradeSO.cs` 已删 `using Zephyr.Core;`（1 行，不在本单 7 文件内）。若保留，复跑确认第一条不再失败；当前仍按 3 条历史失败记录。
+- 注意：`MetaUpgradeSO.cs` 已删 `using Zephyr.Core;`（1 行，不在本单 7 文件内）；这是修复的一部分。
 
 ## 5. 残余风险
 
@@ -58,13 +58,13 @@
 ## 6. 提交 / 产物
 
 - commit：HEAD **`ce7c123 Fixed some UI`** 已包含 7 个 UI 文件、`results/` 截图、`.ai/ledger`、`.ai/state/handoff`；本报告是提交后补的。
-- 当前工作树：`.ai` 流程改动 + `AGENTS.md` + `MetaUpgradeSO.cs` 1 行（删 `using Zephyr.Core;`，非本单 7 文件）。`MetaUpgradeSO.cs` 不是本单改的，需要你确认是保留还是还原。
+- 当前工作树：`.ai` 流程改动 + `AGENTS.md` + 3 个历史失败的修复（`MetaUpgradeSO.cs`、`CameraController.cs`、`Zephyr.Core.Camera.asmdef`、新增 `ICameraShakeGateway.cs`）未提交。
 - `.ai/reports`、`.ai/scripts/workflow-guard.ps1`、`.ai/checklists/ui-recon.md`、`.ai/templates/task-summary.md` 为新增，未提交。
 - 快照：`.ai/snapshots/20261024-003956-before-player-status-ui/`。
 
 ## 7. 下一步
 
-1. 决定 `MetaUpgradeSO.cs` 1 行：若有意修这个历史失败，保留并复跑确认第一条不再失败；否则还原。
+1. 复跑 `run_tests` 确认 3 个历史失败已消失；把这批修复单独 commit（不混 UI 单）。
 2. `.ai` 流程改动单独提交，不混 UI 单。
 3. 下一单 Tier 2 传 `plan` + `brief` 跳过 Astra；实现者只收紧凑计划。
 4. P2 另开单，不混进本 UI 单。

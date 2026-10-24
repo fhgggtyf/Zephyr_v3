@@ -64,7 +64,7 @@
 1. **Tier 1 自评审**：对着 task brief / acceptance 审，不对着自己的计划审；先看工具证据，再看 diff；只审越界/漏测/违反硬规则。发现需要架构判断 → 当场升 Tier 2。
 2. `powershell -NoProfile -ExecutionPolicy Bypass -File .ai\scripts\static-gate.ps1 -SelfTest` → 必须 PASS；再跑 `-Files <implementation.changedFiles>` → 必须 PASS
 3. Unity 编译 / Console：`Unity_GetConsoleLogs`，Error 必须为 0；Warning 逐条说明
-4. EditMode / PlayMode / 架构测试：用 `mcp__unityMCP__run_tests`（不需要申请）；其他 Unity 操作仍用 `mcp__unity_mcp__*`；3 个历史失败正在修，报告里注明，不算本单回归
+4. EditMode / PlayMode / 架构测试：用 `mcp__unityMCP__run_tests`（不需要申请）；其他 Unity 操作仍用 `mcp__unity_mcp__*`；3 个历史失败已修，测试失败即回归
 5. 场景/UI 截图：有任务文件夹 → `Assets/MCPTest/Screenshots/<任务文件夹>/results/`（不存在就建）；没有才用全局 `Assets/MCPTest/Screenshots/`；输入图只读；命名 `[yyyyMMdd_HHmmss]_[stage]_[场景]_[说明].png`
 6. Prefab/SO：根对象、组件、引用、Animator、Collider、材质、GUID
 7. UI：`960 x 540`、本地化 Key、中英文 fallback、before/after 截图
@@ -110,6 +110,8 @@ git -C D:\GitHub\Zephyr_v3 commit -m "<type>(<scope>): <一句话>"
 | 情况 | 动作 |
 |---|---|
 | GPT/Claude 调用失败 | Claude 524/120s：等 120s 重试 1 次；仍失败按 fallback 用 GPT-astra 或 DeepSeek 完成本轮，并在汇报里标明“本轮非目标模型”；不要原样连撞 |
+| Claude 400 `prompt is too long` / `CONTEXT_WINDOW_EXCEEDED` | **不要按 524 重试**；压缩 brief/plan、把 screenshots 减到 2 张、AGENTS 只读相关节；仍超限就 fallback Astra/DeepSeek |
+| Claude 返回 `I'm ready...` / 空响应 | 视为失败，不重试同一 payload；直接 fallback，并记录 provider 原始错误 |
 | `workflow-guard.ps1 -Mode post` exit 1 | 有子代理改了 workflow，护栏已还原；汇报里记录，并检查 `.ai/roles` / `.ai/scripts` 是否也被改 |
 | `run_tests` 超时 | 旧 MCP 一次性 Editor `TestRunnerApi` 兜底；把 `probe_tests.txt` 写进 results；不得把其他 Unity 操作切到新 MCP |
 | 常驻 worker 失联/漂移 | `list_agents` 查状态；必要时重建 `worker-deepseek`，旧的不再复用 |

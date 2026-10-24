@@ -166,6 +166,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\GitHub\Zephyr_v3\.ai\scri
 | `audits/` | UI/架构审计报告（实施依据） |
 | `reports/` | 每单最终总结文档 |
 | `templates/task-brief.md` | 任务简报（四件套 + 架构六问） |
+| `templates/ui-fix.md` | UI 修复/优化任务模板（审计 → Tier 2） |
+| `templates/ui-fix-direct.md` | UI 修复/优化模板（问题明确，直接 Tier 2） |
+| `templates/tmp-migration.md` | MainMenu TMP 渐进迁移模板（当前场景，分批） |
 | `templates/task-summary.md` | 最终总结模板 |
 | `templates/dispatch.md` | 派单/回执/台账格式 |
 | `templates/handoff.md` | `§〇` 模板（≤4 KB） |
@@ -210,6 +213,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\GitHub\Zephyr_v3\.ai\scri
 | 测试运行路由 | AGENTS.md §10 明确例外：测试用 `mcp__unityMCP__run_tests`；其他操作仍用旧 MCP；不得因测试失败切换其他操作 |
 | `subagent` 工具没有 model 参数 | 常驻只对 DeepSeek 成立；GPT/Claude 走 workflow 一次性调用 |
 | 子代理越权改 workflow | 调用前后跑 `workflow-guard.ps1`；post exit 1 = 已还原，写进汇报 |
+| 场景引用未跟踪的新 sprite/font | `plan.files` 必须列资产 + `.meta` + folder `.meta`；`git ls-files` 检查；提交时一并 stage |
+| Claude 400 `prompt is too long` | 不要按 524 重试；缩 brief/plan、截图最多 2 张、AGENTS 只读相关节；仍超限 fallback Astra/DeepSeek |
 | `static-gate` 曾把 `Zephyr.Core.*` 专用命名空间误判 | 已改为只匹配 `using Zephyr.Core;`；先跑 `-SelfTest` |
 | Tier 1 lean 的自评审有边界 | 只审越界/漏测/违反硬规则；工具门禁优先；发现需要架构判断 → 升 Tier 2；用 `tier-report.ps1` 盯漂移 |
 | AGENTS.md §6.1 写的状态路径是 `D:\GitHub\Zephyr\Test\_Status.md` | 实际仓库是 `D:\GitHub\Zephyr_v3\Test\_Status.md`；写实际存在的那个并注明 |
